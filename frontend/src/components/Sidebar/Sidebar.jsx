@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const SidebarContainer = styled.div`
   width: 250px;
@@ -7,7 +7,7 @@ const SidebarContainer = styled.div`
   background-color: var(--background-main);
   position: fixed;
   top: 0;
-  left: ${({ isOpen }) => (isOpen ? "0" : "-250px")};
+  left: ${({ isOpen }) => (isOpen ? "0" : "-255px")};
   transition: left 0.3s ease;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -20,6 +20,8 @@ const SidebarItem = styled(Link)`
   padding: 15px 20px;
   color: var(--text-primary);
   text-decoration: none;
+  background-color: ${({ active }) => (active ? "var(--general-bg-light)" : "transparent")};
+  color: ${({ active }) => (active ? "white" : "black")};
   transition: background 0.3s;
 
   &:hover {
@@ -39,21 +41,34 @@ const CloseButton = styled.button`
 `;
 
 export default function Sidebar({ isOpen, toggleSidebar, role }) {
+  const location = useLocation();
+
   return (
     <SidebarContainer isOpen={isOpen}>
       <CloseButton onClick={toggleSidebar}>×</CloseButton>
       {role === "host" ? (
         <>
-          <SidebarItem to="/host/dashboard">Dashboard</SidebarItem>
-          <SidebarItem to="/host/events">My Events</SidebarItem>
-          <SidebarItem to="/host/settings">Settings</SidebarItem>
+          <SidebarItem to="/host/dashboard" active={location.pathname === "/host/dashboard"} onClick={() => toggleSidebar()}>
+            Dashboard
+          </SidebarItem>
+          <SidebarItem to="/host/events" active={location.pathname === "/host/events"} onClick={() => toggleSidebar()}>
+            My Events
+          </SidebarItem>
+          <SidebarItem to="/host/settings" active={location.pathname === "/host/settings"} onClick={() => toggleSidebar()}>
+            Settings
+          </SidebarItem>
         </>
       ) : (
         <>
-          <SidebarItem to="/user">Home</SidebarItem>
-          <SidebarItem to="/user/settings">Settings</SidebarItem>
+          <SidebarItem to="/user" active={location.pathname === "/user"} onClick={() => toggleSidebar()}>
+            Home
+          </SidebarItem>
+          <SidebarItem to="/user/settings" active={location.pathname === "/user/settings"} onClick={() => toggleSidebar()}>
+            Settings
+          </SidebarItem>
         </>
       )}
     </SidebarContainer>
   );
 }
+

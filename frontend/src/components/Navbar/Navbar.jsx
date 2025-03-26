@@ -103,6 +103,11 @@ const MenuIcon = styled.div`
 const BurgerMenuIcon = styled.div`
   font-size: 24px;
   cursor: pointer;
+  transition: color 0.3s ease-in-out;
+
+  &:hover{
+  color: var(--general-bg-base);
+  }
 `;
 
 const Tab = styled(Link)`
