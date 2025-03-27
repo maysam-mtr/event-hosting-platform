@@ -1,3 +1,1 @@
 # event-hosting-platform
-
-hello
