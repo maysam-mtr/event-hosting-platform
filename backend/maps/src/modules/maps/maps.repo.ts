@@ -1,0 +1,28 @@
+import { DB } from '@database/index'
+import { Map } from '@interfaces/map.interface'
+
+export const repo = {
+    getMaps: async (): Promise<Map[]> => {
+        return await DB.Maps.findAll()
+    },
+    getMapById: async (id: string): Promise<Map | null> => {
+        return await DB.Maps.findByPk(id)
+    },
+    createMap: async (mapData: Map): Promise<Map> => {
+        return await DB.Maps.create(mapData)
+    },
+    updateMap: async (id: string, mapData: Partial<Map>): Promise<[number, Map[]]> => {
+        return await DB.Maps.update(mapData, {
+            where: { id },
+            returning: true
+        })
+    },
+    deleteMap: async (id: string) => {
+        return await DB.Maps.destroy({
+        where: { id }
+        });
+    }
+}
+
+
+
