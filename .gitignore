@@ -28,12 +28,12 @@ dist/
 out/
 build/
 
-# Environment variables
-.env
-.env.local
-.env.development
-.env.production
-.env.test
+# # Environment variables
+# .env
+# .env.local
+# .env.development
+# .env.production
+# .env.test
 
 # Cache files
 .cache/
