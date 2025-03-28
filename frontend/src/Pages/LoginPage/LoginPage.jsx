@@ -34,7 +34,7 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const Form = styled.form`
+const Form = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -123,7 +123,11 @@ export default function LoginPage(){
 
       setUser(response.user)
       localStorage.setItem("user", JSON.stringify(response.user));
-      navigate('/user/home', {replace: true});
+      if(response.user.role.name == 'user'){
+        navigate('/user', {replace: true});
+      }else if(response.user.role.name == 'host'){
+        navigate('/host', {replace: true});
+      }
     }
 
     return (
@@ -139,7 +143,7 @@ export default function LoginPage(){
                 </label>
                 <Link href="#">Forgot password?</Link>
               </CheckboxContainer> */}
-              <Button type="submit" onClick={onLoginClick}>Login</Button>
+              <Button onClick={onLoginClick}>Login</Button>
             </Form>
             <Footer>
               Don’t have an account yet? <SignUpLink to="/signup">Sign up</SignUpLink>

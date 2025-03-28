@@ -1,30 +1,21 @@
 import { Outlet } from "react-router-dom";
-//import SidebarAdmin from "../components/Sidebar/SidebarAdmin/SidebarAdmin";
-//import Navbar from "../components/Navbar/Navbar";
 import { useState } from "react";
 import { MainContainer, MainSection, BodySection } from "./LayoutDefault";
 import NavBar from "../components/Navbar/Navbar";
-
-//transform: ${({ isOpen }) => (isOpen ? 'translateX(0)' : 'translateX(-100%)')}; for sidebarr
+import Sidebar from "../components/Sidebar/Sidebar";
 
 export default function LayoutHost() {
-//   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-//   const toggleSidebar = () => {
-//     setIsSidebarOpen(prevState => !prevState);
-//   };
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
 
   return (
       <MainContainer>
-        <NavBar/>
-        <MainSection>
-          {/* <SidebarAdmin isOpen={isSidebarOpen} /> */}
-          <BodySection
-            //style={{ overflow: 'auto', marginLeft: isSidebarOpen ? '248px' : '0', transition: 'margin-left 0.3s ease' }}
-          >
-            <Outlet />
-          </BodySection>
-        </MainSection>
+        <NavBar mode={'host'} toggleSidebar={toggleSidebar}/>
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} role="host" />
+        <BodySection style={{ marginLeft: isSidebarOpen ? "250px" : "0", transition: "margin-left 0.3s ease" }}>
+          <Outlet />
+        </BodySection>
       </MainContainer>
   );
 }

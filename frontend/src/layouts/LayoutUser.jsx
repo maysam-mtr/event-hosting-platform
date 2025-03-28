@@ -1,18 +1,3 @@
-// import { Outlet } from "react-router-dom";
-// import { BodySection, MainContainer } from "./LayoutDefault";
-// import NavBar from "../components/Navbar/Navbar";
-
-// export default function LayoutUser() {
-//     return(
-//         <MainContainer>
-//             <NavBar mode={'user'}/>
-//             <BodySection>
-//                 <Outlet/>
-//             </BodySection>
-//        </MainContainer>
-//     )
-// }
-
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { BodySection, MainContainer } from "./LayoutDefault";

@@ -13,6 +13,7 @@ import PricingPage from "../Pages/PricingPage/PricingPage";
 import ContactUsPage from "../Pages/ContactUsPage/ContactUsPage";
 import HomePage from "../Pages/UserPortal/HomePage/HomePage";
 import SettingsPage from "../Pages/UserPortal/SettingsPage/SettingsPage";
+import HostHomePage from "../Pages/HostPortal/HostHomePage/HostHomePage";
 
 export const Router = createBrowserRouter([
     {
@@ -67,8 +68,8 @@ export const Router = createBrowserRouter([
                 element : <LayoutHost/>,
                 children: [
                     {
-                        //path: '/superadmin/',
-                        //element: <UsersPage/>,
+                        path: '',
+                        element: <HostHomePage/>,
                     },
                 ]
             },
@@ -93,23 +94,4 @@ export const Router = createBrowserRouter([
             },
         ]
     }, 
-    // { 
-    //     path : "/partner",
-    //     element : <RoleProtectedRoute requiredRole={"partner"} />,
-    //     children : [
-    //         {
-    //             //element : <UserLayout/>,
-    //             children: [
-    //                 {
-    //                     path: '/superadmin/',
-    //                     //element: <UsersPage/>,
-    //                 },
-    //                 {
-    //                     path: '/superadmin/invites',
-    //                     //element: <InvitesPage/>,
-    //                 },
-    //             ]
-    //         },
-    //     ]
-    // }, 
 ])

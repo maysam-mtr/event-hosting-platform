@@ -8,6 +8,7 @@
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Mochiy Pop One', sans-serif;
+  /* font-family: 'Changa One', sans-serif;  */
 }
 
 :root {
@@ -15,8 +16,6 @@ h1, h2, h3, h4, h5, h6 {
   --general-bg-base: #EB5306;
   --general-bg-base-hover: #d94c04;
   --general-bg-dark: #BC4204;
-  --main-color: #df2020;
-  --secondary-color: #df2020cc;
   --text-background: #ffffff;
   --text-second: #374151;
   --text-secondary:#858585;

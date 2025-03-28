@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { media } from "../../Pages/LandingPage/LandingPage";
+import logo from '../../assets/logo1.png';
 
 const NavbarContainer = styled.div`
   width: 100%;
@@ -86,8 +87,10 @@ export const Button2 = styled.button`
   }
 `;
 
-const LogoContainer = styled.div`
-  display: flex;
+const LogoContainer = styled.img`
+  max-height: 100px;
+  max-width: 200px;
+  padding: 20px;
 `;
 
 const MenuIcon = styled.div`
@@ -125,6 +128,14 @@ color: var(--general-bg-light);
 
 `;
 
+const NavbarContent = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  justify-content: space-between;
+`;
+
 export default function NavBar({ mode, toggleSidebar }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -139,6 +150,12 @@ export default function NavBar({ mode, toggleSidebar }) {
     navigate('/signup', {replace: true});
   }
 
+  const onLogoutClick = () => {
+    localStorage.removeItem("user");
+    // navigate('/', {replace: true});
+    window.location.href = "/"; 
+  }
+
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const renderNavbarContent = () => {
@@ -146,9 +163,10 @@ export default function NavBar({ mode, toggleSidebar }) {
       case 'guest': 
             return (
               <>
-                <LogoContainer>
-                  <p>Logo</p>
-                </LogoContainer>
+                <LogoContainer
+                  src={logo}
+                  alt="logo"/>
+                  
                 <ButtonsWrapper>
                   {/* Page Links */}
                   <PagesContainer>
@@ -168,22 +186,35 @@ export default function NavBar({ mode, toggleSidebar }) {
                 </ButtonsWrapper>
               </>
             );
-
+      case "host":
       case "user": 
             return(
-              <>
-                <BurgerMenuIcon onClick={toggleSidebar}>☰</BurgerMenuIcon>
-                <LogoContainer style={{alignItems: 'center', justifyContent: 'center', width: '100%'}}>
-                    <p>Logo</p>
-                </LogoContainer>
-              </>
+              <NavbarContent>
+                <BurgerMenuIcon onClick={toggleSidebar} >☰</BurgerMenuIcon>
+                <LogoContainer
+                  src={logo}
+                  alt="logo"
+                />
+                <Button1 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button1>
+              </NavbarContent>
             );
+      // case "host": 
+      //       return(
+      //         <NavbarContent>
+      //           <BurgerMenuIcon onClick={toggleSidebar}>☰</BurgerMenuIcon>
+      //           <LogoContainer
+      //             src={logo}
+      //             alt="logo"
+      //           />
+      //           <Button1 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button1>
+      //         </NavbarContent>
+      //       );
       default: 
             return (
               <>
-                <LogoContainer>
-                  <p>Logo</p>
-                </LogoContainer>
+                <LogoContainer
+                  src={logo}
+                  alt="logo"/>
               </>
             );
     }

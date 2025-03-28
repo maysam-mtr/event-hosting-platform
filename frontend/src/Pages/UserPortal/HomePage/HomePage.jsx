@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import hero from '../../../assets/hero.png'
+import hero from '../../../assets/hero.png';
+import skyImg from '../../../assets/sky.png';
 import { Button1, Button2 } from "../../../components/Navbar/Navbar";
 import Modal from "../../../components/Modal/Modal";
 import { useState } from "react";
@@ -9,7 +10,7 @@ import Input from "../../../components/Input/Input";
 const HomeContainer = styled.div`
   width: 100vw;
   height: 90vh;
-  background: url(${hero}) center/cover no-repeat;
+  background: url(${skyImg}) center/cover no-repeat;
   position: relative;
   display: flex;
   align-items: center;
@@ -39,6 +40,7 @@ const Heading = styled.h1`
   background-color: white;
   padding: 20px;
   border-radius: 40px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
 `;
 
 const TabsContainer = styled.div`
@@ -110,7 +112,7 @@ export default function HomePage() {
     return (
       <>
         <HomeContainer>
-          <Overlay />
+          {/* <Overlay /> */}
           <Content>
             <Heading>Start Your Journey Now!</Heading>
             <Button1 onClick={onJoinEventClick}>Join Event</Button1>
