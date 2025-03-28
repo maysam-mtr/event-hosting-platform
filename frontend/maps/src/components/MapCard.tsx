@@ -66,7 +66,7 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
             className="flex-1"
             onClick={(e) => {
               e.preventDefault()
-              window.location.href = `/api/maps/downloadMap/${map.id}&name=${map.name}`
+              window.location.href = `/api/maps/downloadMap/${map.id}`
             }}
           >
             <Download className="mr-2 h-4 w-4" /> Download
