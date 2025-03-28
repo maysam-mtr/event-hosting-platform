@@ -206,13 +206,8 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
             where: { hostId },
         });
 
-        if (!events || events.length === 0) {
-            throw new Error("No events found for this host");
-        }
-
         return {
-            message: "Events retrieved successfully",
-            events: events.map((event) => event.toJSON()),
+           events: events.map((event) => event.toJSON()),
         };
     } catch (error) {
         console.error("Error in getEventsForHost:", error);
@@ -275,12 +270,7 @@ const filterEventsByStatus = async (status: string): Promise<any> => {
             where: whereCondition,
         });
 
-        if (!events || events.length === 0) {
-            throw new Error(`No ${status} events found`);
-        }
-
         return {
-            message: `${status.charAt(0).toUpperCase() + status.slice(1)} events retrieved successfully`,
             events: events.map((event) => event.toJSON()),
         };
     } catch (error) {

@@ -73,7 +73,6 @@ export const createInvitation = async ( eventId: string, boothTemplateId: string
         await sendInvitationEmail(assignedEmail,eventId);
 
         return {
-            message: "Invitation created successfully",
             boothDetails: boothDetails,
             invitation: invitation.toJSON(),
         };
@@ -118,8 +117,7 @@ export const updateInvitationStatus = async (userId: string, invitationId: strin
         // If the invitation is accepted, link the partner to the booth
 
         return {
-            message: `Invitation ${status} successfully`,
-            invitation: invitation.toJSON(),
+           invitation: invitation.toJSON(),
         };
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to update invitation status.');
@@ -173,8 +171,7 @@ export const assignPartnerToBooth = async ( boothDetailsId: string, assignedEmai
         console.log(boothDetails)
 
         return {
-            message: "Partner successfully assigned to the booth",
-            boothDetails: boothDetails,
+          boothDetails: boothDetails,
         };
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to assign partner to booth.');
@@ -196,8 +193,7 @@ export const handleAcceptedInvitation = async (userId: string, invitationId: str
         );
 
         return {
-            message: "Invitation accepted and partner assigned successfully",
-            invitation: updatedInvitation.invitation,
+             invitation: updatedInvitation.invitation,
             boothDetails: boothDetails.boothDetails,
         };
     } catch (error) {
@@ -213,8 +209,7 @@ export const handleRejectedInvitation = async ( userId:string, invitationId: str
         const updatedInvitation = await updateInvitationStatus(userId,invitationId, 'declined');
 
         return {
-            message: "Invitation rejected successfully",
-            invitation: updatedInvitation.invitation,
+           invitation: updatedInvitation.invitation,
     
         };
     } catch (error) {
@@ -245,7 +240,6 @@ export const validateInvitationForUser = async (  eventId: string, userId: strin
         }
 
         return {
-            message: "Invitation validated successfully",
             invitation: invitation.toJSON(),
         };
     } catch (error) {
@@ -300,7 +294,6 @@ export const getInvitationsForEvent = async (eventId: string): Promise<any> => {
         }
 
         return {
-            message: "Invitations retrieved successfully",
             invitations: invitations.map((invitation) => invitation.toJSON()),
         };
     } catch (error) {
@@ -322,9 +315,7 @@ export const deleteInvitationById = async (invitationId: string): Promise<any> =
         // Delete the invitation
         await invitation.destroy();
 
-        return {
-            message: "Invitation deleted successfully",
-        };
+        return;
     } catch (error) {
         console.error("Error in deleteInvitationById:", error);
         throw new Error((error as Error).message || "Failed to delete invitation.");

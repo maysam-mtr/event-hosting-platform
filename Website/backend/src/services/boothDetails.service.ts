@@ -21,8 +21,7 @@ export const getOrCreateBoothDetails = async ( eventId: string, boothTemplateId:
         }
 
         return {
-            message: "Booth details fetched or created successfully",
-            boothDetails: boothDetails.toJSON(),
+           boothDetails: boothDetails.toJSON(),
         };
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to fetch or create booth details.');
@@ -45,7 +44,6 @@ export const updateBoothDetails = async (
         await boothDetails.update(updateData);
 
         return {
-            message: "Booth details updated successfully",
             boothDetails: boothDetails.toJSON(),
         };
     } catch (error) {
@@ -90,7 +88,6 @@ export const getBoothsForPartner = async (partnerId: string): Promise<any> => {
         }
 
         return {
-            message: "Booths retrieved successfully",
             booths: booths.map((booth) => booth.toJSON()),
         };
     } catch (error) {
@@ -160,17 +157,11 @@ export const filterBoothsByStatus = async (partnerId: string, status: string): P
             ],
         });
 
-        if (!booths || booths.length === 0) {
-            throw new Error(`No ${status} booths found`);
-        }
-
         return {
-            message: `${status.charAt(0).toUpperCase() + status.slice(1)} booths retrieved successfully`,
-            booths: booths.map((booth) => booth.toJSON()),
+           booths: booths.map((booth) => booth.toJSON()),
         };
     } catch (error) {
         console.error("Error in filterBoothsByStatus:", error);
         throw new Error((error as Error).message || "Failed to filter booths.");
     }
 };
-

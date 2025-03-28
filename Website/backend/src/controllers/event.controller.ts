@@ -3,7 +3,9 @@ import { validationResult } from 'express-validator';
 import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
     getEventsForHost, filterEventsByStatus
 } from '../services/event.service';
+import { sendResponse
 
+ } from '../Utils/responseHelper';
 const createEventController = async (req: Request, res: Response): Promise<void> => {
     const eventData = req.body;
     const hostUser = (req as any).hostUser;
@@ -11,21 +13,19 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 // Check for validation errors
 const errors = validationResult(req);
 if (!errors.isEmpty()) {
-    res.status(400).json({ message: errors.array()[0].msg });
+   sendResponse(res, false, 400, 'Login failed', [], [
+        { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
+      ]);
     return;
 }
 
     try {
         const event = await createEvent(eventData, hostUser.id);
-        res.status(201).json(event);
+        sendResponse(res, true, 201, 'Host login successful', [event]);
     } catch (err) {
-        res.status(500).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
+        sendResponse(res, false, 500, 'Failed to create event', [], [
+            { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 const updateEventController = async (req: Request, res: Response): Promise<void> => {
@@ -33,9 +33,12 @@ try {
     const { eventId } = req.params; // Extract event ID from URL parameters
     const { eventName, eventDate, eventTime, mapTemplateId, eventType,passcode } = req.body; // Allowed fields only
     const hostuserId = (req as any).hostUser?.id; // Extract authenticated user's ID (assuming middleware sets req.user)
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        res.status(400).json({ message: errors.array()[0].msg });
+       sendResponse(res, false, 400, 'Validation Failed', [], [
+            { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+          ]);
         return;
     }
     const updateData: Partial<{ eventName?: string; eventDate?: Date; eventTime?: string; mapTemplateId?: string; eventType?: string }> = {};
@@ -48,16 +51,20 @@ try {
 
     // Ensure at least one field is provided for update
     if (Object.keys(updateData).length === 0) {
-       res.status(400).json({ message: 'At least one valid field must be provided for update.' });
+       sendResponse(res, false, 400, 'At least one valid field must be provided for update.', [], [
+        { code: 'INVALID_INPUT', message:  'No valid fields provided for update.'  },
+      ]);
+      return;
     }
 
     // Call service function to handle the update logic
     const updatedEvent = await updateEvent(eventId, updateData, hostuserId,passcode);
     console.log(updatedEvent)
-     res.status(200).json({ message: 'Event updated successfully', event: updatedEvent });
-} catch (error) {
-   res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
-}
+    sendResponse(res, true, 200, 'Event updated successfully', [updatedEvent]);
+} catch (err) {
+    sendResponse(res, false, 500, 'Failed to update Event', [], [
+        { code: 'EVENT_UPDATE_ERROR', message: (err as Error).message },
+      ]);}
 };
 
 
@@ -67,14 +74,12 @@ const getPublicEventsController = async (req: Request, res: Response): Promise<v
         const publicEvents = await getPublicEvents();
 
         // Return success response
-        res.status(200).json({
-            message: "Public events retrieved successfully",
-            events: publicEvents,
-        });
-    } catch (error) {
-        console.error("Error in getPublicEventsController:", error);
-        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
-    }
+        sendResponse(res, true, 200, 'Public Events retreived successfully', publicEvents);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to get events', [], [
+            { code: 'PUBLIC_EVENTS_ERROR', message: (err as Error).message },
+          ]);
+        }
 };
 
 const getEventDetailsController = async (req: Request, res: Response): Promise<void> => {
@@ -85,14 +90,12 @@ const getEventDetailsController = async (req: Request, res: Response): Promise<v
         const eventDetails = await getEventDetails(eventId);
 
         // Return success response
-        res.status(200).json({
-            message: "Event details retrieved successfully",
-            event: eventDetails,
-        });
-    } catch (error) {
-        console.error("Error in getEventDetailsController:", error);
-        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
-    }
+        sendResponse(res, true, 200, 'Event details retrieved successfully', [eventDetails]);
+
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'EVENT_DETAILS_ERROR', message: (err as Error).message },
+          ]);}
 };
 
 
@@ -105,13 +108,11 @@ const joinEventController = async (req: Request, res: Response): Promise<void> =
         const result = await joinEvent(eventId, passcode);
 
         // Return success response
-        res.status(200).json({
-            message: result.message,
-        });
-    } catch (error) {
-        console.error("Error in joinEventController:", error);
-        res.status(400).json({ message: (error as Error).message || 'Failed to join event.' });
-    }
+        sendResponse(res, true, 200, result.message, []);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'JOIN_EVENT_ERROR', message: (err as Error).message },
+          ]);}
 };
 
 
@@ -124,10 +125,11 @@ const getEventsForHostController = async (req: Request, res: Response): Promise<
         const result = await getEventsForHost(hostId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in getEventsForHostController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Host events returned successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'JOIN_EVENT_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -137,7 +139,9 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
         const { status } = req.params;
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
-            res.status(400).json({ message: "Invalid status. Use 'past', 'ongoing', or 'future'." });
+             sendResponse(res, false, 400, "Invalid status. Use 'past', 'ongoing', or 'future'.", [], [
+                { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'past', 'ongoing', or 'future'."},
+              ]);
             return;
         }
 
@@ -145,11 +149,12 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
         const result = await filterEventsByStatus(status as string);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in filterEventsByStatusController:", error);
-        res.status(400).json({ message: (error as Error).message });
-    }
+        sendResponse(res, true, 200, 'Filter events successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'FILTER_EVENT_ERROR', message: (err as Error).message },
+          ]);
+        }
 };
 export {
     createEventController, updateEventController,getPublicEventsController,
