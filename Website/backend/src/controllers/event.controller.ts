@@ -133,10 +133,11 @@ const getEventsForHostController = async (req: Request, res: Response): Promise<
     }
 };
 
-// Filter events by status (past, ongoing, future)
+// Filter events for host by status (past, ongoing, future)
 const filterEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { status } = req.params;
+        const { status } = req.body;
+        const {hostId} = req.params;
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
              sendResponse(res, false, 400, "Invalid status. Use 'past', 'ongoing', or 'future'.", [], [
@@ -146,7 +147,7 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
         }
 
         // Call the service function to filter events
-        const result = await filterEventsByStatus(status as string);
+        const result = await filterEventsByStatus(hostId,status as string);
 
         // Return success response
         sendResponse(res, true, 200, 'Filter events successfully', result);

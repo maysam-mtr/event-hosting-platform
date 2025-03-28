@@ -1,5 +1,5 @@
 import BoothDetails from '../models/BoothDetails';
-import { getTodayDate, getTimeNow } from "./dateUtils";
+import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
 import { Op } from "sequelize";
 import Event from "../models/Event";
 

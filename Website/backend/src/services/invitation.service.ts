@@ -252,8 +252,8 @@ export const sendInvitationEmail = async (partnerEmail: string, eventId: string)
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                user: "uobseniors2025@gmail.com",  // Replace with your email
-                pass: "bazxkrxfbehtrrgj"  // Replace with your Gmail app password
+                user: process.env.INVITATION_EMAIL,  // Replace with your email
+                pass: process.env.INVITATION_PASS //"bazxkrxfbehtrrgj"  // Replace with your Gmail app password
             }
         });
         const mailOptions = {
