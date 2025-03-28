@@ -2,7 +2,7 @@ import { repo } from "./maps.repo"
 import { repo as repoLM } from "../latest-maps/latest-maps.repo"
 import { CustomError } from "@/utils/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { listFolderContent, getFile } from "@/utils/google-drive"
+import { listFolderContent, getFile, trashFileOrFolder } from "@/utils/google-drive"
 import archiver from "archiver"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
 
@@ -145,19 +145,31 @@ const updateMapService = async (id: string, mapData: Map, accessToken: string): 
 
 const deleteMapService = async (id: string, accessToken: string): Promise<number> => {
   try {
-    console.log("before status");
+    // Get map info by id to retrieve folderId
+    const map = await repo.getMapById(id)
+    if (!map) {
+      throw new CustomError("Map not found", 404)
+    }
     
+
+    // Check if the map is referenced in the latest_maps table
+    const latestMapEntry = await repoLM.getLatestMapByOriginalMapId(map.original_map_id!)
+    
+    if (latestMapEntry) {
+      // Delete the related entry in the latest_maps table
+      await repoLM.deleteLatestMap(latestMapEntry.id!)
+    }
+
+    // Delete the map
     const status = await repo.deleteMap(id)
-    console.log("status: ", status);
-    
     if (status === 0) {
       throw new CustomError("No map deleted", 404)
     }
+
+    // Trash the associated folder in Google Drive
+    await trashFileOrFolder(map.folderId)
     return status
   } catch (err: any) {
-    if (err instanceof CustomError && err.message.includes("unique constraint")) {
-      throw new CustomError("Map name must be unique", 400)
-    }
     throw err
   }
 }
