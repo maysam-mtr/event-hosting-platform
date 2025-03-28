@@ -3,15 +3,11 @@ import Subscription from '../models/Subscription';
 const createSubscription = async (subscriptionData: any, hostId: string): Promise<any> => {
     try {
         const { planId} = subscriptionData;
-console.log("planId",planId);
-console.log("hostId",hostId);
         // Create a new event
         const event = await Subscription.create({
             hostId,
             planId
         });
-
-        console.log("New Subscription created:", event.toJSON());
         return event.toJSON();
     } catch (err) {
         throw new Error((err as Error).message || '');
@@ -34,7 +30,7 @@ const  getSubscriptionPlans = async (): Promise<any> => {
             await subscription.update({ isUsed: 1 });
             console.log(`Subscription ${subscriptionId} marked as used.`);
         } else {
-            console.log(`Subscription with ID ${subscriptionId} not found.`);
+            throw new Error(`Subscription with ID ${subscriptionId} not found.`);
         }
     } catch (err) {
         console.error("Error updating subscription:", err);

@@ -2,34 +2,35 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { createHost} from '../services/host.service';
 import { clearToken } from '../services/auth.service';
+import { sendResponse } from '../Utils/responseHelper';
 
 const createHostController = async (req: Request, res: Response): Promise<void> => {
     console.log("hi",(req as any).hostUser)
       if ((req as any).hostUser) {
-        res.status(403).json({ message: "You are already logged in and cannot create a new account." });
-        return;
+        sendResponse(res, false, 403, '"You are already logged in and cannot create a new account.', [], [
+                { code: 'HOST_LOGIN_ERROR', message:  '"You are already logged in and cannot create a new account.'  },
+              ]);
+              return;
     }
 
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        res.status(400).json({ status: 'validation-error', validationErrors: errors.array().map(error => error.msg) });
+        sendResponse(res, false, 400, 'Validation Failed', [], [
+            { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+          ]);
         return;
     }
-    const host = req.body;
 
     try {
+        const host = req.body;
         const newHost = await createHost(host);
-        res.status(200).json({ newHost });
+        sendResponse(res, true, 200, 'Host login successful', [{ newHost }]);
         return;
     } catch (err) {
-        res.status(500).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'CREATE_HOST_ERROR', message: (err as Error).message },
+          ]);
         return;
     }
 };

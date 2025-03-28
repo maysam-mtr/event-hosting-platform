@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getBoothsForPartner, filterBoothsByStatus } from "../services/boothDetails.service";
-
+import { sendResponse } from "../Utils/responseHelper";
 // Get all booths for a specific partner
 export const getBoothsForPartnerController = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -10,10 +10,11 @@ export const getBoothsForPartnerController = async (req: Request, res: Response)
         const result = await getBoothsForPartner(partnerId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in getBoothsForPartnerController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Booths retrieved successfully',result);
+    } catch (err) {
+        sendResponse(res, false, 400, 'Failed to retrieve booths', [], [
+            { code: 'BOOTH_RETRIEVAL_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -24,7 +25,9 @@ export const filterBoothsByStatusController = async (req: Request, res: Response
         const { status } = req.query;
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
-            res.status(400).json({ message: "Invalid status. Use 'past', 'ongoing', or 'future'." });
+           sendResponse(res, false, 400, 'Login failed', [], [
+                { code: 'INVALID_STATUS', message: "Invalid status. Use 'past', 'ongoing', or 'future'." },
+              ]);
             return;
         }
 
@@ -32,9 +35,10 @@ export const filterBoothsByStatusController = async (req: Request, res: Response
         const result = await filterBoothsByStatus(partnerId, status as string);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in filterBoothsByStatusController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Booths filtered successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 401, 'Failed to filter booths', [], [
+            { code: 'BOOTH_FILTER_ERROR', message: (err as Error).message },
+          ]);
     }
 };

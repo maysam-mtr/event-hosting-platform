@@ -2,7 +2,8 @@ import Event from '../models/Event';
 import { Op } from 'sequelize';
 import { markSubscriptionAsUsed, isSubscriptionValid } from './subscription.service';
 import { createPrivateEventCredential,getPrivateEventCredential,deletePrivateEventCredential } from './PrivateEventCredential.service';
-import { getTodayDate, getTimeNow } from "./dateUtils";
+import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
+import { UUID } from 'crypto';
 const createEvent = async (eventData: any, hostId: string): Promise<any> => {
     try {
         const { eventName, eventDate, eventTime, subscriptionId, mapTemplateId, eventType, passcode} = eventData;
@@ -206,13 +207,8 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
             where: { hostId },
         });
 
-        if (!events || events.length === 0) {
-            throw new Error("No events found for this host");
-        }
-
         return {
-            message: "Events retrieved successfully",
-            events: events.map((event) => event.toJSON()),
+           events: events.map((event) => event.toJSON()),
         };
     } catch (error) {
         console.error("Error in getEventsForHost:", error);
@@ -221,7 +217,7 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
 };
 
 // Filter events by status (past, ongoing, future)
-const filterEventsByStatus = async (status: string): Promise<any> => {
+const filterEventsByStatus = async (hostId: string, status: string): Promise<any> => {
     try {
         const today = getTodayDate();
         const currentTime = getTimeNow();
@@ -272,15 +268,9 @@ const filterEventsByStatus = async (status: string): Promise<any> => {
 
         // Fetch events based on the status filter
         const events = await Event.findAll({
-            where: whereCondition,
+            where:{hostId, ...whereCondition},
         });
-
-        if (!events || events.length === 0) {
-            throw new Error(`No ${status} events found`);
-        }
-
         return {
-            message: `${status.charAt(0).toUpperCase() + status.slice(1)} events retrieved successfully`,
             events: events.map((event) => event.toJSON()),
         };
     } catch (error) {

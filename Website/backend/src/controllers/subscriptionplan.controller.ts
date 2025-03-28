@@ -1,21 +1,18 @@
 import { Request, Response } from 'express';
 import { createSubscriptionPlan,getSubscriptionPlans } from '../services/subscriptionplan.service';
+import { sendResponse } from '../Utils/responseHelper';
 
 const createSubscriptionPlanController = async (req: Request, res: Response): Promise<void> => {
     const planData = req.body;
 
     try {
         const subscriptionPlan = await createSubscriptionPlan(planData);
-        res.status(201).json(subscriptionPlan);
-    } catch (err) {
-        res.status(500).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
-    }
+         sendResponse(res, true, 201, 'Subscription plan created successfully', subscriptionPlan);
+          } catch (err) {
+              sendResponse(res, false, 500, 'Failed to create subscription plan', [], [
+                  { code: 'CREATE_SUBSCRIPTIONPLAN_ERROR', message: (err as Error).message },
+                ]);
+          }
 };
 
 
@@ -23,15 +20,11 @@ const getAllSubscriptionPlanController = async (req: Request, res: Response): Pr
 
     try {
         const subscriptionPlans = await getSubscriptionPlans();
-        res.status(201).json(subscriptionPlans);
+        sendResponse(res, true, 200, 'Subscription plans returned successfully', subscriptionPlans);
     } catch (err) {
-        res.status(500).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
+        sendResponse(res, false, 500, 'Failed to get subscription plans', [], [
+            { code: 'GET_SUBSCRIPTIONPLANS_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 

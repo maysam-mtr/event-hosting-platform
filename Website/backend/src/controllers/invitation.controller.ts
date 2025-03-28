@@ -3,6 +3,7 @@ import { createInvitation, validateInvitationForUser
     , handleAcceptedInvitation, handleRejectedInvitation ,
     getInvitationsForEvent, deleteInvitationById } from '../services/invitation.service';
 import { validationResult } from 'express-validator';
+import { sendResponse } from '../Utils/responseHelper';
 
 // Create an invitation
 const createInvitationController = async (req: Request, res: Response): Promise<void> => {
@@ -12,18 +13,20 @@ const createInvitationController = async (req: Request, res: Response): Promise<
         
         const errors = validationResult(req);
           if (!errors.isEmpty()) {
-            res.status(400).json({ message: errors.array()[0].msg });
-            return;
+            sendResponse(res, false, 400, 'Validation Failed', [], [
+                { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+              ]); return;
           }
         
         // Call the service function to create the invitation
         const result = await createInvitation(eventId, boothTemplateId, assignedEmail);
 
         // Return success response
-        res.status(201).json(result);
-    } catch (error) {
-        console.error("Error in createInvitationController:", error);
-        res.status(400).json({ message: (error as Error).message || 'Failed to create invitation.' });
+        sendResponse(res, true, 201, 'Host login successful', [result]);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to send invitation', [], [
+            { code: 'CREATE_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -38,10 +41,11 @@ const handleAcceptedInvitationController = async (req: Request, res: Response): 
         const result = await handleAcceptedInvitation(userId, invitationId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in handleAcceptedInvitationController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Invitation accepted successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to accept invitation', [], [
+            { code: 'ACCEPT_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -55,10 +59,11 @@ const handleRejectedInvitationController = async (req: Request, res: Response): 
         const result = await handleRejectedInvitation(userId, invitationId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in handleRejectedInvitationController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Invitation rejected successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to reject invitation', [], [
+            { code: 'REJECT_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -72,10 +77,11 @@ const handleSharableLinkController = async (req: Request, res: Response): Promis
         const result = await validateInvitationForUser(eventId, userId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in handleSharableLinkController:", error);
-        res.status(404).json({ message: (error as Error).message || 'Failed to validate invitation.' });
+        sendResponse(res, true, 200, 'Invitation validated successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to validate invitation', [], [
+            { code: 'VALIDATE_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -88,10 +94,11 @@ const getInvitationsForEventController = async (req: Request, res: Response): Pr
         const result = await getInvitationsForEvent(eventId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in getInvitationsForEventController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Invitations returned successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to get invitation', [], [
+            { code: 'GET_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -104,10 +111,11 @@ const deleteInvitationByIdController = async (req: Request, res: Response): Prom
         const result = await deleteInvitationById(invitationId);
 
         // Return success response
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Error in deleteInvitationByIdController:", error);
-        res.status(400).json({ message: (error as Error).message });
+        sendResponse(res, true, 200, 'Invitations deleted successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to delete invitation', [], [
+            { code: 'DELETE_INVITATION_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { loginUser, loginHost, clearToken ,clearHostToken} from '../services/auth.service';
 import jwt from 'jsonwebtoken';
+import { sendResponse } from '../Utils/responseHelper';
 
 const loginController = async (req: Request, res: Response): Promise<void> => {
     const credentials = req.body;
@@ -15,15 +16,12 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
             secure: false
         });
         res.clearCookie('hostToken');
-        res.status(200).json({ userId: user.id });
+        // Success response
+    sendResponse(res, true, 200, 'Login successful', [{ userId: user.id }]);
     } catch (err) {
-        res.status(401).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
+        sendResponse(res, false, 401, 'Login failed', [], [
+            { code: 'LOGIN_ERROR', message: (err as Error).message },
+          ]);
     }
 };
 
@@ -43,33 +41,72 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
         });
         res.clearCookie('token');
 
-        res.status(200).json({ hostId: host.id });
+      sendResponse(res, true, 200, 'Host login successful', [{ hostId: host.id }]);
     } catch (err) {
-        res.status(401).json({
-            message: "Internal error occurred",
-            details: {
-                error: (err as Error).message,
-                info: (err as any).details
-            }
-        });
+        sendResponse(res, false, 401, 'Host Login failed', [], [
+            { code: 'HOST_LOGIN_ERROR', message: (err as Error).message },
+          ]);
+        
     }
 };
 
 const logoutHostController = (req: Request, res: Response): void => {
+  try {
     clearHostToken(res);
-    res.status(200).json({ message: "Logout successful" });
+
+    // Success response
+    sendResponse(res, true, 200, 'Host logout successful', []);
+  } catch (err) {
+    console.error(err);
+
+    // Error response
+    sendResponse(res, false, 500, 'Host logout failed', [], [
+      { code: 'HOST_LOGOUT_ERROR', message: (err as Error).message },
+    ]);
+  }
 };
 
 const logoutController = (req: Request, res: Response): void => {
+  try {
     clearToken(res);
-    res.status(200).json({ message: "Logout successful" });
+
+    // Success response
+    sendResponse(res, true, 200, 'Logout successful', []);
+  } catch (err) {
+    console.error(err);
+
+    // Error response
+    sendResponse(res, false, 500, 'Logout failed', [], [
+      { code: 'LOGOUT_ERROR', message: (err as Error).message },
+    ]);
+  }
 };
 const verifyUserController = (req: Request, res: Response): void => {
-    res.status(200).json({ message: "User verified" });
+  try {
+    // Success response
+    sendResponse(res, true, 200, 'User verified', []);
+  } catch (err) {
+    console.error(err);
+
+    // Error response
+    sendResponse(res, false, 500, 'User verification failed', [], [
+      { code: 'USER_VERIFICATION_ERROR', message: (err as Error).message },
+    ]);
+  }
 };
 
 const verifyHostController = (req: Request, res: Response): void => {
-    res.status(200).json({ message: "Host verified" });
+  try {
+    // Success response
+    sendResponse(res, true, 200, 'Host verified', []);
+  } catch (err) {
+    console.error(err);
+
+    // Error response
+    sendResponse(res, false, 500, 'Host verification failed', [], [
+      { code: 'HOST_VERIFICATION_ERROR', message: (err as Error).message },
+    ]);
+  }
 };
 
 export {
