@@ -150,7 +150,7 @@ const listFolderContent = async (folderId: string): Promise<drive_v3.Schema$File
   }
 }
 
-const trashFileOrFolder = async (fileOrFolderId: string) => {
+const trashFileOrFolder = async (fileOrFolderId: string): Promise<drive_v3.Schema$File | undefined> => {
   try {
     const body_value = {
       trashed: true,
@@ -160,8 +160,10 @@ const trashFileOrFolder = async (fileOrFolderId: string) => {
       requestBody: body_value,
     })
     console.log({ result: res.data, status: res.status })
+    return res.data
   } catch (err: any) {
     console.error("error:", err.message)
+    throw err
   }
 }
 

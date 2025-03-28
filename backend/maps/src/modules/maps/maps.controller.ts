@@ -127,11 +127,7 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
 
 const deleteMapController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log("deleting here");
-    
-    
     const { id } = req.params
-    console.log("id:", id);
     await deleteMapService(id, "")
     res.status(200).json({ message: "Map deleted" })
   } catch (err: any) {
