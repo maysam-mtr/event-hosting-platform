@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -142,10 +140,9 @@ export default function Home() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMaps.map((map) => {
-            console.log(map);
-            return <MapCard key={map.id} map={map} onDeleteClick={() => handleDeleteClick(map)} />;
-          })}
+          {filteredMaps.map((map) => (
+            <MapCard key={map.id} map={map} onDeleteClick={() => handleDeleteClick(map)} />
+          ))}
         </div>
       )}
 

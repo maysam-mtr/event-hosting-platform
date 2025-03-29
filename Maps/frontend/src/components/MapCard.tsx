@@ -1,5 +1,3 @@
-"use client"
-
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Edit, Trash2, Download } from "lucide-react"
@@ -26,14 +24,14 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
             src={
               map.imageId
                 ? `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`
-                : `/public/image-placeholder.jpg`
+                : `/image-placeholder.jpg`
             }
             alt={map.name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => {
               // Fallback to placeholder if the image fails to load
               const target = e.target as HTMLImageElement
-              target.src = `/public/image-placeholder.jpg`
+              target.src = `/image-placeholder.jpg`
             }}
           />
         </div>
