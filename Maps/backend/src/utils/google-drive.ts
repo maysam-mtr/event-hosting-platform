@@ -12,17 +12,14 @@ const createFolder = async (folderName: string, parentId?: string): Promise<driv
       mimeType: "application/vnd.google-apps.folder",
       ...(parentId && { parents: [parentId] }),
     }
-
-    console.log("here all good?");
     
     const res = await drive.files.create({
       requestBody: fileMetaData,
       fields: "id,name,webViewLink",
     })
 
-    console.log("creating folder res: ", res);
+    console.log(`creating folder ${fileMetaData.name}:`, res);
     
-
     return res.data
   } catch (err: any) {
     console.error("Error creating folder:", err.message)
@@ -92,9 +89,7 @@ const generatePublicURL = async (fileId: string): Promise<{ webViewLink?: string
   }
 }
 
-// Update getFile to return the file data
-// const getFile = async (fileId: string, returnData = false): Promise<drive_v3.Schema$File | { data: Buffer } | void> => {
-const getFile = async (fileId: string, returnData = false): Promise<{ data: Buffer } | void> => {
+const getFile = async (fileId: string): Promise<{ data: Buffer }> => {
   try {
     const res = await drive.files.get(
       {
@@ -102,33 +97,21 @@ const getFile = async (fileId: string, returnData = false): Promise<{ data: Buff
         alt: "media",
       },
       { responseType: "arraybuffer" },
-    )
+    );
 
-    if (returnData) {
-      return { data: Buffer.from(res.data as ArrayBuffer) } // Ensure correct typing
-    }
-
-    const dest = fs.createWriteStream(path.join(__dirname, `../public/retrievedFile`))
-    const buffer = Buffer.from(res.data as ArrayBuffer)
-    dest.write(buffer)
-    dest.end()
-
-    return new Promise((resolve, reject) => {
-      dest.on("finish", () => resolve(undefined))
-      dest.on("error", reject)
-    })
+    return { data: Buffer.from(res.data as ArrayBuffer) };
   } catch (err: any) {
-    console.error("error:", err.message)
-    throw err
+    console.error("Error retrieving file:", err.message);
+    throw err;
   }
-}
+};
 
 const getFolder = async (fileId: string) => {
   try {
     const res = await drive.files.get({
       fileId: fileId,
     })
-    console.log("folder:", res.data)
+    console.log("folder retrieved:", res.data)
     return res.data
   } catch (err: any) {
     console.error("error:", err.message)
@@ -159,7 +142,7 @@ const trashFileOrFolder = async (fileOrFolderId: string): Promise<drive_v3.Schem
       fileId: fileOrFolderId,
       requestBody: body_value,
     })
-    console.log({ result: res.data, status: res.status })
+    console.log("trashFileOrFolder:", { result: res.data, status: res.status })
     return res.data
   } catch (err: any) {
     console.error("error:", err.message)
@@ -172,7 +155,7 @@ const permanentlyDeleteFile = async (fileOrFolderId: string) => {
     const res = await drive.files.delete({
       fileId: fileOrFolderId,
     })
-    console.log({ result: res.data, status: res.status })
+    console.log("permanentlyDeleteFile:",{ result: res.data, status: res.status })
   } catch (err: any) {
     console.error("error:", err.message)
   }

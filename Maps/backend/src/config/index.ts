@@ -25,4 +25,5 @@ export const {
     GOOGLE_REDIRECT_URI,
     GOOGLE_REFRESH_TOKEN,
     GOOGLE_PROJECT_ID,
+    GOOGLE_MAPS_FOLDER_ID,
 } = process.env
