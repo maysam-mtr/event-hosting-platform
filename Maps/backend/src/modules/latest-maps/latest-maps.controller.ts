@@ -7,12 +7,13 @@ import {
   getLatestMapsWithDetailsService,
   updateLatestMapService,
 } from "./latest-maps.service"
+import { CustomResponse } from "@/utils/custom-response"
 
 const getLatestMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const response = await getLatestMapsService("")
 
-    res.status(200).json({ message: "Latest maps fetched:", data: response })
+    CustomResponse(res, 200, "Latest maps fectched", response)
   } catch (err: any) {
     next(err)
   }
@@ -21,8 +22,8 @@ const getLatestMapsController = async (req: Request, res: Response, next: NextFu
 const getLatestMapsWithDetailsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const response = await getLatestMapsWithDetailsService("")
-
-    res.status(200).json({ message: "Latest maps with details fetched:", data: response })
+    
+    CustomResponse(res, 200, "Latest maps with details fetched:", response)
   } catch (err: any) {
     next(err)
   }
@@ -32,7 +33,8 @@ const getLatestMapByIdController = async (req: Request, res: Response, next: Nex
   try {
     const { id } = req.params
     const response = await getLatestMapByIdService(id, "")
-    res.status(200).json({ message: "Latest map fetched:", data: response })
+
+    CustomResponse(res, 200, "Latest map fectched", response)
   } catch (err: any) {
     next(err)
   }
@@ -42,7 +44,8 @@ const createLatestMapController = async (req: Request, res: Response, next: Next
   try {
     const mapData = req.body
     const response = await createLatestMapService(mapData, "")
-    res.status(201).json({ message: "Latest map created:", data: response })
+
+    CustomResponse(res, 200, "Latest map created", response)
   } catch (err: any) {
     next(err)
   }
@@ -53,7 +56,8 @@ const updateLatestMapController = async (req: Request, res: Response, next: Next
     const { id } = req.params
     const mapData = req.body
     const response = await updateLatestMapService(id, mapData, "")
-    res.status(200).json({ message: "Latest map updated:", data: response })
+    
+    CustomResponse(res, 200, "Latest map updated", response)
   } catch (err: any) {
     next(err)
   }
@@ -62,8 +66,9 @@ const updateLatestMapController = async (req: Request, res: Response, next: Next
 const deleteLatestMapController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params
-    await deleteLatestMapService(id, "")
-    res.status(200).json({ message: "Latest map deleted" })
+    const response = await deleteLatestMapService(id, "")
+
+    CustomResponse(res, 200, "Latest map deleted", response)
   } catch (err: any) {
     next(err)
   }

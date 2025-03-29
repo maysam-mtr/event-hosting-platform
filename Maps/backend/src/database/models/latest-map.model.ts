@@ -35,10 +35,6 @@ export default function (sequelize: Sequelize): typeof LatestMapModel {
             latest_map_id: {
                 allowNull: false,
                 type: DataTypes.CHAR(36),
-                references: {
-                    model: 'maps',
-                    key: 'id',
-                },
             },
             created_at: DataTypes.DATE,
             updated_at: DataTypes.DATE,

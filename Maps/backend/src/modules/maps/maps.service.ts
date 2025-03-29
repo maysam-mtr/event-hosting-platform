@@ -40,7 +40,7 @@ const downloadMapService = async (id: string, accessToken: string): Promise<Buff
     }
 
     // Get all files in the map's folder
-    const files = await listFolderContent(map.folderId)
+    const files = await listFolderContent(map.folderId!)
     if (!files || files.length === 0) {
       throw new CustomError("No files found for this map", 404)
     }
@@ -63,7 +63,7 @@ const downloadMapService = async (id: string, accessToken: string): Promise<Buff
     for (const file of files) {
       try {
         // Get the file content
-        const response = await getFile(file.id as string, true) as { data: Buffer }
+        const response = await getFile(file.id as string)
 
         if (response && response.data) {
           // Add the file to the archive
@@ -103,7 +103,12 @@ const createMapService = async (mapData: Map, accessToken: string): Promise<Map>
     }
     return createdMap
   } catch (err: any) {
-    if (err instanceof CustomError && err.message.includes("unique constraint")) {
+    // Handle Sequelize validation errors
+    if (err.errors && Array.isArray(err.errors)) {
+      throw new CustomError("Validation error", 400, err);
+    }
+
+    if (err instanceof CustomError && err.messages[0].includes("unique constraint")) {
       throw new CustomError("Map name must be unique", 400)
     }
     throw err
@@ -147,32 +152,70 @@ const deleteMapService = async (id: string, accessToken: string): Promise<number
   try {
     // Get map info by id to retrieve folderId
     const map = await repo.getMapById(id)
+    
     if (!map) {
       throw new CustomError("Map not found", 404)
     }
     
-
     // Check if the map is referenced in the latest_maps table
     const latestMapEntry = await repoLM.getLatestMapByOriginalMapId(map.original_map_id!)
     
-    if (latestMapEntry) {
+    if (latestMapEntry?.latest_map_id === id) {
       // Delete the related entry in the latest_maps table
       await repoLM.deleteLatestMap(latestMapEntry.id!)
     }
 
     // Delete the map
-    const status = await repo.deleteMap(id)
+    var status = await repo.deleteMap(id)
+    
     if (status === 0) {
       throw new CustomError("No map deleted", 404)
     }
-
+    
     // Trash the associated folder in Google Drive
-    await trashFileOrFolder(map.folderId)
+    await trashFileOrFolder(map.folderId!)
+    
+
+    // now delete all old map versions
+    if (latestMapEntry?.latest_map_id === id) {
+      status += await deleteMapsByOriginalMapIdService(map.original_map_id!, "")
+    }
+
     return status
   } catch (err: any) {
     throw err
   }
 }
 
-export { getMapsService, getMapByIdService, createMapService, updateMapService, deleteMapService, downloadMapService }
+const deleteMapsByOriginalMapIdService = async (oid: string, accessToken: string) : Promise<number> => {
+  try {
+    const oldMaps = await repo.getMapIdsByOriginalMapId(oid)
+    
+    var deletedMapsCnt: number = 0
+
+    oldMaps.map(async (map) => {
+      deletedMapsCnt += await repo.deleteMap(map.id!)
+    })
+    
+    // now delete the map files from google drive
+    oldMaps.map(async (map) => {
+      await trashFileOrFolder(map.folderId)
+    })
+
+    return deletedMapsCnt
+
+  } catch (err: any) {
+    throw err
+  }
+}
+
+export {
+  getMapsService,
+  getMapByIdService,
+  createMapService,
+  updateMapService,
+  deleteMapService,
+  downloadMapService,
+  deleteMapsByOriginalMapIdService,
+}
 

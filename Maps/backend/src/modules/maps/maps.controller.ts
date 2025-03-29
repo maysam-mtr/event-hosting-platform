@@ -8,8 +8,10 @@ import {
   downloadMapService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../uploads/uploads.service"
-import { getLatestMapByIdService, getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
+import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
 import { CustomError } from "@/utils/custom-error"
+import { CustomResponse } from "@/utils/custom-response"
+import { handleMapFiles } from "@/utils/maps-handler"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -25,7 +27,7 @@ const getMapsController = async (req: Request, res: Response, next: NextFunction
 
     const response = await getMapsService("")
 
-    res.status(200).json({ message: "Maps fetched:", data: response })
+    CustomResponse(res, 200, "Maps fetched", response)
   } catch (err: any) {
     next(err)
   }
@@ -35,7 +37,8 @@ const getMapByIdController = async (req: Request, res: Response, next: NextFunct
   try {
     const { id } = req.params
     const response = await getMapByIdService(id, "")
-    res.status(200).json({ message: "Map fetched:", data: response })
+
+    CustomResponse(res, 200, "Map fetched", response)
   } catch (err: any) {
     next(err)
   }
@@ -64,8 +67,9 @@ const createMapController = async (req: Request, res: Response, next: NextFuncti
     // Handle file uploads first if files are present
     let folderId = req.body.folderId
     let imageId = req.body.imageId
-
     if (req.files && Object.keys(req.files).length > 0) {
+      // if any file is missing an error would be thrown
+      handleMapFiles(req.files)
       const uploadResult = await uploadFilesToDrive(req.files, req.body.name)
       folderId = uploadResult.folderId
       imageId = uploadResult.imageId || imageId
@@ -79,7 +83,8 @@ const createMapController = async (req: Request, res: Response, next: NextFuncti
     }
 
     const response = await createMapService(mapData, "")
-    res.status(201).json({ message: "Map created:", data: response })
+
+    CustomResponse(res, 200, "Map created", response)
   } catch (err: any) {
     next(err)
   }
@@ -103,6 +108,8 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
     let imageId = req.body.imageId
 
     if (req.files && Object.keys(req.files).length > 0) {
+      // if any file is missing an error would be thrown
+      handleMapFiles(req.files)
       const uploadResult = await uploadFilesToDrive(req.files, req.body.name)
       folderId = uploadResult.folderId
       // Only update imageId if a new thumbnail was uploaded
@@ -119,7 +126,8 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
     }
 
     const response = await updateMapService(id, mapData, "")
-    res.status(200).json({ message: "Map updated:", data: response })
+
+    CustomResponse(res, 200, "Map updated", response)
   } catch (err: any) {
     next(err)
   }
@@ -128,8 +136,9 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
 const deleteMapController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params
-    await deleteMapService(id, "")
-    res.status(200).json({ message: "Map deleted" })
+    const response = await deleteMapService(id, "")
+
+    CustomResponse(res, 200, "Map deleted", response)
   } catch (err: any) {
     next(err)
   }
