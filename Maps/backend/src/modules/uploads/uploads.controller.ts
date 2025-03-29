@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express"
 import { uploadFilesToDrive } from "./uploads.service"
+import { CustomResponse } from "@/utils/custom-response"
 
 export const uploadFilesController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -15,12 +16,10 @@ export const uploadFilesController = async (req: Request, res: Response, next: N
       return
     }
 
-    const result = await uploadFilesToDrive(req.files, mapName)
+    const response = await uploadFilesToDrive(req.files, mapName)
 
-    res.status(200).json({
-      message: "Files uploaded successfully",
-      data: result,
-    })
+
+    CustomResponse(res, 200, "Files uploaded successfully", response)
   } catch (err: any) {
     next(err)
   }

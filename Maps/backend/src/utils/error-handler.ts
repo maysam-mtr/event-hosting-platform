@@ -7,8 +7,14 @@ export const errorHandler = (
     res: Response,
     next: NextFunction,
 ) => {
-    const statusCode = err instanceof CustomError ? err.statusCode : 500
-    const message = err.message || "Internal Server Error"
+    if (err instanceof CustomError) {
+        return res.status(err.statusCode).json(err.toResponse())
+    }
 
-    res.status(statusCode).json({ error: message })
+    res.status(500).json({
+        statusCode: 500,
+        messages: ["Internal Server Error"],
+        data: null,
+        errors: err.message || null,
+    })
 }

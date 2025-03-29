@@ -2,9 +2,9 @@ import { createFolder, uploadFile } from "@/utils/google-drive"
 import { CustomError } from "@/utils/custom-error"
 import { Readable } from "stream"
 import type { FileArray, UploadedFile } from "express-fileupload"
+import { GOOGLE_MAPS_FOLDER_ID } from "@/config"
+import { fileTypes, thumbnailFileType } from "@/utils/maps-handler"
 
-// Parent folder ID for all maps
-const MAPS_PARENT_FOLDER_ID = "1NBUhoUG0pmBN5Kw1Wcii2utU33M2GyrK"
 
 interface UploadResult {
   folderId: string
@@ -22,10 +22,8 @@ export const uploadFilesToDrive = async (files: FileArray, mapName: string): Pro
     // Create a new folder for this map
     const sanitizedMapName = mapName.replace(/[^a-zA-Z0-9-_]/g, "_")
     const folderName = `${sanitizedMapName}_${Date.now()}`
-
-    console.log("folderName: ", folderName, "parent: ", MAPS_PARENT_FOLDER_ID);
     
-    const folder = await createFolder(folderName, MAPS_PARENT_FOLDER_ID)
+    const folder = await createFolder(folderName, GOOGLE_MAPS_FOLDER_ID)
 
     if (!folder.id) {
       throw new CustomError("Failed to create folder in Google Drive", 500)
@@ -45,13 +43,11 @@ export const uploadFilesToDrive = async (files: FileArray, mapName: string): Pro
       uploadedFiles.push({
         name: thumbnailFile.name,
         id: uploadedThumbnail.id as string,
-        type: "thumbnailFile",
+        type: thumbnailFileType,
       })
     }
 
     // Process each file type
-    const fileTypes = ["mapFile", "jsonFile", "tilesetFiles", "templateFiles", "imageFiles"]
-
     for (const fileType of fileTypes) {
       const fileList = files[fileType]
 
@@ -62,11 +58,6 @@ export const uploadFilesToDrive = async (files: FileArray, mapName: string): Pro
 
       for (const file of filesToProcess) {
         const uploadedFile = await uploadSingleFile(file, folderId)
-
-        // If no thumbnail was provided, use the first image as the thumbnail
-        if (fileType === "imageFiles" && !imageId) {
-          imageId = uploadedFile.id as string
-        }
 
         uploadedFiles.push({
           name: file.name,

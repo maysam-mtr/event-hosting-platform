@@ -8,6 +8,11 @@ export const repo = {
     getMapById: async (id: string): Promise<Map | null> => {
         return await DB.Maps.findByPk(id)
     },
+    getMapIdsByOriginalMapId: async (oid: string): Promise<Map[]> => {
+        return await DB.Maps.findAll({
+            where: { original_map_id: oid }
+        })
+    },
     createMap: async (mapData: Map): Promise<Map> => {
         return await DB.Maps.create(mapData)
     },
@@ -20,8 +25,8 @@ export const repo = {
     deleteMap: async (id: string) => {
         return await DB.Maps.destroy({
         where: { id }
-        });
-    }
+        })
+    },
 }
 
 
