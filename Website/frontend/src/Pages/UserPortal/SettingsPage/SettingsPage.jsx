@@ -1,6 +1,6 @@
 import profile from '../../../assets/profile.png'
 import styled from "styled-components";
-import { use, useState } from "react";
+import { useState } from "react";
 import Input from '../../../components/Input/Input';
 
 const Container = styled.div`
@@ -9,7 +9,7 @@ const Container = styled.div`
   padding: 20px;
 `;
 
-const CardsWrapper = styled.div`
+export const CardsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
@@ -20,7 +20,7 @@ const CardsWrapper = styled.div`
   }
 `;
 
-const Card = styled.div`
+export const Card = styled.div`
   flex: 1;
   min-width: 250px;
   background: white;
@@ -29,7 +29,7 @@ const Card = styled.div`
   padding: 20px;
 `;
 
-const ProfileCardWrapper = styled.div`
+export const ProfileCardWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,10 +41,11 @@ const ProfileCardWrapper = styled.div`
   }
 `;
 
-const ProfileCard = styled(Card)`
+export const ProfileCard = styled(Card)`
   display: flex;
   align-items: center;
   min-height: 120px;
+  width: 100%;
 
   @media (max-width: 600px) {
     flex-direction: column;
@@ -82,19 +83,6 @@ const EditableDetails = styled.div`
   gap: 15px;
 `;
 
-// const Label = styled.p`
-//   font-weight: bold;
-//   color: #555;
-// `;
-
-// const Input = styled.input`
-//   background: #f8f8f8;
-//   padding: 10px;
-//   border-radius: 5px;
-//   border: 1px solid #ddd;
-//   width: 100%;
-// `;
-
 const UpdateButton = styled.button`
   width: 100%;
   padding: 10px;
@@ -110,7 +98,7 @@ const UpdateButton = styled.button`
   }
 `;
 
-const PageTitle = styled.div`
+export const PageTitle = styled.div`
 border-bottom: 2px solid #ddd;
 color: var(--text-primary);
 font-size: var(--heading-2);
@@ -118,7 +106,7 @@ font-weight: 600;
 padding: 10px 0;
 `;
 
-const Section = styled.div`
+export const Section = styled.div`
 padding: 30px;
 `;
 

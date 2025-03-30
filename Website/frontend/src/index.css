@@ -16,6 +16,16 @@ h1, h2, h3, h4, h5, h6 {
   --general-bg-base: #EB5306;
   --general-bg-base-hover: #d94c04;
   --general-bg-dark: #BC4204;
+  /* --host-bg-light: #64B5F6;
+  --host-bg-base: #2196F3;
+  --host-bg-base-hover: #1E88E5;
+  --host-bg-dark: #1976D2; */
+  
+  --host-bg-light: #3a61d1;
+  --host-bg-base: #0c2ec7;
+  --host-bg-base-hover: #061f99;
+  --host-bg-dark: #03176f;
+
   --text-background: #ffffff;
   --text-second: #374151;
   --text-secondary:#858585;

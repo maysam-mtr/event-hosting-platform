@@ -46,10 +46,6 @@ const CloseButton = styled.button`
   font-size: 1.5rem;
   color: #888;
   cursor: pointer;
-  
-  &:hover {
-    color: var(--general-bg-base);
-  }
 `;
 
 const ModalContent = styled.div`

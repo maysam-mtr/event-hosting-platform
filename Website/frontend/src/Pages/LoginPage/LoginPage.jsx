@@ -115,7 +115,7 @@ export default function LoginPage(){
           name: "Maysam Matar",
           email: "maysam@hotmail.com",
           role: {
-              name: "user",
+              name: "host",
               id: 1,
           },
         }

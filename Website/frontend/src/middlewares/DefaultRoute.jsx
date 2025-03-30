@@ -24,7 +24,7 @@ export default function DefaultRoute(){
         }
 
         if (isAuthenticated && user.role.name == "host"){
-            //navigate("/superadmin/", {replace : true});
+            navigate("/host", {replace : true});
         }
 
         if (isAuthenticated && user.role.name == "admin"){

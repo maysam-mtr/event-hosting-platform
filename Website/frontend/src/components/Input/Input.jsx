@@ -18,8 +18,8 @@ const InputElement = styled.input`
   outline: none;
 
   &:focus {
-      border-color: var(--general-bg-light);
-      box-shadow: 0 0 5px rgba(241, 134, 80, 0.5);
+      border-color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-light)' : "var(--general-bg-light)"};
+      box-shadow: 0 0 5px ${({ $role }) => $role === 'host' ? 'rgba(58, 97, 209, 0.5)' : "rgba(241, 134, 80, 0.5)"};
     }
 `;
 
@@ -29,7 +29,7 @@ const Label = styled.label`
   color: var(--text-second);
 `;
 
-const Input = ({ label, type = "text", name, data, setData, placeholder, required = false }) => {
+const Input = ({ label, type = "text", name, data, setData, placeholder, required = false, role = 'guest'}) => {
   const handleChange = (e) => {
     if (typeof data === "object") {
       setData({ ...data, [name]: e.target.value });
@@ -42,6 +42,7 @@ const Input = ({ label, type = "text", name, data, setData, placeholder, require
     <InputWrapper>
       <Label htmlFor={name}>{label}</Label>
       <InputElement
+        $role={role}
         type={type}
         id={name}
         name={name}

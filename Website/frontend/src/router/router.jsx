@@ -14,6 +14,8 @@ import ContactUsPage from "../Pages/ContactUsPage/ContactUsPage";
 import HomePage from "../Pages/UserPortal/HomePage/HomePage";
 import SettingsPage from "../Pages/UserPortal/SettingsPage/SettingsPage";
 import HostHomePage from "../Pages/HostPortal/HostHomePage/HostHomePage";
+import MyEventsPage from "../Pages/HostPortal/MyEventsPage/MyEventsPage";
+import SettingsHostPage from "../Pages/HostPortal/SettingsHostPage/SettingsHostPage";
 
 export const Router = createBrowserRouter([
     {
@@ -71,6 +73,14 @@ export const Router = createBrowserRouter([
                         path: '',
                         element: <HostHomePage/>,
                     },
+                    {
+                        path: 'my-events',
+                        element: <MyEventsPage/>
+                    },
+                    {
+                        path: 'settings',
+                        element: <SettingsHostPage/>
+                    }
                 ]
             },
         ]

@@ -11,7 +11,7 @@ export default function LayoutUser() {
 
   return (
     <MainContainer>
-      <NavBar mode="user" toggleSidebar={toggleSidebar} />
+      <NavBar role="user" toggleSidebar={toggleSidebar} />
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} role="user" />
       <BodySection style={{ marginLeft: isSidebarOpen ? "250px" : "0", transition: "margin-left 0.3s ease" }}>
         <Outlet />

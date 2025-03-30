@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { media } from "../../Pages/LandingPage/LandingPage";
 import logo from '../../assets/logo1.png';
+import logoHost from '../../assets/logoHost.png';
 
 const NavbarContainer = styled.div`
   width: 100%;
@@ -87,6 +88,27 @@ export const Button2 = styled.button`
   }
 `;
 
+export const Button3 = styled.button`
+  background-color: var(--host-bg-base);
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: var(--heading-6);
+  border: 0;
+  border: 1px solid var(--host-bg-dark);
+  border-bottom: 3px solid var(--host-bg-dark);
+  height: fit-content;
+  width: fit-content;
+  color: var(--text-background);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  cursor: pointer;
+
+  &:hover {
+    border: 1px solid var(--host-bg-base-hover);
+    background-color: var(--host-bg-base-hover);
+    border-bottom: 3px solid var(--host-bg-base-hover);
+  }
+`;
+
 const LogoContainer = styled.img`
   max-height: 100px;
   max-width: 200px;
@@ -109,7 +131,7 @@ const BurgerMenuIcon = styled.div`
   transition: color 0.3s ease-in-out;
 
   &:hover{
-  color: var(--general-bg-base);
+  color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-base)' : "var(--general-bg-base)"};
   }
 `;
 
@@ -136,7 +158,7 @@ const NavbarContent = styled.div`
   justify-content: space-between;
 `;
 
-export default function NavBar({ mode, toggleSidebar }) {
+export default function NavBar({ role, toggleSidebar }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -159,7 +181,7 @@ export default function NavBar({ mode, toggleSidebar }) {
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const renderNavbarContent = () => {
-    switch(mode){
+    switch(role){
       case 'guest': 
             return (
               <>
@@ -187,10 +209,20 @@ export default function NavBar({ mode, toggleSidebar }) {
               </>
             );
       case "host":
+        return(
+          <NavbarContent>
+            <BurgerMenuIcon $role={role} onClick={toggleSidebar} >☰</BurgerMenuIcon>
+            <LogoContainer
+              src={logoHost}
+              alt="logo"
+            />
+            <Button3 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button3>
+          </NavbarContent>
+        );
       case "user": 
             return(
               <NavbarContent>
-                <BurgerMenuIcon onClick={toggleSidebar} >☰</BurgerMenuIcon>
+                <BurgerMenuIcon $role={role} onClick={toggleSidebar} >☰</BurgerMenuIcon>
                 <LogoContainer
                   src={logo}
                   alt="logo"
@@ -198,17 +230,6 @@ export default function NavBar({ mode, toggleSidebar }) {
                 <Button1 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button1>
               </NavbarContent>
             );
-      // case "host": 
-      //       return(
-      //         <NavbarContent>
-      //           <BurgerMenuIcon onClick={toggleSidebar}>☰</BurgerMenuIcon>
-      //           <LogoContainer
-      //             src={logo}
-      //             alt="logo"
-      //           />
-      //           <Button1 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button1>
-      //         </NavbarContent>
-      //       );
       default: 
             return (
               <>
