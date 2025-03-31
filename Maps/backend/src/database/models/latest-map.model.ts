@@ -1,5 +1,5 @@
-import { LatestMap } from "@interfaces/latest-map.interface";
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
+import { LatestMap } from "@interfaces/latest-map.interface"
+import { Sequelize, Model, DataTypes, Optional } from "sequelize"
 
 export type LatestMapCreationAttributes = Optional<
     LatestMap,

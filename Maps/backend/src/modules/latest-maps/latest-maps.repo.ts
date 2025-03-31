@@ -24,8 +24,6 @@ export const repo = {
         })
     },
     updateLatestMapByOriginalMapId: async (latestMapData: Partial<LatestMap>): Promise<[number, LatestMap[]]> => {
-        console.log("recieved:", latestMapData);
-        
         return await DB.LatestMaps.update(latestMapData, {
             where: { original_map_id: latestMapData.original_map_id },
             returning: true
