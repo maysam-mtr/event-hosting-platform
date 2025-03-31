@@ -6,6 +6,7 @@ import {
   updateMapController,
   deleteMapController,
   downloadMapController,
+  getMapBoothsController,
 } from "./maps.controller"
 import fileUpload from "express-fileupload"
 
@@ -20,13 +21,13 @@ mapsRouter.use(
   }),
 )
 
-// mapsRouter.get('/getMaps', authMiddleware, getMapsController)
 mapsRouter.get("/getMaps", getMapsController)
 mapsRouter.get("/getMap/:id", getMapByIdController)
-mapsRouter.get("/downloadMap/:id", downloadMapController)
 mapsRouter.post("/createMap", createMapController)
 mapsRouter.put("/updateMap/:id", updateMapController)
 mapsRouter.delete("/deleteMap/:id", deleteMapController)
+mapsRouter.get("/getMapBooths/:id", getMapBoothsController)
+mapsRouter.get("/downloadMap/:id", downloadMapController)
 
 export default mapsRouter
 
