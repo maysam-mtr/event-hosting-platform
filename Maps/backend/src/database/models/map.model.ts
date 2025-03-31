@@ -51,23 +51,31 @@ export default function (sequelize: Sequelize): typeof MapModel {
                 allowNull: false,
                 type: DataTypes.STRING,
             },
-            created_at: DataTypes.DATE,
-            updated_at: DataTypes.DATE,
+            created_at: {
+                type: DataTypes.DATE,
+                allowNull: false,
+                defaultValue: DataTypes.NOW,
+            },
+            updated_at: {
+                type: DataTypes.DATE,
+                allowNull: false,
+                defaultValue: DataTypes.NOW,
+            },
         },
         {
             tableName: 'maps',
             sequelize,
             createdAt: 'created_at',
             updatedAt: 'updated_at',
-            timestamps: true,
+            timestamps: false,
         },
     )
 
     MapModel.addHook('beforeCreate', (map: MapModel) => {
         if (map.original_map_id === null) {
-            map.original_map_id = map.id;
+            map.original_map_id = map.id
         }
-    });
+    })
 
     return MapModel
 }

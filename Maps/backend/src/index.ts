@@ -3,7 +3,7 @@ import { PORT, DB_NAME } from './config'
 import { initializeDatabase } from './database'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import { errorHandler } from '@utils/error-handler'
+import { errorHandler } from '@/middlewares/error.handler'
 import router from '@routes/routes'
 
 const app = express()
@@ -14,11 +14,11 @@ const corsOptions = {
 }
 
 // Enable CORS
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight requests for all routes
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions)) // Handle preflight requests for all routes
 
 // Middleware for parsing JSON and URL-encoded bodies
-app.use(express.json());
+app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 
@@ -44,11 +44,10 @@ app.all('*', (req, res) => {
 
 initializeDatabase()
     .then(() => {
-        console.log(`Connection to ${DB_NAME} has been established successfully.`);
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`)
         })
     })
     .catch(err => {
-        console.error(`Error connecting to ${DB_NAME}:`, err.message);
+        console.error(`Error connecting to ${DB_NAME}:`, err.message)
     })
