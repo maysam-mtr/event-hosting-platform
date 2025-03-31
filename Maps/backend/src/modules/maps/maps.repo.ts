@@ -16,13 +16,19 @@ export const repo = {
     createMap: async (mapData: Map): Promise<Map> => {
         return await DB.Maps.create(mapData)
     },
+    updateMapUpdatedAt: async (id: string) : Promise<[number]> => {
+        return await DB.Maps.update(
+            { updated_at: new Date().toISOString() },
+            { where: { id }}
+        )
+    },
     updateMap: async (id: string, mapData: Partial<Map>): Promise<[number, Map[]]> => {
         return await DB.Maps.update(mapData, {
             where: { id },
             returning: true
         })
     },
-    deleteMap: async (id: string) => {
+    deleteMap: async (id: string) : Promise<number> => {
         return await DB.Maps.destroy({
         where: { id }
         })
