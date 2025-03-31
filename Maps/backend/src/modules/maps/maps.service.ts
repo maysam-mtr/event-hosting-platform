@@ -1,37 +1,46 @@
 import { repo } from "./maps.repo"
-import { repo as repoLM } from "../latest-maps/latest-maps.repo"
-import { CustomError } from "@/utils/custom-error"
+import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { listFolderContent, getFile, trashFileOrFolder } from "@/utils/google-drive"
+import { boothesClassName } from "@/utils/maps.handler"
 import archiver from "archiver"
-import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
+import { 
+  listFolderContent,
+  getFile,
+  trashFileOrFolder,
+  getFileByTypeFromFolder,
+} from "@/utils/google-drive"
+import { 
+  createLatestMapService,
+  deleteLatestMapService,
+  getLatestMapByOriginalMapIdService,
+  updateLatestMapByOriginalMapIdService,
+} from "../latest-maps/latest-maps.service"
 
-const getMapsService = async (accessToken: string): Promise<Map[]> => {
-  // const decodeToken = await verifyJWT(
-  //     accessToken,
-  //     JWT_ACCESS_TOKEN_SECRET as string
-  // )
+const getMapsService = async (): Promise<Map[]> => {
+  try {
+    const map = await repo.getMaps()
 
-  // const userId = decodeToken.userId
+    if (!map) throw new CustomError("Found maps count: 0", 404)
 
-  // const map = await repo.getMaps(userId)
-  const map = await repo.getMaps()
-
-  if (!map) throw new CustomError("Found maps count: 0", 404)
-
-  return map
+    return map
+  } catch (err: any) {
+    throw new CustomError("Error fetching maps", 400)
+  }
 }
 
-const getMapByIdService = async (id: string, accessToken: string): Promise<Map | null> => {
-  return await repo.getMapById(id)
+const getMapByIdService = async (id: string): Promise<Map | null> => {
+  try {
+    const res = await repo.getMapById(id)
+    if (!res) {
+      throw new Error()
+    }
+    return res
+  } catch (err: any) {
+    throw new CustomError("Error fetching map", 400)
+  }
 }
 
-const isOriginalMapIdFound = async (id: string): Promise<boolean> => {
-  return (await repo.getMapById(id)) !== null
-}
-
-// Add download map service
-const downloadMapService = async (id: string, accessToken: string): Promise<Buffer> => {
+const downloadMapService = async (id: string): Promise<Buffer> => {
   try {
     // Get map details
     const map = await repo.getMapById(id)
@@ -69,9 +78,8 @@ const downloadMapService = async (id: string, accessToken: string): Promise<Buff
           // Add the file to the archive
           archive.append(response.data, { name: file.name as string })
         }
-      } catch (err) {
-        console.error(`Error downloading file ${file.name}:`, err)
-        // Continue with other files even if one fails
+      } catch (err: any) {
+        throw new CustomError(`Error downloading file ${file.name}:`, 500)
       }
     }
 
@@ -81,74 +89,87 @@ const downloadMapService = async (id: string, accessToken: string): Promise<Buff
     // Return the zip buffer
     return await archivePromise
   } catch (err: any) {
-    console.error("Error creating zip file:", err)
-    throw err
+    throw new CustomError("Error downloading map", 500)
   }
 }
 
-const createMapService = async (mapData: Map, accessToken: string): Promise<Map> => {
+const createMapService = async (mapData: Map): Promise<Map> => {
   try {
-    if (mapData.original_map_id && !(await isOriginalMapIdFound(mapData.original_map_id))) {
-      throw new CustomError("Original map not found", 404)
+    // override original map id incase present and set to null
+    mapData = {
+      ...mapData,
+      original_map_id: null
     }
+    
     const createdMap = await repo.createMap(mapData)
-    if (createdMap) {
-      const latestMap = await repoLM.createLatestMap({
-        original_map_id: createdMap.id!,
-        latest_map_id: createdMap.id!,
-      })
-      if (!latestMap) {
-        throw new CustomError("Map wasn't added to the latest maps list", 404)
-      }
+    if (!createdMap) {
+      throw new Error()
     }
+    
+    const latestMap = await createLatestMapService({
+      original_map_id: createdMap.id!,
+      latest_map_id: createdMap.id!,
+    })
+    
+    if (!latestMap) {
+      throw new CustomError("Error adding map to the latest maps list", 404)
+    }
+
     return createdMap
   } catch (err: any) {
     // Handle Sequelize validation errors
     if (err.errors && Array.isArray(err.errors)) {
-      throw new CustomError("Validation error", 400, err);
+      throw new CustomError("Validation error", 400)
     }
 
     if (err instanceof CustomError && err.messages[0].includes("unique constraint")) {
-      throw new CustomError("Map name must be unique", 400)
+      throw new CustomError("Map name must be unique", 409)
     }
-    throw err
+    throw new CustomError("Error creating map", 400)
   }
 }
 
-const updateMapService = async (id: string, mapData: Map, accessToken: string): Promise<Map> => {
+const updateMapService = async (id: string, mapData: Map): Promise<Map> => {
   try {
 
     // Create a new map entry (version) instead of updating
     const createdMap = await repo.createMap(mapData)
-
-    if (createdMap) {
-      // Find the latest map entry for this original map
-      const latestMapEntry = await getLatestMapByOriginalMapIdService(mapData.original_map_id!)
-
-      if (latestMapEntry) {
-        // Update the latest map reference to point to this new version
-        await repoLM.updateLatestMapByOriginalMapId({
-          original_map_id: mapData.original_map_id!,
-          latest_map_id: createdMap.id!,
-        })
-      } else {
-        // Create a new latest map entry if one doesn't exist
-        await repoLM.createLatestMap({
-          original_map_id: mapData.original_map_id!,
-          latest_map_id: createdMap.id!,
-        })
-      }
+    
+    if (!createdMap)  {
+      throw new Error()
     }
+
+    const updateRes = await updateLatestMapByOriginalMapIdService({
+      original_map_id: createdMap.original_map_id!,
+      latest_map_id: createdMap.id!,
+    })
+
+    if (!updateRes) {
+      throw new CustomError("Error updating latest map referencing", 404)
+    }
+    
+    const [oldMap] = await repo.updateMapUpdatedAt(id)
+    
+    if (!oldMap) {
+      throw new CustomError("Failed to updated old map 'updated at' field", 400, oldMap)
+    }
+
     return createdMap
   } catch (err: any) {
-    if (err instanceof CustomError && err.message.includes("unique constraint")) {
-      throw new CustomError("Map name must be unique", 400)
+    
+    if (err.message.includes("unique constraint")) {
+      throw new CustomError("Map name must be unique", 409)
     }
-    throw err
+    
+    if (err instanceof CustomError) {
+      throw err
+    }
+    
+    throw new CustomError("Error updating map", 400, err) 
   }
 }
 
-const deleteMapService = async (id: string, accessToken: string): Promise<number> => {
+const deleteMapService = async (id: string): Promise<number> => {
   try {
     // Get map info by id to retrieve folderId
     const map = await repo.getMapById(id)
@@ -158,11 +179,11 @@ const deleteMapService = async (id: string, accessToken: string): Promise<number
     }
     
     // Check if the map is referenced in the latest_maps table
-    const latestMapEntry = await repoLM.getLatestMapByOriginalMapId(map.original_map_id!)
+    const latestMapEntry = await getLatestMapByOriginalMapIdService(map.original_map_id!)
     
     if (latestMapEntry?.latest_map_id === id) {
       // Delete the related entry in the latest_maps table
-      await repoLM.deleteLatestMap(latestMapEntry.id!)
+      await deleteLatestMapService(latestMapEntry.id!)
     }
 
     // Delete the map
@@ -178,16 +199,16 @@ const deleteMapService = async (id: string, accessToken: string): Promise<number
 
     // now delete all old map versions
     if (latestMapEntry?.latest_map_id === id) {
-      status += await deleteMapsByOriginalMapIdService(map.original_map_id!, "")
+      status += await deleteMapsByOriginalMapIdService(map.original_map_id!)
     }
 
     return status
   } catch (err: any) {
-    throw err
+    throw new CustomError("Error deleting map", 400)
   }
 }
 
-const deleteMapsByOriginalMapIdService = async (oid: string, accessToken: string) : Promise<number> => {
+const deleteMapsByOriginalMapIdService = async (oid: string) : Promise<number> => {
   try {
     const oldMaps = await repo.getMapIdsByOriginalMapId(oid)
     
@@ -205,7 +226,28 @@ const deleteMapsByOriginalMapIdService = async (oid: string, accessToken: string
     return deletedMapsCnt
 
   } catch (err: any) {
-    throw err
+    throw new CustomError("Error deleting map", 400)
+  }
+}
+
+const getMapBoothsService = async (mapId : string) : Promise<{ booths : Object[] }> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 404)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+
+    const jsonData = JSON.parse(res.data.toString())
+
+    return {
+      booths: jsonData.layers.filter((layer: any) => layer.class === boothesClassName)
+      .flatMap((obj: any) => obj.layers.map((object: any) => object.objects.map((booth: any) => booth)))
+    }
+  } catch (err: any) {
+    throw new CustomError("Error fetching map booths", 400)
   }
 }
 
@@ -217,5 +259,6 @@ export {
   deleteMapService,
   downloadMapService,
   deleteMapsByOriginalMapIdService,
+  getMapBoothsService,
 }
 
