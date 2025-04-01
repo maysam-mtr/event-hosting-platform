@@ -1,11 +1,11 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import hero from '../../../assets/hero.png';
 import skyImg from '../../../assets/sky.png';
 import { Button1, Button2 } from "../../../components/Navbar/Navbar";
 import Modal from "../../../components/Modal/Modal";
 import { useState } from "react";
 import Input from "../../../components/Input/Input";
+import ErrorMessage from "../../../components/ErrorMessage/ErrorMessage";
 
 const HomeContainer = styled.div`
   width: 100vw;
@@ -80,15 +80,14 @@ export const Button = styled.button`
 const Container = styled.div`
 display: flex;
 flex-direction: column;
-gap: 2rem;
+gap: 1rem;
 `;
 
 
 export default function HomePage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState("public");
     const [eventID, setEventID] = useState("");
-    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const navigate = useNavigate();
   
     const onJoinEventClick = () => {
@@ -98,15 +97,16 @@ export default function HomePage() {
     const closeModal = () => {
       setIsModalOpen(false);
     };
-
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-    };
     
-    const handleJoinEvent = () => {
-        // Handle joining event logic here
-        console.log(activeTab === "public" ? `Event ID: ${eventID}` : `Event ID: ${eventID}, Password: ${password}`);
+    async function handleJoinEvent() {
+        if(!eventID){
+          setError("Please enter event code");
+          return;
+        }
+
+        setError("");
         closeModal();
+        navigate(`/event/details/${eventID}`, {replace: true});
     };
   
     return (
@@ -120,50 +120,21 @@ export default function HomePage() {
         </HomeContainer>
   
         {/* Modal that opens when user clicks "Join Event" */}
-        <Modal isOpen={isModalOpen} closeModal={closeModal} title="Join Event">
+        <Modal isOpen={isModalOpen} closeModal={closeModal} title="View Event">
             <Container>
-            <TabsContainer>
-                <Tab
-                active={activeTab === "public"}
-                onClick={() => handleTabChange("public")}
-                first
-                >
-                Public
-                </Tab>
-                <Tab
-                active={activeTab === "private"}
-                onClick={() => handleTabChange("private")}
-                last
-                >
-                Private
-                </Tab>
-            </TabsContainer>
+              <Input
+                      type="text"
+                      placeholder="Enter Event code"
+                      name='id'
+                      data={eventID}
+                      setData={setEventID}
+                      required={true}
+                      label='Code'
+              />
 
-            <Input
-                    type="text"
-                    placeholder="Enter Event code"
-                    name='id'
-                    data={eventID}
-                    setData={setEventID}
-                    required={true}
-                    label='Code'
-                />
-
-            {activeTab === "public" ? (
-                null
-            ) : (
-                <Input
-                    type="password"
-                    placeholder="Enter Event password"
-                    name='password'
-                    data={password}
-                    setData={setPassword}
-                    required={true}
-                    label='Password'
-                />
-            )}
-            
-            <Button onClick={handleJoinEvent} style={{alignSelf: 'end'}}>Join Event</Button>
+              <ErrorMessage message={error}/>
+              
+              <Button onClick={() => handleJoinEvent()} style={{alignSelf: 'end'}}>Go!</Button>
             </Container>
         </Modal>
       </>

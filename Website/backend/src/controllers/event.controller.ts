@@ -3,31 +3,31 @@ import { validationResult } from 'express-validator';
 import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
     getEventsForHost, filterEventsByStatus
 } from '../services/event.service';
-import { sendResponse
+import { sendResponse} from '../Utils/responseHelper';
 
- } from '../Utils/responseHelper';
 const createEventController = async (req: Request, res: Response): Promise<void> => {
     const eventData = req.body;
     const hostUser = (req as any).hostUser;
 
-// Check for validation errors
-const errors = validationResult(req);
-if (!errors.isEmpty()) {
-   sendResponse(res, false, 400, 'Login failed', [], [
-        { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
-      ]);
-    return;
-}
-
-    try {
-        const event = await createEvent(eventData, hostUser.id);
-        sendResponse(res, true, 201, 'Event created successfully', [event]);
-    } catch (err) {
-        sendResponse(res, false, 500, 'Failed to create event', [], [
-            { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
-          ]);
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+    sendResponse(res, false, 400, 'Login failed', [], [
+            { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
+        ]);
+        return;
     }
+
+        try {
+            const event = await createEvent(eventData, hostUser.id);
+            sendResponse(res, true, 201, 'Event created successfully', [event]);
+        } catch (err) {
+            sendResponse(res, false, 500, 'Failed to create event', [], [
+                { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
+            ]);
+        }
 };
+
 const updateEventController = async (req: Request, res: Response): Promise<void> => {
 try {
     const { eventId } = req.params; // Extract event ID from URL parameters

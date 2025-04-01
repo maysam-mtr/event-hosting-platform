@@ -19,7 +19,7 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
         });
         res.clearCookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken');
         // Success response
-    sendResponse(res, true, 200, 'Login successful', [{ userId: user.id }]);
+    sendResponse(res, true, 200, 'Login successful', [{ user: user }]);
     } catch (err) {
         sendResponse(res, false, 401, 'Login failed', [], [
             { code: 'LOGIN_ERROR', message: (err as Error).message },
@@ -44,7 +44,7 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
         });
         res.clearCookie(process.env.USER_TOKEN_COOKIE_NAME || 'token');
 
-      sendResponse(res, true, 200, 'Host login successful', [{ hostId: host.id }]);
+      sendResponse(res, true, 200, 'Host login successful', [{ host: host }]);
     } catch (err) {
         sendResponse(res, false, 401, 'Host Login failed', [], [
             { code: 'HOST_LOGIN_ERROR', message: (err as Error).message },

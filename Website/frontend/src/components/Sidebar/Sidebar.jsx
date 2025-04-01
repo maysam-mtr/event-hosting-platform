@@ -51,7 +51,7 @@ export default function Sidebar({ isOpen, toggleSidebar, role }) {
           <SidebarItem $role={role} to="/host" $active={location.pathname === "/host"} onClick={() => toggleSidebar()}>
             Home
           </SidebarItem>
-          <SidebarItem $role={role} to="/host/my-events" $active={location.pathname === "/host/events"} onClick={() => toggleSidebar()}>
+          <SidebarItem $role={role} to="/host/my-events" $active={location.pathname === "/host/my-events"} onClick={() => toggleSidebar()}>
             My Events
           </SidebarItem>
           <SidebarItem $role={role} to="/host/settings" $active={location.pathname === "/host/settings"} onClick={() => toggleSidebar()}>
@@ -62,6 +62,9 @@ export default function Sidebar({ isOpen, toggleSidebar, role }) {
         <>
           <SidebarItem $role={role} to="/user" $active={location.pathname === "/user"} onClick={() => toggleSidebar()}>
             Home
+          </SidebarItem>
+          <SidebarItem $role={role} to="/user/explore" $active={location.pathname === "/user/explore"} onClick={() => toggleSidebar()}>
+            Explore Events
           </SidebarItem>
           <SidebarItem $role={role} to="/user/settings" $active={location.pathname === "/user/settings"} onClick={() => toggleSidebar()}>
             Settings

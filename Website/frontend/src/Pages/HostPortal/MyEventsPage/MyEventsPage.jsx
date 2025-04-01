@@ -30,7 +30,7 @@ export const Card = styled.div`
   border: 1px solid var(--border-color);
 `;
 
-const PreviewImg = styled.img`
+export const PreviewImg = styled.img`
   width: 100%;
   height: 150px;
   object-fit: cover;
@@ -38,29 +38,41 @@ const PreviewImg = styled.img`
   margin-bottom: 10px;
 `;
 
-const EventTitle = styled.p`
+export const EventTitle = styled.p`
   font-size: 1.2rem;
   margin: 5px 0;
+  max-width: 230px;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const StatusIndicator = styled.span`
+export const StatusIndicator = styled.span`
   display: flex;
   align-items: center;
   font-size: 0.9rem;
-  color: #555;
+  color: ${(props) => 
+    props.$status === "live" ? "green" : 
+    props.$status === "closed" ? "red" : "gray"};
   margin: 5px 0;
-
+  border-radius: 15px;
+  padding: 5px 15px;
+  background-color: ${(props) => 
+    props.$status === "live" ? "rgba(0, 128, 0, 0.2)" : 
+    props.$status === "closed" ? "rgba(255, 0, 0, 0.2)" : "rgba(169, 169, 169, 0.2)"};
+  
   &::before {
     content: "";
     width: 8px;
     height: 8px;
-    border-radius: 50%;
-    background: ${(props) => 
-      props.status === "live" ? "green" : 
-      props.status === "closed" ? "red" : "gray"};
+    border-radius: 15px;
+    background-color: ${(props) => 
+      props.$status === "live" ? "green" : 
+      props.$status === "closed" ? "red" : "grey"};
     margin-right: 5px;
   }
 `;
+
 
 const HostName = styled.p`
   font-size: 0.9rem;
@@ -68,7 +80,7 @@ const HostName = styled.p`
   margin: 5px 0;
 `;
 
-const Schedule = styled.p`
+export const Schedule = styled.p`
   font-size: 0.9rem;
   color: #777;
   margin: 5px 0;
@@ -125,7 +137,7 @@ export default function MyEventsPage() {
           <Card key={event.id}>
             <PreviewImg src={event.preview} alt={event.name} />
             <EventTitle>{event.name}</EventTitle>
-            <StatusIndicator status={event.status}>{event.status.toUpperCase()}</StatusIndicator>
+            <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator>
             <Schedule>{event.dateTime}</Schedule>
             <Button3 style={{fontSize: 'var(--body)'}}>View Details</Button3>
           </Card>

@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Input from "../../components/Input/Input";
-import { Link } from "react-router-dom";
-import { Button1 } from "../../components/Navbar/Navbar";
+import { Link, useNavigate } from "react-router-dom";
+import { Button1, Button2 } from "../../components/Navbar/Navbar";
+import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
+import useSendRequest from "../../hooks/use-send-request";
+import Popup from "../../components/Popup/Popup";
+import { FaArrowLeft } from "react-icons/fa";
+import { BackButton } from "../EventDetailsPage/EventDetailsPage";
 
 const float = keyframes`
   0% { transform: translateY(0px) rotate(-5deg); }
@@ -21,11 +26,11 @@ const Section = styled.section`
   position: relative;
 `;
 
-const OrangeShape = styled.div`
+export const OrangeShape = styled.div`
   position: fixed;
   width: 600px;
   height: 600px;
-  background: linear-gradient(45deg, var(--general-bg-base), var(--general-bg-light));
+  background: linear-gradient(45deg, var(--general-bg-base), var(--general-bg-base));
   clip-path: polygon(50% 0%, 100% 25%, 80% 90%, 20% 100%, 0% 75%);
   animation: ${float} 8s ease-in-out infinite;
   z-index: 0;
@@ -33,7 +38,7 @@ const OrangeShape = styled.div`
   pointer-events: none;
 `;
 
-const OverlayShape = styled.div`
+export const OverlayShape = styled.div`
   position: fixed;
   width: 800px;
   height: 800px;
@@ -56,7 +61,7 @@ const ModalOverlay = styled.div`
   z-index: 1000;
 `;
 
-const RoleContainer = styled.div`
+export const RoleContainer = styled.div`
   background: var(--text-background);
   padding: 2rem;
   border-radius: 16px;
@@ -66,7 +71,7 @@ const RoleContainer = styled.div`
   z-index: 1001;
 `;
 
-const RoleButton = styled.button`
+export const RoleButton = styled.button`
   background: ${props => props.active ? 'var(--general-bg-base)' : 'transparent'};
   border: 1px solid var(--general-bg-light);
   color: ${props => props.active ? 'white' : 'var(--text-primary)'};
@@ -89,7 +94,7 @@ const SignUpContainer = styled.div`
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   padding: 2rem;
   position: relative;
   z-index: 1;
@@ -140,37 +145,99 @@ const AgreementLabel = styled.label`
 export default function SignUpPage() {
   const [selectedRole, setSelectedRole] = useState(null);
   const [formData, setFormData] = useState({
-    // Common fields
     fullName: '',
     email: '',
-    // User specific
     username: '',
-    dob: '',
+    password: '',
+    dateOfBirth: '',
     profilePic: null,
     educationLevel: '',
     country: '',
-    eventType: '',
+    preferredEventType: '',
     fieldOfStudy: '',
-    // Host specific
+  });
+  const [hostData, setHostData] = useState({
+    fullName: '',
+    email: '',
     companyName: '',
-    phone: '',
+    password: '',
+    phoneNumber: '',
     website: '',
     industry: '',
     registrationProof: null,
-    agreedTerms: false,
-    agreedPrivacy: false
-  });
+    termsAgreement: false,
+    privacyAgreement: false
+  })
+
+  const [error, setError] = useState("");
+  const [sendRequest] = useSendRequest();
+  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+  const navigate = useNavigate();
 
   const handleFileChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.files[0]});
   };
+
+  async function createAccount(){
+    if(selectedRole === 'user'){
+      if(!formData.fullName || !formData.username || !formData.email || !formData.password){
+        setError("Missing required fields");
+        return;
+      }
+      let URL = '/api/auth/user/register';
+      let INIT = {method: 'POST', body: JSON.stringify(formData)}
+
+      const {request, response} = await sendRequest(URL, INIT);
+      console.log(request, response)
+
+      if(response?.success === true){
+        setPopup({message: 'Account created successfully', type: 'success', isVisible: true});
+        setError("")
+        //navigate('/login');
+        return;
+
+      }else if(response?.success === false){
+        setError(response.error[0]?.message);
+        return;
+      }
+
+
+    }else if(selectedRole === 'host'){
+      if(!hostData.email || !hostData.fullName || !hostData.companyName || !hostData.password){
+        setError("Missing required fields");
+        return;
+      }
+
+      let URL = '/api/auth/host/register';
+      let INIT = {method: 'POST', body: JSON.stringify(hostData)}
+
+      const {request, response} = await sendRequest(URL, INIT);
+
+      console.log(hostData, response)
+
+      if(response?.success === true){
+        setPopup({message: 'Account created successfully', type: 'success', isVisible: true});
+        setError("")
+        //navigate('/login');
+        return;
+
+      }else if(response?.success === false){
+        setError(response.error[0]?.message);
+        return;
+      }
+
+    }
+  }
 
   if (!selectedRole) {
     return (
       <Section>
         <OrangeShape />
         <OverlayShape />
-        {/* <ModalOverlay> */}
+        <BackButton onClick={() => navigate("/", {replace: true})}>
+          <FaArrowLeft />
+            Back
+        </BackButton>
           <RoleContainer>
             <h2 style={{color: 'var(--text-primary)', marginBottom: '2rem'}}>
               Choose Your Role
@@ -184,70 +251,81 @@ export default function SignUpPage() {
               </RoleButton>
             </div>
           </RoleContainer>
-        {/* </ModalOverlay> */}
       </Section>
     );
   }
 
   return (
+    <>
+    <Popup popUpSettings={popup}/>
     <Section>
       <OverlayShape />
+      <OrangeShape/>
+      <OverlayShape />
+        <BackButton onClick={() => navigate("/", {replace: true})}>
+          <FaArrowLeft />
+            Back
+        </BackButton>
       <SignUpContainer>
         <FormHeader>
-          {selectedRole === 'user' ? 'User Sign Up' : 'Host Registration'}
+          {selectedRole === 'user' ? 'User Sign Up' : 'Host Sign Up'}
         </FormHeader>
         
         <GridForm>
           {selectedRole === 'user' ? (
             <>
-              <Input label="Username" name="username" data={formData} setData={setFormData} />
-              <Input label="Full Name" name="fullName" data={formData} setData={setFormData} />
-              <Input label="Email" type="email" name="email" data={formData} setData={setFormData} />
-              <Input label="Date of Birth" type="date" name="dob" data={formData} setData={setFormData} />
-              <Input label="Profile Picture" type="file" name="profilePic" onChange={handleFileChange} />
-              <Input label="Education Level" name="educationLevel" data={formData} setData={setFormData} />
-              <Input label="Country" name="country" data={formData} setData={setFormData} />
-              <Input label="Preferred Event Type" name="eventType" data={formData} setData={setFormData} />
-              <Input label="Field of Study" name="fieldOfStudy" data={formData} setData={setFormData} />
+              <Input label="Username*" name="username" data={formData} setData={setFormData} placeholder={'Enter username'} required={true}/>
+              <Input label="Full Name*" name="fullName" data={formData} setData={setFormData} placeholder={'Enter full name'} required={true}/>
+              <Input label="Email*" type="email" name="email" data={formData} setData={setFormData} placeholder={'Enter email'} required={true}/>
+              <Input label="Password*" type="password" name="password" data={formData} setData={setFormData} placeholder={'Enter Password'} required={true}/>
+              <Input label="Date of Birth" type="date" name="dateOfBirth" data={formData} setData={setFormData}/>
+              {/* <Input label="Profile Picture" type="file" name="profilePic" onChange={handleFileChange} /> */}
+              <Input label="Education Level" name="educationLevel" data={formData} setData={setFormData} placeholder={'Enter education level'}/>
+              <Input label="Country" name="country" data={formData} setData={setFormData} placeholder={'Enter country'}/>
+              <Input label="Preferred Event Type" name="preferredEventType" data={formData} setData={setFormData} placeholder={'Enter preferences'}/>
+              <Input label="Field of Study" name="fieldOfStudy" data={formData} setData={setFormData} placeholder={'Enter field of study'}/>
             </>
           ) : (
             <>
-              <Input label="Full Name" name="fullName" data={formData} setData={setFormData} />
-              <Input label="Company Name" name="companyName" data={formData} setData={setFormData} />
-              <Input label="Email" type="email" name="email" data={formData} setData={setFormData} />
-              <Input label="Phone Number" type="tel" name="phone" data={formData} setData={setFormData} />
-              <Input label="Company Website" type="url" name="website" data={formData} setData={setFormData} />
-              <Input label="Industry" name="industry" data={formData} setData={setFormData} />
-              <Input label="Business Registration Proof" type="file" name="registrationProof" onChange={handleFileChange} />
+              <Input label="Full Name*" name="fullName" data={hostData} setData={setHostData} required={true} placeholder={'Enter full name'}/>
+              <Input label="Company Name*" name="companyName" data={hostData} setData={setHostData} required={true} placeholder={'Enter company name'}/>
+              <Input label="Email*" type="email" name="email" data={hostData} setData={setHostData} required={true} placeholder={'Enter email'}/>
+              <Input label="Password*" type="password" name="password" data={hostData} setData={setHostData} placeholder={'Enter Password'} required={true}/>
+              <Input label="Phone Number*" type="tel" name="phoneNumber" data={hostData} setData={setHostData} placeholder={'Enter Phone nb'}/>
+              <Input label="Company Website" type="url" name="website" data={hostData} setData={setHostData} placeholder={'Enter url'}/>
+              <Input label="Industry" name="industry" data={hostData} setData={setHostData} placeholder={'Enter company industry'}/>
+              {/* <Input label="Business Registration Proof" type="file" name="registrationProof" onChange={handleFileChange} required={true}/> */}
               
               <div style={{gridColumn: '1 / -1'}}>
                 <AgreementLabel>
                   <input 
                     type="checkbox" 
-                    checked={formData.agreedTerms}
-                    onChange={(e) => setFormData({...formData, agreedTerms: e.target.checked})}
+                    checked={hostData.agreedTerms}
+                    onChange={(e) => setHostData((prev) => ({...prev, termsAgreement: e.target.checked}))}
                   />
                   I agree to the <Link to="/terms">Terms of Service</Link>
                 </AgreementLabel>
                 <AgreementLabel>
                   <input 
                     type="checkbox" 
-                    checked={formData.agreedPrivacy}
-                    onChange={(e) => setFormData({...formData, agreedPrivacy: e.target.checked})}
+                    checked={hostData.agreedPrivacy}
+                    onChange={(e) => setHostData((prev) => ({...prev, privacyAgreement: e.target.checked}))}
                   />
                   I agree to the <Link to="/privacy">Privacy Policy</Link>
                 </AgreementLabel>
               </div>
             </>
           )}
-          
-          <div style={{gridColumn: '1 / -1'}}>
-            <Button1 style={{marginTop: '1rem'}}>
-              {selectedRole === 'user' ? 'Create Account' : 'Register Host Account'}
+        
+        </GridForm>
+        <ErrorMessage message={error}/>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem'}}>
+            <Button1 onClick={createAccount}>
+              Create Account
             </Button1>
           </div>
-        </GridForm>
       </SignUpContainer>
     </Section>
+    </>
   );
 }

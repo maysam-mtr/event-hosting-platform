@@ -17,7 +17,9 @@ const loginUser = async ({ usernameOrEmail, password }: { usernameOrEmail: strin
             throw new Error('Incorrect password');
         }
 
-        return user;
+        const { password: _, ...userWithoutPassword } = user.get({ plain: true });
+
+        return userWithoutPassword;
     } catch (err) {
         throw new Error((err as Error).message || ''); 
     }
@@ -36,7 +38,9 @@ const loginHost = async ({ email, password }: { email: string, password: string 
             throw new Error('Incorrect password');
         }
 
-        return host;
+        const { password: _, ...hostWithoutPassword } = host.get({ plain: true });
+
+        return hostWithoutPassword;
     } catch (err) {
         throw new Error((err as Error).message || ''); 
     }

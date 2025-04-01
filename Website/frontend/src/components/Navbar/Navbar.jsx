@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { media } from "../../Pages/LandingPage/LandingPage";
 import logo from '../../assets/logo1.png';
 import logoHost from '../../assets/logoHost.png';
+import Popup from "../Popup/Popup";
+import useSendRequest from "../../hooks/use-send-request";
 
 const NavbarContainer = styled.div`
   width: 100%;
@@ -161,6 +163,8 @@ const NavbarContent = styled.div`
 export default function NavBar({ role, toggleSidebar }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+  const [sendRequest] = useSendRequest();
 
   const navigate = useNavigate();
 
@@ -172,10 +176,21 @@ export default function NavBar({ role, toggleSidebar }) {
     navigate('/signup', {replace: true});
   }
 
-  const onLogoutClick = () => {
-    localStorage.removeItem("user");
-    // navigate('/', {replace: true});
-    window.location.href = "/"; 
+  async function onLogoutClick(){
+
+    let URL = role === 'user' ? '/api/auth/user/logout': '/api/auth/host/logout';
+    let INIT = {method: 'POST', body: ''}
+
+    let {request, response} = await sendRequest(URL, INIT);
+    console.log(request, response)
+
+    if(response.success){
+      localStorage.removeItem("user");
+      // navigate('/', {replace: true});
+      window.location.href = "/"; 
+    }else{
+      setPopup({message: 'Failed to logout!', type: 'fail', isVisible: true})
+    }
   }
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -242,8 +257,11 @@ export default function NavBar({ role, toggleSidebar }) {
   };
 
   return (
+    <>
+    <Popup popUpSettings={popup}/>
     <NavbarContainer>
       {renderNavbarContent()}
     </NavbarContainer>
+    </>
   );
 }

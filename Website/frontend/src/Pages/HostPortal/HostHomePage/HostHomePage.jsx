@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import hostHero from '../../../assets/heroHost.png';
 import { Button3 } from "../../../components/Navbar/Navbar";
 import { useState } from "react";
+import CreateEventModal from "../CreateEventModal/CreateEventModal";
 
 const HomeContainer = styled.div`
   width: 100vw;
@@ -56,7 +57,7 @@ export default function HostHomePage(){
         <HomeContainer>
           <Content>
             <Heading>Start Your Journey Now!</Heading>
-            <Button3>Host Event</Button3>
+            <CreateEventModal/>
           </Content>
         </HomeContainer>
       </>

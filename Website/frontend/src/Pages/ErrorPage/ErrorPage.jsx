@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const ErrorContainer = styled.div`
   height: 100vh;
@@ -99,8 +99,13 @@ const BackButton = styled.button`
   }
 `;
 
-const ErrorPage = ({ errorCode = "404", errorMessage = "Page Not Found" }) => {
+const ErrorPage = (/*{ errorCode = "404", errorMessage = "Page Not Found" }*/) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { errorCode = "404", 
+          errorMessage = "The page you're looking for does not exit. Try something else?", 
+          errorTitle = "Page Not Found" } = location.state || {};
 
   const onBackButtonClick = () => {
     navigate('/', {replace: true});
@@ -109,7 +114,7 @@ const ErrorPage = ({ errorCode = "404", errorMessage = "Page Not Found" }) => {
     <ErrorContainer>
       <BackgroundShape />
       <ErrorCode>{errorCode}</ErrorCode>
-      <ErrorMessage>{errorMessage}</ErrorMessage>
+      <ErrorMessage>{errorTitle}: {errorMessage}</ErrorMessage>
       <BackButton onClick={onBackButtonClick}>Go Back Home</BackButton>
     </ErrorContainer>
   );
