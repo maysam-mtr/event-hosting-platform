@@ -98,6 +98,78 @@ const findByUsernameOrEmail = async (usernameOrEmail: string): Promise<any> => {
     }
 };
 
+// Update a user by ID
+const updateUser = async (
+    userId: string,
+    updatedData: Partial<User>
+): Promise<any> => {
+    try {
+        // Fetch the existing user
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Prevent updating sensitive fields like `id`
+        if (updatedData.id) {
+            throw new Error("ID cannot be updated");
+        }
+
+        // Check for unique fields before updating
+        if (updatedData.username && updatedData.username !== user.username) {
+            const existingUserWithUsername = await User.findOne({
+                where: { username: updatedData.username },
+            });
+
+            if (existingUserWithUsername) {
+                throw new Error("Username must be unique");
+            }
+        }
+
+        if (updatedData.email && updatedData.email !== user.email) {
+            const existingUserWithEmail = await User.findOne({
+                where: { email: updatedData.email },
+            });
+
+            if (existingUserWithEmail) {
+                throw new Error("Email must be unique");
+            }
+        }
+
+        // Whitelist the fields that can be updated
+        const allowedFields = [
+            "fullName",
+            "username",
+            "email",
+            "profilePic",
+            "dateOfBirth",
+            "country",
+            "educationLevel",
+            "fieldOfStudy",
+            "preferredEventType",
+            "yearsOfExperience",
+            "linkedin",
+            "github",
+        ];
+
+        // Filter out any fields that are not in the whitelist
+        const sanitizedData: Partial<User> = {};
+        for (const field of allowedFields) {
+            if (field in updatedData) {
+                sanitizedData[field as keyof User] = updatedData[field as keyof User];
+            }
+        }
+
+        // Update the user's data with the sanitized input
+        const updatedUser = await user.update(sanitizedData);
+
+        return updatedUser.toJSON();
+    } catch (error) {
+        throw new Error((error as Error).message || "Failed to update user");
+    }
+};
+
 export {
     createUser,
     getAllUsers,
@@ -105,4 +177,5 @@ export {
     deleteUser,
     changePassword,
     findByUsernameOrEmail,
+    updateUser
 };

@@ -19,6 +19,10 @@ class Subscriptionplan extends Model {
   @Column(DataType.DECIMAL(10, 2))
   declare price: number;
 
+  @AllowNull(false)
+  @Column(DataType.DECIMAL(10, 2))
+  declare nbOfRooms: number;
+
   @CreatedAt
   declare createdAt: Date;
 

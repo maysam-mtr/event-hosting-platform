@@ -3,11 +3,11 @@ import { Op } from 'sequelize';
 import { markSubscriptionAsUsed, isSubscriptionValid } from './subscription.service';
 import { createPrivateEventCredential,getPrivateEventCredential,deletePrivateEventCredential } from './PrivateEventCredential.service';
 import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
-import { UUID } from 'crypto';
+import Host from '../models/Host';
 const createEvent = async (eventData: any, hostId: string): Promise<any> => {
     try {
         const { eventName, eventDate, eventTime, subscriptionId, mapTemplateId, eventType, passcode} = eventData;
-        let result= await isSubscriptionValid(subscriptionId)
+        let result= await isSubscriptionValid(subscriptionId,hostId)
         if(!result.isValid){
             throw new Error(result.message);
         }
@@ -21,15 +21,16 @@ const createEvent = async (eventData: any, hostId: string): Promise<any> => {
             mapTemplateId,
             eventType
         });
-
+let credential=null;
         if(eventData.eventType === 'private'){
-              await createPrivateEventCredential(event.id,passcode);
+            credential=  await createPrivateEventCredential(event.id,passcode);
         }
         if (subscriptionId) {
             await markSubscriptionAsUsed(subscriptionId);
         }
         console.log("New event created:", event.toJSON());
-        return event.toJSON();
+        return {event: event.toJSON(),
+            ...(credential ? { credential } : {}),}
     } catch (err) {
         throw new Error((err as Error).message || '');
     }
@@ -48,10 +49,11 @@ const updateEvent = async (eventId: string, updateData: any,userId: string, pass
             throw new Error('You are not authorized to update this event');
         }
         console.log(updateData.eventType,event.eventType)
+        let credential=null;
        if(updateData.eventType && updateData.eventType !== event.eventType){
 
         if(updateData.eventType === 'private'){
-            await createPrivateEventCredential(event.id,passcode);
+           credential=  await createPrivateEventCredential(event.id,passcode);
         }
         if(updateData.eventType === 'public'){
             await deletePrivateEventCredential(event.id);
@@ -61,7 +63,8 @@ const updateEvent = async (eventId: string, updateData: any,userId: string, pass
         await event.update(updateData);
 
         console.log("Event updated successfully:", event.toJSON());
-        return event.toJSON();
+        return { event:event.toJSON(),
+            ...(credential ? { credential } : {}),}
     } catch (err) {
         throw new Error((err as Error).message || 'Failed to update event.');
     }
@@ -105,7 +108,14 @@ const getEventDetails = async (eventId: string): Promise<any> => {
         if (!event) {
             throw new Error("Event not found");
         }
-       
+        const host = await Host.findByPk(event.hostId, {
+            attributes: ["fullName"], // Only fetch the "fullName" field
+        });
+
+        if (!host) {
+            throw new Error("Host not found");
+        }
+
         const isOngoing = isEventOngoing(event.eventDate, event.eventTime);
     
              
@@ -113,6 +123,7 @@ const getEventDetails = async (eventId: string): Promise<any> => {
         return {
             ...event.toJSON(),
             isOngoing,
+            hostName: host.fullName,
         };
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to fetch event details.');
@@ -206,7 +217,7 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
         const events = await Event.findAll({
             where: { hostId },
         });
-
+        console.log(events)
         return {
            events: events.map((event) => event.toJSON()),
         };
@@ -279,7 +290,19 @@ const filterEventsByStatus = async (hostId: string, status: string): Promise<any
     }
 };
 
+const getEvent = async (eventID: string): Promise<any> => {
+    try {
+        const event = await Event.findByPk(eventID);
+        if (!event) {
+            throw new Error("User not found");
+        }
+        return event;
+    } catch (err) {
+        throw new Error((err as Error).message || '');
+    }
+};
+
 
 export {
-    createEvent, updateEvent ,getPublicEvents, getEventDetails, joinEvent, getEventsForHost,filterEventsByStatus
+    createEvent, updateEvent ,getPublicEvents, getEventDetails, joinEvent, getEventsForHost,filterEventsByStatus, getEvent
 };

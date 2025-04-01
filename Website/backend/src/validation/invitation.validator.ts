@@ -7,6 +7,16 @@ const eventIdValidation = () => [
         .isUUID().withMessage("Event ID must be a valid UUID"),
 ];
 
+const invitationLinkValidation = () => [
+    check('invitationLink')
+        .notEmpty().withMessage("Event Invitation Link is required")
+        .isURL({
+            protocols: ['http', 'https'], // Only allow HTTP/HTTPS
+            require_tld: false,         // Allow localhost (no TLD required)
+            require_protocol: true,     // Require the protocol (e.g., `http://`)
+        }).withMessage("Link must be a valid URL"),
+];
+
 // Validate booth template ID
 const boothTemplateIdValidation = () => [
     check('boothTemplateId')
@@ -42,6 +52,7 @@ export const createInvitationValidation = [
     ...eventIdValidation(),
     ...boothTemplateIdValidation(),
     ...assignedEmailValidation(),
+    ...invitationLinkValidation(),
 ];
 
 // Combine validations for updating an invitation status

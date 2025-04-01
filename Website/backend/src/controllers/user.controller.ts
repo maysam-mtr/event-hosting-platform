@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { createUser, getAllUsers, getUser, deleteUser, changePassword } from '../services/user.service';
+import { createUser, getAllUsers, getUser, deleteUser, changePassword, updateUser } from '../services/user.service';
 import { clearToken } from '../services/auth.service';
 import { sendResponse } from '../Utils/responseHelper';
 
@@ -108,11 +108,46 @@ const changePasswordController = async (req: Request, res: Response): Promise<vo
         return;
     }
 };
+const updateUserController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Validate the request body
+        const errors = validationResult(req);
 
+        if (!errors.isEmpty()) {
+         sendResponse(res, false, 400, 'Validation Failed', [], [
+                { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+              ]);
+                 return;
+        }
+
+        // Extract the user ID and updated data from the request
+       const id = (req as any).user?.id;
+        const updatedData = req.body;
+
+        // Call the service to update the user
+        const updatedUser = await updateUser(id, updatedData);
+
+        // Respond with the updated user
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            message: "User updated successfully",
+            data: updatedUser,
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            statusCode: 400,
+            message: "Failed to update user",
+            errors: [{ code: "UPDATE_USER_ERROR", message: (error as Error).message }],
+        });
+    }
+};
 export {
     createUserController,
     getAllUsersController,
     getUserController,
     deleteUserController,
     changePasswordController,
+    updateUserController
 };

@@ -39,13 +39,21 @@ const  getSubscriptionPlans = async (): Promise<any> => {
 };
 
 
- const isSubscriptionValid = async (subscriptionId: string): Promise<{ isValid: boolean; message: string }> => {
+ const isSubscriptionValid = async (subscriptionId: string, hostId:string): Promise<{ isValid: boolean; message: string }> => {
     try {
         // Fetch the subscription by ID
-        const subscription = await Subscription.findByPk(subscriptionId);
+        const subscription = await Subscription.findOne({
+            where:{
+                id: subscriptionId,
+                hostId:hostId,
+            }
+        });
 
         if (!subscription) {
-            throw new Error("Subscription not found");
+            return {
+                isValid: false,
+                message: "No subscriptions",
+            };
         }
 
         // Calculate the expiration date (30 days after creation)
@@ -71,7 +79,6 @@ const  getSubscriptionPlans = async (): Promise<any> => {
             };
         }
 
-        // Default case (should not reach here)
         return {
             isValid: false,
             message: "Invalid subscription status",
@@ -80,6 +87,25 @@ const  getSubscriptionPlans = async (): Promise<any> => {
         throw new Error((error as Error).message || 'Failed to check subscription validity.');
     }
 };
+
+import { getNumberOfRoomsByPlanId } from './subscriptionplan.service';
+
+// Get the number of rooms allowed for a subscription
+export const getNumberOfBooths = async (subscriptionId: string): Promise<number> => {
+    try {
+        // Fetch the subscription and include its associated subscription plan
+        const subscription1 = await Subscription.findByPk(subscriptionId);
+
+        if (!subscription1) {
+            throw new Error("Subscription or subscription plan not found");
+        }
+        // Return the number of rooms from the subscription plan
+        return await getNumberOfRoomsByPlanId(subscription1.planId);
+    } catch (error) {
+        throw new Error((error as Error).message || "Failed to fetch number of rooms");
+    }
+};
+
 export {
     createSubscription,
     getSubscriptionPlans,

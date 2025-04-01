@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { createHost} from '../services/host.service';
+import { createHost, updateHost} from '../services/host.service';
 import { clearToken } from '../services/auth.service';
 import { sendResponse } from '../Utils/responseHelper';
 
@@ -35,4 +35,39 @@ const createHostController = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-export { createHostController };
+
+// Update a host
+const updateHostController = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const hostId = (req as any).hostUser?.id;
+        // Validate the request body
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+           sendResponse(res, false, 400, 'Validation Failed', [], [
+                { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+              ]);
+            return;
+        }
+
+         const updatedData = req.body;
+
+        // Call the service to update the host
+        const updatedHost = await updateHost(hostId, updatedData);
+
+        // Respond with the updated host
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            message: "Host updated successfully",
+            data: updatedHost,
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            statusCode: 400,
+            message: "Failed to update host",
+            errors: [{ code: "UPDATE_HOST_ERROR", message: (error as Error).message }],
+        });
+    }
+};
+export { createHostController, updateHostController };

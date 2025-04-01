@@ -4,12 +4,15 @@ import { createInvitation, validateInvitationForUser
     getInvitationsForEvent, deleteInvitationById } from '../services/invitation.service';
 import { validationResult } from 'express-validator';
 import { sendResponse } from '../Utils/responseHelper';
+import {createPartnerValidation} from '../validation/partner.validator'
+import { getUser } from '../services/user.service';
+import { createPartner, findPartner } from '../services/partner.service';
 
 // Create an invitation
 const createInvitationController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { eventId } = req.params;
-        const { boothTemplateId, assignedEmail } = req.body;
+        const { boothTemplateId, assignedEmail,invitationLink } = req.body;
         
         const errors = validationResult(req);
           if (!errors.isEmpty()) {
@@ -19,10 +22,10 @@ const createInvitationController = async (req: Request, res: Response): Promise<
           }
         
         // Call the service function to create the invitation
-        const result = await createInvitation(eventId, boothTemplateId, assignedEmail);
+        const result = await createInvitation(eventId, boothTemplateId, assignedEmail,invitationLink);
 
         // Return success response
-        sendResponse(res, true, 201, 'Host login successful', [result]);
+        sendResponse(res, true, 201, 'Invitation sent successfully', [result]);
     } catch (err) {
         sendResponse(res, false, 500, 'Failed to send invitation', [], [
             { code: 'CREATE_INVITATION_ERROR', message: (err as Error).message },
@@ -31,17 +34,48 @@ const createInvitationController = async (req: Request, res: Response): Promise<
 };
 
 // Handle an accepted invitation
+const handleAcceptedInvitationForNewPartnerController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { invitationId } = req.params;
+        const {companyName, companyLogo,primaryContactFullName,primaryContactEmail} = req.body;
+        const userId = (req as any).user?.id;
+
+        // Validate partner details only if the user is not a partner
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          sendResponse(res, false, 400, 'Validation Failed', [], [
+              { code: 'VALIDATION_ERROR', message:  errors.array()[0].msg  },
+            ]); return;
+        }
+         const result = await handleAcceptedInvitation(userId, invitationId,{
+            companyName, companyLogo, primaryContactFullName,primaryContactEmail
+        });
+         sendResponse(res, true, 200, 'Invitation accepted successfully', result);
+     
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to accept invitation', [], [
+            { code: 'ACCEPT_INVITATION_ERROR', message: (err as Error).message },
+          ]);
+    }
+};
+
 const handleAcceptedInvitationController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { invitationId } = req.params;
         const userId = (req as any).user?.id;
-        console.log((req as any).user)
-        console.log(userId)
-        // Call the service function to handle the accepted invitation
-        const result = await handleAcceptedInvitation(userId, invitationId);
-
-        // Return success response
-        sendResponse(res, true, 200, 'Invitation accepted successfully', result);
+         
+        // Validate partner details only if the user is not a partner
+        const user = await getUser(userId);
+            if (!user || user.isPartner===0) {
+                sendResponse(res, false, 400, 'User is not partner', [],[
+                    { code: 'NOT_A_PARTNER', message: 'The user is not registered as a partner' },
+                ]);
+                return;
+            }
+       console.log(userId)
+         const result = await handleAcceptedInvitation(userId, invitationId);
+         sendResponse(res, true, 200, 'Invitation accepted successfully', result);
+     
     } catch (err) {
         sendResponse(res, false, 500, 'Failed to accept invitation', [], [
             { code: 'ACCEPT_INVITATION_ERROR', message: (err as Error).message },
@@ -119,6 +153,8 @@ const deleteInvitationByIdController = async (req: Request, res: Response): Prom
     }
 };
 
-export { createInvitationController,handleSharableLinkController,
-    handleAcceptedInvitationController, handleRejectedInvitationController,
+export { 
+    createInvitationController,handleSharableLinkController,
+    handleAcceptedInvitationForNewPartnerController, handleAcceptedInvitationController,
+    handleRejectedInvitationController,
     getInvitationsForEventController, deleteInvitationByIdController  };

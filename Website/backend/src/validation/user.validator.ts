@@ -89,6 +89,12 @@ const githubValidation = () => [
         .optional()
         .isURL().withMessage("Invalid GitHub URL"),
 ];
+export const profilePicValidation = () => [
+    check('profilePic')
+        .optional()
+        .isURL()
+        .withMessage("Profile picture must be a valid URL"),
+];
 
 const userValidation = [
     ...usernameValidation(),
@@ -104,7 +110,20 @@ const userValidation = [
     ...linkedinValidation(),
     ...githubValidation(),
 ];
-
+export const updateUserValidation = () => [
+    ...fullNameValidation().map((validation) => validation.optional()),
+    ...usernameValidation().map((validation) => validation.optional()),
+    ...emailValidation().map((validation) => validation.optional()),
+    ...profilePicValidation().map((validation) => validation.optional()),
+    ...dateOfBirthValidation().map((validation) => validation.optional()),
+    ...countryValidation().map((validation) => validation.optional()),
+    ...educationLevelValidation().map((validation) => validation.optional()),
+    ...fieldOfStudyValidation().map((validation) => validation.optional()),
+    ...preferredEventTypeValidation().map((validation) => validation.optional()),
+    ...yearsOfExperienceValidation().map((validation) => validation.optional()),
+    ...linkedinValidation().map((validation) => validation.optional()),
+    ...githubValidation().map((validation) => validation.optional()),
+];
 export {
     userValidation,
     changePasswordValidation,
