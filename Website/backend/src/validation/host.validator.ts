@@ -90,8 +90,18 @@ const hostValidation = [
     ...termsAgreementValidation(),
     ...privacyAgreementValidation(),
 ];
-
+ const updateHostValidation = () => [
+    ...fullNameValidation().map((validation) => validation.optional()),
+    ...companyNameValidation().map((validation) => validation.optional()),
+    ...emailValidation().map((validation) => validation.optional()),
+    ...phoneNumberValidation().map((validation) => validation.optional()),
+    ...companyWebsiteValidation().map((validation) => validation.optional()),
+    ...companyIndustryValidation().map((validation) => validation.optional()),
+    ...termsAgreementValidation().map((validation) => validation.optional()),
+    ...privacyAgreementValidation().map((validation) => validation.optional()),
+];
 export {
     hostValidation,
     changePasswordValidation,
+    updateHostValidation
 };

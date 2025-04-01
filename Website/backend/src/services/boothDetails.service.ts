@@ -21,7 +21,7 @@ export const getOrCreateBoothDetails = async ( eventId: string, boothTemplateId:
         }
 
         return {
-           boothDetails: boothDetails.toJSON(),
+           boothDetails: boothDetails,
         };
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to fetch or create booth details.');

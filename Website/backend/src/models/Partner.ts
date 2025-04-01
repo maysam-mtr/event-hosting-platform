@@ -17,7 +17,7 @@ class Partner extends Model {
   @Column(DataType.UUID)
   declare userId: string;
 
-  @AllowNull(true)
+  @AllowNull(false)
   @Unique
   @Column(DataType.STRING)
   declare companyName: string;
@@ -27,19 +27,18 @@ class Partner extends Model {
   declare companyIndustry: string;
 
   @AllowNull(true)
-  @Unique
   @Column(DataType.STRING)
   declare companyWebsite: string | null;
 
-  @AllowNull(true)
-  @Column(DataType.TEXT)
+  @AllowNull(false)
+  @Column(DataType.STRING)
   declare companyLogo: string | null;
 
   @AllowNull(false)
   @Column(DataType.STRING)
   declare primaryContactFullName: string;
 
-  @AllowNull(true)
+  @AllowNull(false)
   @Unique
   @Column(DataType.STRING)
   declare primaryContactEmail: string;

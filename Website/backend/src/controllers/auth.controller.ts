@@ -12,7 +12,7 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
         res.cookie('token', token, {
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
-            maxAge: 3600000, // 1 hour in milliseconds
+            maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             secure: false
         });
         res.clearCookie('hostToken');
@@ -36,7 +36,7 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
         res.cookie('hostToken', token, {
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
-            maxAge: 3600000, // 1 hour in milliseconds
+            maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             secure: false
         });
         res.clearCookie('token');

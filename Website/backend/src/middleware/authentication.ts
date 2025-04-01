@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { sendResponse } from '../Utils/responseHelper';
 
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies?.token;
 
     if (!token) {
-        res.status(401).json({ message: 'You are not logged in' });
+        sendResponse(res, false, 401, 'You are not logged in' , [], [
+            { code: 'AUTHORIZATION_ERROR', message:'You are not logged in'  },
+          ]);
         return;
     }
 
@@ -19,7 +22,9 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
         next();
     } catch (err) {
         console.error("Token verification failed:", err);
-        res.status(403).json({ message: 'Invalid Token' });
+         sendResponse(res, false, 403, 'Invalid Token', [], [
+                    { code: 'TOKEN_ERROR', message: 'Invalid User Token' },
+                  ]);
     }
 };
 const authenticateHost = (req: Request, res: Response, next: NextFunction) => {
@@ -27,7 +32,9 @@ const authenticateHost = (req: Request, res: Response, next: NextFunction) => {
     console.log("Received token:",hostToken);
 
     if (!hostToken) {
-        res.status(401).json({ message: 'You are not logged in' });
+        sendResponse(res, false, 401, 'You are not logged in' , [], [
+            { code: 'AUTHORIZATION_ERROR', message:'You are not logged in'  },
+          ]);
         return;
     }
 
@@ -36,7 +43,9 @@ const authenticateHost = (req: Request, res: Response, next: NextFunction) => {
         (req as any).hostUser = verified;
         next();
     } catch (err) {
-        res.status(403).json({ message: 'Invalid Host Token' });
+        sendResponse(res, false, 403, 'Invalid Token', [], [
+            { code: 'TOKEN_ERROR', message: 'Invalid Host Token' },
+          ]);
     }
 };
 

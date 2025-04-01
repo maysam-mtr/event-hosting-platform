@@ -21,7 +21,7 @@ if (!errors.isEmpty()) {
 
     try {
         const event = await createEvent(eventData, hostUser.id);
-        sendResponse(res, true, 201, 'Host login successful', [event]);
+        sendResponse(res, true, 201, 'Event created successfully', [event]);
     } catch (err) {
         sendResponse(res, false, 500, 'Failed to create event', [], [
             { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },

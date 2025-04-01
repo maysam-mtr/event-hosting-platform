@@ -23,8 +23,12 @@ class Invitation extends Model {
 
   @AllowNull(false)
   @Default('pending')
-  @Column(DataType.ENUM('pending', 'accepted', 'declined'))
-  declare status: 'pending' | 'accepted' | 'declined';
+  @Column(DataType.ENUM('pending', 'accepted', 'declined','expired'))
+  declare status: 'pending' | 'accepted' | 'declined'| 'expired';
+
+  @AllowNull(true)
+  @Column(DataType.DATEONLY)
+  declare expiresAt: Date;
 
   @CreatedAt
   declare createdAt: Date;
