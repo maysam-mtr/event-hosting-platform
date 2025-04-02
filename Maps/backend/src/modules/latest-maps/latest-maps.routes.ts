@@ -5,15 +5,16 @@ import {
   getLatestMapsWithDetailsController,
   getLatestMapsDisplayController,
 } from "./latest-maps.controller"
+import { adminAuthMiddleware, adminAndHostAuthMiddleware } from "@/middlewares/auth.middleware"
 
 const latestMapsRouter = express.Router()
 
-latestMapsRouter.get("/getLatestMaps", getLatestMapsController)
-latestMapsRouter.get("/getLatestMap/:id", getLatestMapByIdController)
-latestMapsRouter.get("/getLatestMapsWithDetails", getLatestMapsWithDetailsController)
+latestMapsRouter.get("/getLatestMaps", adminAuthMiddleware, getLatestMapsController)
+latestMapsRouter.get("/getLatestMap/:id", adminAuthMiddleware, getLatestMapByIdController)
+latestMapsRouter.get("/getLatestMapsWithDetails", adminAuthMiddleware, getLatestMapsWithDetailsController)
 
 // Website
-latestMapsRouter.get("/getLatestMapsDisplay", getLatestMapsDisplayController)
+latestMapsRouter.get("/getLatestMapsDisplay", adminAndHostAuthMiddleware, getLatestMapsDisplayController)
 
 export default latestMapsRouter
 
