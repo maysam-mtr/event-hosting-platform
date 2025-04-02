@@ -5,6 +5,7 @@ import { useToast } from "../hooks/use-toast"
 import { getMapById, updateMap } from "../lib/api"
 import MapForm from "../components/MapForm"
 import { ArrowLeft } from "lucide-react"
+import LogoutButton from "../components/LogoutButton"
 import type { Map } from "../lib/types"
 
 export default function UpdateMap() {
@@ -96,14 +97,15 @@ export default function UpdateMap() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
+      <div className="flex justify-between items-center mb-6">
         <Link to="/">
-          <Button variant="ghost" className="mb-4">
+          <Button variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Maps
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Update Map: {map.name}</h1>
+        <LogoutButton />
       </div>
+      <h1 className="text-3xl font-bold mb-6">Update Map: {map.name}</h1>
 
       <MapForm onSubmit={handleSubmit} isSubmitting={isSubmitting} submitButtonText="Update Map" initialData={map} />
     </div>
