@@ -2,12 +2,13 @@ import Subscriptionplan from '../models/Subscriptionplan';
 
 const createSubscriptionPlan = async (planData: any): Promise<any> => {
     try {
-        const { planName, price } = planData;
+        const { planName, price, nbOfRooms } = planData;
 
         // Create a new subscription plan
         const subscriptionPlan = await Subscriptionplan.create({
             planName,
-            price
+            price,
+            nbOfRooms
         });
 
         console.log("New subscription plan created:", subscriptionPlan.toJSON());
