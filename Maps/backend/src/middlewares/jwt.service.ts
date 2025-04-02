@@ -1,14 +1,14 @@
+import { Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-//! Should be done on the website's backend instead
-// export const generateJWT = async (payload: any, secretKey: string) => {
-//     try {
-//         const token = `Bearer ${jwt.sign(payload, secretKey)}`
-//         return token
-//     } catch (err: any) {
-//         throw new Error(err.message)
-//     }
-// }
+export const generateJWT = async (payload: any, secretKey: string) => {
+    try {
+        const token = `Bearer ${jwt.sign(payload, secretKey)}`
+        return token
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
 
 export const verifyJWT = async (
     token: string,
@@ -24,5 +24,16 @@ export const verifyJWT = async (
         return data as jwt.JwtPayload
     } catch (err: any) {
         throw new Error(err.message)
+    }
+}
+
+export const clearToken = (res: Response) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            sameSite: 'strict'
+        })
+    } catch (err: any) {
+        throw new Error("Error clearing out token")
     }
 }

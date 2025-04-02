@@ -2,35 +2,90 @@
 
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { verifyJWT } from "./jwt.service"
-import { JWT_ACCESS_TOKEN_SECRET } from "@config/index"
+import { JWT_ADMIN_ACCESS_TOKEN_SECRET, JWT_HOST_ACCESS_TOKEN_SECRET, HOST_TOKEN_COOKIE_NAME, ADMIN_TOKEN_COOKIE_NAME } from "@config/index"
 import { NextFunction, Request, Response } from "express"
 
-const decodeToken = async (header: string | undefined) => {
-    if (!header)
-        throw new CustomError("Authorization header missing", 401)
+const verifyAdminToken = async (token: string) => {
+    const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
 
-    const token = header.replace("Bearer ", '')
-    const payload = await verifyJWT(token, JWT_ACCESS_TOKEN_SECRET as string)
-
-    return payload
+    return { ...payload, isAdmin: true }
 }
 
-export const authMiddleware = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-) => {
-    
-    const { method, path } = req
+const verifyHostToken = async (token: string) => {
+    const payload = await verifyJWT(token, JWT_HOST_ACCESS_TOKEN_SECRET as string)
 
-    if (method === "OPTIONS" || ['/api/auth/signin'].includes(path))
-        return next()
-
+    return { ...payload, isHost: true }
+}
+  
+export const adminAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const authHeader = req.header("Authorization") || req.header("authorization")
-        req.context = await decodeToken(authHeader)
-        next()
-    } catch (err: any) {
-        next(err)
+      const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
+      const token = req.cookies[cookieName]
+      
+      if (!token) {
+        throw new CustomError("Unautherized access", 401)
+      }
+
+      req.context = await verifyAdminToken(token)
+
+      if (!req.context.isAdmin) {
+      throw new CustomError("Admin access required", 403)
+      }
+
+      next()
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const hostAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const cookieName = HOST_TOKEN_COOKIE_NAME ?? "hostToken"
+      const token = req.cookies[cookieName]
+
+      if (!token) {
+        throw new CustomError("Unautherized access", 401)
+      }
+
+      req.context = await verifyHostToken(token)
+  
+      if (!req.context.isHost) {
+        throw new CustomError("Valid external token required", 403)
+      }
+  
+      next()
+    } catch (error) {
+      next(error)
+    }
+}
+
+export const adminAndHostAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Check if admin first
+      try {
+        const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
+        const token = req.cookies[cookieName]
+        if (!token) {
+          throw new CustomError("Unautherized access", 401)
+        }
+        req.context = await verifyAdminToken(token)
+      } catch (err: any) {
+        // Now check if it's a host
+        try {
+          const cookieName = HOST_TOKEN_COOKIE_NAME ?? "hostToken"
+          const hostToken = req.cookies[cookieName]
+          if (!hostToken) {
+            throw new CustomError("Unautherized access", 401)
+          }
+          
+          req.context = await verifyHostToken(hostToken)
+        } catch (err2: any) {
+          throw new CustomError("Invalid token", 401)
+        }
+      }
+
+      next()
+    } catch (error) {
+      next(error)
     }
 }
