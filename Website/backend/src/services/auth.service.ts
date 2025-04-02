@@ -43,7 +43,7 @@ const loginHost = async ({ email, password }: { email: string, password: string 
 };
 
 const clearToken = (res: Response): void => {
-    res.clearCookie('token', {
+    res.clearCookie(process.env.USER_TOKEN_COOKIE_NAME || 'token', {
         httpOnly: true,
         sameSite: 'strict'
     });
@@ -51,7 +51,7 @@ const clearToken = (res: Response): void => {
 
 
 const clearHostToken = (res: Response): void => {
-    res.clearCookie('hostToken', {
+    res.clearCookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken', {
         httpOnly: true,
         sameSite: 'strict'
     });

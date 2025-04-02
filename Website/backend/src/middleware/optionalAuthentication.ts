@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 const optionalAuth = (req: Request & { [key: string]: any }, res: Response, next: NextFunction) => {
     // Attempt to retrieve token from Authorization header or cookies
-    const token = req.header('Authorization')?.replace('Bearer ', '') || req.cookies?.token;
+    const cookieName = process.env.USER_TOKEN_COOKIE_NAME || 'token'
+    const token = req.header('Authorization')?.replace('Bearer ', '') || req.cookies[cookieName];
     console.log("Received Authorization header:", req.header('Authorization'));
     console.log(process.env.JWT_SECRET as string)
   
@@ -27,9 +28,10 @@ const optionalAuth = (req: Request & { [key: string]: any }, res: Response, next
 
 const optionalHostAuth = (req: Request & { [key: string]: any }, res: Response, next: NextFunction) => {
     // Attempt to retrieve token from Authorization header or cookies
-    const token = req.header('Authorization')?.replace('Bearer ', '') || req.cookies?.hostToken;
+    const cookieName = process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken'
+    const token = req.header('Authorization')?.replace('Bearer ', '') || req.cookies[cookieName];
     console.log("Received Authorization header:", req.header('Authorization'));
-    console.log("host token",req.cookies?.hostToken);   
+    console.log("host token",req.cookies[cookieName]);   
     console.log(process.env.JWT_SECRET_HOST as string)
     console.log("token",token)
 
