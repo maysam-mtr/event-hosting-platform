@@ -13,6 +13,9 @@ export const repo = {
             where: { original_map_id: oid }
         })
     },
+    getMapRawById: async (id: string): Promise<Map | null> => {
+        return await DB.Maps.findByPk(id, { raw: true })
+    },
     createMap: async (mapData: Map): Promise<Map> => {
         return await DB.Maps.create(mapData)
     },

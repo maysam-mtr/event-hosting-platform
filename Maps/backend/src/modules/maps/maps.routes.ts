@@ -7,6 +7,10 @@ import {
   deleteMapController,
   downloadMapController,
   getMapBoothsController,
+  getMapBoothsDisplayController,
+  getDetailedMapByIdController,
+  getMapCollisionsController,
+  getMapLayersController,
 } from "./maps.controller"
 import fileUpload from "express-fileupload"
 
@@ -26,8 +30,16 @@ mapsRouter.get("/getMap/:id", getMapByIdController)
 mapsRouter.post("/createMap", createMapController)
 mapsRouter.put("/updateMap/:id", updateMapController)
 mapsRouter.delete("/deleteMap/:id", deleteMapController)
-mapsRouter.get("/getMapBooths/:id", getMapBoothsController)
 mapsRouter.get("/downloadMap/:id", downloadMapController)
+
+// Game-engine
+mapsRouter.get("/getDetailedMap/:id", getDetailedMapByIdController)
+mapsRouter.get("/getMapBooths/:id", getMapBoothsController)
+mapsRouter.get("/getMapCollisions/:id", getMapCollisionsController)
+mapsRouter.get("/getMapLayers/:id", getMapLayersController)
+
+// Website
+mapsRouter.get("/getMapBoothsDisplay/:id", getMapBoothsDisplayController)
 
 export default mapsRouter
 
