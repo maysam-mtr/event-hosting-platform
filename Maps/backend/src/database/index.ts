@@ -48,7 +48,6 @@ export async function initializeDatabase(): Promise<void> {
         await sequelize.sync({ alter: true }) // Sync models with the database
         console.log('Database synchronized successfully.')
     } catch (err: any) {
-        console.error(`Error connecting to ${DB_NAME}:`, err.message)
         throw err
     }
 }

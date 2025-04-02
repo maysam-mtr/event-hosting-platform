@@ -100,7 +100,7 @@ const getFile = async (fileId: string): Promise<{ data: Buffer }> => {
 const getFileByTypeFromFolder = async (folderId : string, type: string ) => {
   try {
     const fileRes = await drive.files.list({
-      q: `'${folderId}' in parents and name contains '.json'`,
+      q: `'${folderId}' in parents and name contains '.${type}'`,
       fields: "files(id)",
     })
 

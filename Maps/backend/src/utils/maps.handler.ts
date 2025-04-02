@@ -14,6 +14,7 @@ export enum FileTypes {
 export const fileTypes = Object.values(FileTypes)
 export const thumbnailFileType = "thumbnailFile"
 export const boothesClassName = "Booths"
+export const collisionsClassName = "Collisions"
 
 export const getRequiredFilesFromJSONFile = (data : Buffer) : { tilesets: Set<string>, templates: Set<string> } => {
     try {
