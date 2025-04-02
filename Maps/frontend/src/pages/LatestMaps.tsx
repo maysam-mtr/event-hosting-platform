@@ -9,6 +9,7 @@ import { useToast } from "../hooks/use-toast"
 import { getLatestMaps, deleteMap } from "../lib/api"
 import { Link } from "react-router-dom"
 import DeleteConfirmationDialog from "../components/DeleteConfirmationDialog"
+import LogoutButton from "../components/LogoutButton"
 import type { Map } from "../lib/types"
 
 export default function LatestMaps() {
@@ -89,11 +90,14 @@ export default function LatestMaps() {
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
         <Link to="/">
-          <Button variant="ghost" className="mb-4">
+          <Button variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Maps
           </Button>
         </Link>
+        <LogoutButton />
+        </div>
         <h1 className="text-3xl font-bold mb-6">Latest Maps</h1>
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-1/2">

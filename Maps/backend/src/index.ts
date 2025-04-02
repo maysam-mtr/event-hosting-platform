@@ -9,7 +9,7 @@ import router from '@routes/routes'
 const app = express()
 
 const corsOptions = {
-    origin: '*',
+    origin: "http://localhost:5173",
     optionsSuccessStatus: 200,
     credentials: true,
 }

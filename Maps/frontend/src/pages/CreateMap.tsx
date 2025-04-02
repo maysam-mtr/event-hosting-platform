@@ -1,11 +1,11 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { useToast } from "../hooks/use-toast"
 import { createMap } from "../lib/api"
 import MapForm from "../components/MapForm"
 import { ArrowLeft } from "lucide-react"
-import { Link } from "react-router-dom"
+import LogoutButton from "../components/LogoutButton"
 
 export default function CreateMap() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,14 +39,15 @@ export default function CreateMap() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
+      <div className="flex justify-between items-center mb-6">
         <Link to="/">
-          <Button variant="ghost" className="mb-4">
+          <Button variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Maps
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Create New Map</h1>
+        <LogoutButton />
       </div>
+      <h1 className="text-3xl font-bold mb-6">Create New Map</h1>
 
       <MapForm onSubmit={handleSubmit} isSubmitting={isSubmitting} submitButtonText="Create Map" />
     </div>
