@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import { sendResponse } from '../Utils/responseHelper';
 
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.token;
+    const cookieName = process.env.USER_TOKEN_COOKIE_NAME || 'token'
+    const token = req.cookies[cookieName];
 
     if (!token) {
         sendResponse(res, false, 401, 'You are not logged in' , [], [
@@ -28,7 +29,8 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 const authenticateHost = (req: Request, res: Response, next: NextFunction) => {
-    const hostToken = req.cookies?.hostToken;
+    const cookieName = process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken';
+    const hostToken = req.cookies[cookieName];
     console.log("Received token:",hostToken);
 
     if (!hostToken) {
