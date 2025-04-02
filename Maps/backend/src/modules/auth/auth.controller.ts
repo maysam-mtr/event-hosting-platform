@@ -35,16 +35,8 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
 
 export const adminLogoutController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        /* validation(400) */
-        const errors = validationResult(req)
-    
-        if(!errors.isEmpty()) {
-            throw new CustomError(errors.array().map(err => err.msg), 400)
-        }
-
         clearToken(res)
-
-        CustomResponse(res, 200, "Admin login successful")
+        CustomResponse(res, 200, "Admin logout successful")
     } catch (error) {
         next(error)
     }
