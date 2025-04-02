@@ -1,9 +1,10 @@
 import express from "express"
-import { adminLoginController, adminLogoutController } from "./auth.controller"
+import { adminLoginController, adminLogoutController, checkAdminLoggedInController as checkAdminLoginController } from "./auth.controller"
 
 const authRouter = express.Router()
 
-authRouter.get("/login", adminLoginController)
+authRouter.post("/login", adminLoginController)
+authRouter.get("/check", checkAdminLoginController)
 authRouter.get("/logout", adminLogoutController)
 
 export default authRouter

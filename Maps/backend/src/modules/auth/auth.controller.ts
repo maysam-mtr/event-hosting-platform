@@ -10,7 +10,7 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
     try {
         // In case already logged in and trying to login again
         const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
-        const token = req.cookies[cookieName] || req.header("Authorization")?.replace("Bearer ", "")
+        const token = req.cookies[cookieName]
         if (token) {
             const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
             if (payload) {
@@ -28,6 +28,23 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
         })
 
         CustomResponse(res, 200, "Admin login successful")
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const checkAdminLoggedInController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // In case already logged in and trying to login again
+        const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
+        const token = req.cookies[cookieName]
+        if (token) {
+            const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
+            if (payload) {
+                return CustomResponse(res, 200, "Already logged in")
+            }
+        }
+        throw new CustomError("Not logged in", 401)
     } catch (error) {
         next(error)
     }
