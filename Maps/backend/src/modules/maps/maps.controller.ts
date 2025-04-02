@@ -7,6 +7,9 @@ import {
   updateMapService,
   downloadMapService,
   getMapBoothsService,
+  getMapDataByIdService,
+  getMapCollisionsService,
+  getMapLayersService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -28,6 +31,17 @@ const getMapByIdController = async (req: Request, res: Response, next: NextFunct
     const { id } = req.params
     const response = await getMapByIdService(id)
 
+    CustomResponse(res, 200, "Map fetched", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
+const getDetailedMapByIdController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params
+    const response = await getMapDataByIdService(id)
+    
     CustomResponse(res, 200, "Map fetched", response)
   } catch (err: any) {
     next(err)
@@ -134,6 +148,50 @@ const getMapBoothsController = async (req: Request, res: Response, next: NextFun
   }
 }
 
+const getMapCollisionsController = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
+  try {
+    const { id } = req.params
+
+    const response = await getMapCollisionsService(id)
+
+    CustomResponse(res, 200, "Map collisions successfully retrieved", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
+const getMapLayersController = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
+  try {
+    const { id } = req.params
+
+    const response = await getMapLayersService(id)
+
+    CustomResponse(res, 200, "Map layers successfully retrieved", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
+const getMapBoothsDisplayController = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
+  try {
+    const { id } = req.params
+
+    const fullResponse = await getMapBoothsService(id)
+
+    const response = fullResponse.map((booth: any) => ({
+      id: booth.id,
+      x: booth.x,
+      y: booth.y,
+      width: booth.width,
+      height: booth.height,
+    }))
+
+    CustomResponse(res, 200, "Map booths successfully retrieved", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
 export {
   getMapsController,
   getMapByIdController,
@@ -142,5 +200,9 @@ export {
   deleteMapController,
   downloadMapController,
   getMapBoothsController,
+  getMapBoothsDisplayController,
+  getDetailedMapByIdController,
+  getMapCollisionsController,
+  getMapLayersController,
 }
 

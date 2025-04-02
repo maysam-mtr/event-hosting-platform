@@ -1,8 +1,9 @@
 import { repo } from "./maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { boothesClassName } from "@/utils/maps.handler"
+import { boothesClassName, collisionsClassName } from "@/utils/maps.handler"
 import archiver from "archiver"
+import { toLower } from "lodash"
 import { 
   listFolderContent,
   getFile,
@@ -15,6 +16,7 @@ import {
   getLatestMapByOriginalMapIdService,
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
+import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -37,6 +39,30 @@ const getMapByIdService = async (id: string): Promise<Map | null> => {
     return res
   } catch (err: any) {
     throw new CustomError("Error fetching map", 400)
+  }
+}
+
+const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }> => {
+  try {
+    const res = await repo.getMapRawById(id)
+    if (!res) {
+      throw new CustomError("Error fetching map", 400)
+    }
+    
+    const { data } = await getFileByTypeFromFolder(res.folderId, "json")
+
+    if (!data) {
+      throw new Error()
+    }
+    
+    const json = convertBufferToJson(data)
+
+    return {
+      ...res,
+      data: json
+    }
+  } catch (err: any) {
+    throw new CustomError("Error fetching map data", 400)
   }
 }
 
@@ -230,7 +256,7 @@ const deleteMapsByOriginalMapIdService = async (oid: string) : Promise<number> =
   }
 }
 
-const getMapBoothsService = async (mapId : string) : Promise<{ booths : Object[] }> => {
+const getMapBoothsService = async (mapId : string) : Promise<Object[]> => {
   try {
     const map = await repo.getMapById(mapId)
 
@@ -242,12 +268,84 @@ const getMapBoothsService = async (mapId : string) : Promise<{ booths : Object[]
 
     const jsonData = JSON.parse(res.data.toString())
 
-    return {
-      booths: jsonData.layers.filter((layer: any) => layer.class === boothesClassName)
+    return jsonData.layers.filter((layer: any) => layer.class === boothesClassName)
       .flatMap((obj: any) => obj.layers.map((object: any) => object.objects.map((booth: any) => booth)))
-    }
   } catch (err: any) {
     throw new CustomError("Error fetching map booths", 400)
+  }
+}
+
+const getMapCollisionsService = async (mapId : string) : Promise<[{ 
+  id: string,
+  name: string,
+  data: number[],
+  width: number,
+  height: number
+}]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 404)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+
+    const jsonData = JSON.parse(res.data.toString())
+
+    const collisions = jsonData.layers
+      .filter((layer: any) => 
+        toLower(layer.class) === toLower(collisionsClassName) 
+        || toLower(layer.name) === toLower(collisionsClassName)
+      ).flatMap((obj: any) => obj.layers.flatMap((object: any) => ({ 
+        id: object.id, 
+        name: object.name, 
+        data: object.data, 
+        width: object.width, 
+        height: object.height,
+        visible: object.visible
+      })))
+
+    return collisions
+  } catch (err: any) {
+    throw new CustomError("Error fetching map collisions", 400)
+  }
+}
+
+const getMapLayersService = async (mapId : string) : Promise<[{ 
+  id: string,
+  name: string,
+  data: number[],
+  width: number,
+  height: number
+}]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 404)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+
+    const jsonData = JSON.parse(res.data.toString())
+
+    const collisions = jsonData.layers
+      .filter((layer: any) => 
+        toLower(layer.class) !== toLower(collisionsClassName) 
+        && toLower(layer.name) !== toLower(collisionsClassName)
+      ).flatMap((obj: any) => obj.layers.flatMap((object: any) => ({ 
+        id: object.id, 
+        name: object.name, 
+        data: object.data, 
+        width: object.width, 
+        height: object.height,
+        visible: object.visible
+      })))
+
+    return collisions
+  } catch (err: any) {
+    throw new CustomError("Error fetching map layers", 400)
   }
 }
 
@@ -260,5 +358,8 @@ export {
   downloadMapService,
   deleteMapsByOriginalMapIdService,
   getMapBoothsService,
+  getMapDataByIdService,
+  getMapCollisionsService,
+  getMapLayersService,
 }
 
