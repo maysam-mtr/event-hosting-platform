@@ -2,6 +2,11 @@ import styled from "styled-components";
 import { PageTitle, Section } from "../../UserPortal/SettingsPage/SettingsPage";
 import previewImg from '../../../assets/landing2.png'
 import { Button3 } from "../../../components/Navbar/Navbar";
+import { useEffect, useState } from "react";
+import useUserState from "../../../hooks/use-user-state";
+import useSendRequest from "../../../hooks/use-send-request";
+import Popup from "../../../components/Popup/Popup";
+import formatDateTime from "../../../utils/formatDateTime";
 
 export const CardsWrapper = styled.div`
   display: flex;
@@ -24,9 +29,9 @@ export const Card = styled.div`
   padding: 15px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.5rem;
+  
+  text-align: left;
+  gap: 0.7rem;
   border: 1px solid var(--border-color);
 `;
 
@@ -38,13 +43,12 @@ export const PreviewImg = styled.img`
   margin-bottom: 10px;
 `;
 
-export const EventTitle = styled.p`
-  font-size: 1.2rem;
-  margin: 5px 0;
-  max-width: 230px;
+export const EventTitle = styled.h3`
+  max-width: 100%;
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 5px;
 `;
 
 export const StatusIndicator = styled.span`
@@ -54,7 +58,6 @@ export const StatusIndicator = styled.span`
   color: ${(props) => 
     props.$status === "live" ? "green" : 
     props.$status === "closed" ? "red" : "gray"};
-  margin: 5px 0;
   border-radius: 15px;
   padding: 5px 15px;
   background-color: ${(props) => 
@@ -83,63 +86,61 @@ const HostName = styled.p`
 export const Schedule = styled.p`
   font-size: 0.9rem;
   color: #777;
-  margin: 5px 0;
-`;
-
-const DetailsButton = styled.button`
-  margin-top: 10px;
-  padding: 8px 12px;
-  border: none;
-  background: #007bff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.9rem;
-
-  &:hover {
-    background: #0056b3;
-  }
 `;
 
 export default function MyEventsPage() {
-  const events = [
+  const [events, setEvents] = useState([]);
+  const {user} = useUserState();
+  const [sendRequest] = useSendRequest();
+  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+
+  useEffect(() => {
+    getPublicEvents();
+  }, []);
+
+  async function getPublicEvents(){
+    const URL = `/api/events/hosts/${user.id}`;
+
+    const {request, response} = await sendRequest(URL);
+
+    if(response?.success === true && response.data[0]?.events?.length > 0){
+      setEvents(response.data[0].events);
+    }else if(!response?.success){
+      setEvents([])
+      setPopup({message: 'Failed to retrieve events', type: 'fail', isVisible: true});
+    }
+
+  }
+
+  const eventss = [
     {
-      id: 1,
-      preview: previewImg, 
-      name: "Tech Conference 2025",
-      status: "live",
-      host: "John Doe",
-      dateTime: "April 10, 2025 - 3:00 PM",
-    },
-    {
-      id: 2,
-      preview: previewImg, 
-      name: "Startup Pitch Night",
-      status: "upcoming",
-      host: "Jane Smith",
-      dateTime: "April 15, 2025 - 6:00 PM",
-    },
-    {
-      id: 3,
-      preview: previewImg, 
-      name: "AI & Machine Learning Summit",
-      status: "closed",
-      host: "Michael Johnson",
-      dateTime: "March 20, 2025 - 10:00 AM",
-    },
+      "id": "4e3682bd-f6ff-4e2a-829d-8630237ee2fb",
+      "hostId": "fe4f6b2e-afad-467d-9c82-dcdb9b532406",
+      "eventName": "Career Fair",
+      "eventType": "public",
+      "eventDate": "2025-05-15",
+      "eventTime": "12:00:00",
+      "subscriptionId": "2a7d913f-5f56-40d7-b7cb-3ced1c6dceff",
+      "mapTemplateId": "123e4567-e89b-12d3-a456-426614174001",
+      "createdAt": "2025-04-02T19:03:14.000Z",
+      "updatedAt": "2025-04-02T19:03:14.000Z"
+  }
   ];
 
   return (
     <Section>
+      <Popup popUpSettings={popup}/>
       <PageTitle>My Events</PageTitle>
       <CardsWrapper>
-        {events.map((event) => (
+        {events?.map((event) => (
           <Card key={event.id}>
-            <PreviewImg src={event.preview} alt={event.name} />
-            <EventTitle>{event.name}</EventTitle>
-            <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator>
-            <Schedule>{event.dateTime}</Schedule>
-            <Button3 style={{fontSize: 'var(--body)'}}>View Details</Button3>
+            <PreviewImg src={previewImg} alt={event.eventName} />
+            <EventTitle>{event.eventName}</EventTitle>
+            {/* <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator> */}
+            <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
+            <Schedule><strong>Scheduled at:</strong> {event.eventDate} - {event.eventTime}</Schedule>
+            <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
+            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}}>Edit(or view if past) Details</Button3>
           </Card>
         ))}
       </CardsWrapper>

@@ -4,6 +4,8 @@ import profile from '../../../assets/profile.png'
 import styled from "styled-components";
 import { useState } from "react";
 import Popup from "../../../components/Popup/Popup";
+import useUserState from "../../../hooks/use-user-state";
+import useSendRequest from "../../../hooks/use-send-request";
 
 const Container = styled.div`
   max-width: 100%;
@@ -57,17 +59,43 @@ const ProfilePic = styled.img`
 `;
 
 export default function SettingsHostPage(){
-    const [userData, setUserData] = useState({
-      fullName: "Maysam Matar",
-      companyName: "Eventure",
-      email: "eventure@hotmail.com",
-      phoneNumber: "3747483949",
-      companyWebsite: null,
-      companyIndustry: null,
-      businessRegistrationProof: null,
-    });
+  const {user, setUser} = useUserState();
+  const [sendRequest] = useSendRequest();
+  const [userData, setUserData] = useState({
+      fullName: user.fullName,
+      companyName: user.companyName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      companyWebsite: user.companyWebsite,
+      companyIndustry: user.companyIndustry,
+      businessRegistrationProof: user.businessRegistrationProof,
+  });
     
-    const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+
+    
+  async function updateHostInformation (){
+    if(!userData.phoneNumber){
+      setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
+      return;
+    }
+
+    let URL = '/api/host/update';
+    let INIT = {method: 'PUT', body: JSON.stringify(userData)}
+
+    let {request, response} = await sendRequest(URL, INIT);
+
+    if(response?.success){
+      console.log({...response.data, role: 'host'}, response)
+      const newHostInfo = {...response.data, role: 'host'};
+      setUser(newHostInfo)
+      localStorage.setItem("user", JSON.stringify({...newHostInfo, role: 'host'}));
+      setPopup({message: 'Info updated!', type: 'success', isVisible: true});
+    }else{
+      setPopup({message: 'Failed to update! Try again', type: 'fail', isVisible: true});
+      return;
+    }
+  }
 
       return (
         <Section>
@@ -85,7 +113,7 @@ export default function SettingsHostPage(){
                       <Text $secondary>{userData.email}</Text>
                   </Info>
                   </ProfileCard>
-                  <UpdateButton>Update</UpdateButton>
+                  <UpdateButton onClick={updateHostInformation}>Update</UpdateButton>
               </ProfileCardWrapper>
 
               {/* Editable Info Card */}

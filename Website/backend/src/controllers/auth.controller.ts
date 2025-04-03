@@ -7,7 +7,7 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
     const credentials = req.body;
     try {
         const user = await loginUser(credentials);
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '12h' });
         console.log(token);
 
 
@@ -33,7 +33,7 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
         const host = await loginHost(credentials);
         console.log("host id _",host._id);
         console.log("host id without -",host.id)
-        const token = jwt.sign({ id: host.id }, process.env.JWT_SECRET_HOST as string, { expiresIn: '1h' });
+        const token = jwt.sign({ id: host.id }, process.env.JWT_SECRET_HOST as string, { expiresIn: '12h' });
         console.log(token);
         
         res.cookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken', token, {

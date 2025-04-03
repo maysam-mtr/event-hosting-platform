@@ -23,7 +23,7 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
         next();
     } catch (err) {
         console.error("Token verification failed:", err);
-         sendResponse(res, false, 403, 'Invalid Token', [], [
+         sendResponse(res, false, 401, 'Invalid Token', [], [
                     { code: 'TOKEN_ERROR', message: 'Invalid User Token' },
                   ]);
     }
@@ -45,7 +45,7 @@ const authenticateHost = (req: Request, res: Response, next: NextFunction) => {
         (req as any).hostUser = verified;
         next();
     } catch (err) {
-        sendResponse(res, false, 403, 'Invalid Token', [], [
+        sendResponse(res, false, 401, 'Invalid Token', [], [
             { code: 'TOKEN_ERROR', message: 'Invalid Host Token' },
           ]);
     }

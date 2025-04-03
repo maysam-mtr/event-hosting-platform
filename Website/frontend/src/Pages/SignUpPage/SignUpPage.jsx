@@ -8,6 +8,7 @@ import useSendRequest from "../../hooks/use-send-request";
 import Popup from "../../components/Popup/Popup";
 import { FaArrowLeft } from "react-icons/fa";
 import { BackButton } from "../EventDetailsPage/EventDetailsPage";
+import useUserState from "../../hooks/use-user-state";
 
 const float = keyframes`
   0% { transform: translateY(0px) rotate(-5deg); }
@@ -143,6 +144,7 @@ const AgreementLabel = styled.label`
 `;
 
 export default function SignUpPage() {
+  const {setUser} = useUserState();
   const [selectedRole, setSelectedRole] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -193,8 +195,11 @@ export default function SignUpPage() {
       if(response?.success === true){
         setPopup({message: 'Account created successfully', type: 'success', isVisible: true});
         setError("")
-        //navigate('/login');
         return;
+        //navigate('/login');
+        // setUser({...response.data[0], role: 'user'})
+        // localStorage.setItem("user", JSON.stringify({...response.data[0], role: 'user'}));
+        // window.location.href = '/user';
 
       }else if(response?.success === false){
         setError(response.error[0]?.message);
@@ -219,13 +224,15 @@ export default function SignUpPage() {
         setPopup({message: 'Account created successfully', type: 'success', isVisible: true});
         setError("")
         //navigate('/login');
+        // setUser({...response.data[0], role: 'host'})
+        // localStorage.setItem("user", JSON.stringify({...response.data[0], role: 'host'}));
+        // window.location.href = '/host';
         return;
 
       }else if(response?.success === false){
         setError(response.error[0]?.message);
         return;
       }
-
     }
   }
 

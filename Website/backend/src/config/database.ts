@@ -55,6 +55,7 @@ export const connectDB = async () => {
     Invitation.belongsTo(BoothDetails, { foreignKey: 'boothDetailsId' });
     
 
+    //await sequelize.sync({alter: true});
     await sequelize.sync();
     // await sequelize.sync({ alter: true });
     console.log("Database synchronized!");

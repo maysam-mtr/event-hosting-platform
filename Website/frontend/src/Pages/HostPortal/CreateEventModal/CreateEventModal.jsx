@@ -135,7 +135,7 @@ export default function CreateEventModal() {
   const openModal = () => setIsModalOpen(true);
 
   const onNextClick = () => {
-    if(step == 1 && (!eventData.eventName || !eventData.eventDate || !eventData.eventTime || !eventData.eventType || eventData.hostId)){
+    if(step == 1 && (!eventData.eventName || !eventData.eventDate || !eventData.eventTime || !eventData.eventType || !eventData.hostId)){
         setErrorMsg('Missing Required Fields');
         return;
     }else if(step == 1){

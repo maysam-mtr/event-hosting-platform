@@ -4,6 +4,7 @@ import { useState } from "react";
 import Input from '../../../components/Input/Input';
 import useUserState from '../../../hooks/use-user-state';
 import Popup from '../../../components/Popup/Popup';
+import useSendRequest from '../../../hooks/use-send-request';
 
 const Container = styled.div`
   max-width: 100%;
@@ -117,6 +118,7 @@ padding: 30px;
 
 export default function SettingsPage() {
   const { user, setUser } = useUserState();
+  const [sendRequest] = useSendRequest();
 
   const [userData, setUserData] = useState({
     //profilePic: user.profilePic || profile,
@@ -139,10 +141,26 @@ export default function SettingsPage() {
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
 
   async function updateUserInformation (){
-    // let URL = '/api/auth/user/login';
-    // let INIT = {method: 'POST', body: JSON.stringify(loginForm)}
+    if(!userData.phoneNumber){
+      setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
+      return;
+    }
 
-    // let {request, response} = await sendRequest(URL, INIT);
+    let URL = '/api/host/update';
+    let INIT = {method: 'PUT', body: JSON.stringify(userData)}
+
+    let {request, response} = await sendRequest(URL, INIT);
+
+    if(response?.success){
+      console.log({...response.data, role: 'host'}, response)
+      const newHostInfo = {...response.data, role: 'host'};
+      setUser(newHostInfo)
+      localStorage.setItem("user", JSON.stringify({...newHostInfo, role: 'host'}));
+      setPopup({message: 'Info updated!', type: 'success', isVisible: true});
+    }else{
+      setPopup({message: 'Failed to update! Try again', type: 'fail', isVisible: true});
+      return;
+    }
   }
 
   return (
@@ -160,7 +178,7 @@ export default function SettingsPage() {
                 <Text $secondary>@{user.username}</Text>
               </Info>
             </ProfileCard>
-            <UpdateButton>Update</UpdateButton>
+            <UpdateButton onClick={updateUserInformation}>Update</UpdateButton>
           </ProfileCardWrapper>
 
           <Card>

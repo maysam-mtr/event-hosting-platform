@@ -32,7 +32,8 @@ export default function useSendRequest() {
             // handle expired tokens 
             if (request.status === 401 && isAuthenticated) {
                 setUser(null);
-                navigate('/login', {replace: true});
+                window.location.href = '/login'
+                //navigate('/login', {replace: true});
             }
 
             response = await request.json();
