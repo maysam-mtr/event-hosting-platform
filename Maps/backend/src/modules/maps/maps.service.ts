@@ -1,7 +1,7 @@
 import { repo } from "./maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { boothesClassName, collisionsClassName } from "@/utils/maps.handler"
+import { boothesClassName, collisionsClassName, spawnLocationClassName } from "@/utils/maps.handler"
 import archiver from "archiver"
 import { toLower } from "lodash"
 import { 
@@ -261,31 +261,31 @@ const getMapBoothsService = async (mapId : string) : Promise<Object[]> => {
     const map = await repo.getMapById(mapId)
 
     if (!map) {
-      throw new CustomError("Map not found", 404)
+      throw new CustomError("Map not found", 400)
     }
 
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     const jsonData = JSON.parse(res.data.toString())
 
     return jsonData.layers
-      .filter((layer: any) => 
-        toLower(layer.name) === toLower(boothesClassName) ||
-        toLower(layer.class) === toLower(boothesClassName)
-      ).flatMap((layer: any) => {
-        if (layer.layers && Array.isArray(layer.layers)) {
-          return layer.layers.flatMap((subLayer: any) => {
-            if (subLayer.objects && Array.isArray(subLayer.objects)) {
-              return subLayer.objects
-            } else {
-              console.warn("Unexpected subLayer structure: missing or invalid 'objects'", subLayer)
-              return []
-            }
-          })
-        } else {
-          console.warn("Unexpected layer structure: missing or invalid 'layers'", layer)
-          return []
-        }
-      })
+    .filter((layer: any) => 
+      toLower(layer.name) === toLower(boothesClassName) ||
+      toLower(layer.class) === toLower(boothesClassName)
+    ).flatMap((layer: any) => {
+      if (layer.layers && Array.isArray(layer.layers)) {
+        return layer.layers.flatMap((subLayer: any) => {
+          if (subLayer.objects && Array.isArray(subLayer.objects)) {
+            return subLayer.objects
+          } else {
+            console.warn("Unexpected subLayer structure: missing or invalid 'objects'", subLayer)
+            return []
+          }
+        })
+      } else {
+        console.warn("Unexpected layer structure: missing or invalid 'layers'", layer)
+        return []
+      }
+    })
   } catch (err: any) {
     throw new CustomError("Error fetching map booths", 400)
   }
@@ -300,37 +300,37 @@ const getMapCollisionsService = async (mapId : string) : Promise<[{
 }]> => {
   try {
     const map = await repo.getMapById(mapId)
-
+    
     if (!map) {
-      throw new CustomError("Map not found", 404)
+      throw new CustomError("Map not found", 400)
     }
-
+    
     const res = await getFileByTypeFromFolder(map.folderId, "json")
-
+    
     const jsonData = JSON.parse(res.data.toString())
-
+    
     return jsonData.layers
-      .filter((layer: any) => 
-        toLower(layer.class) === toLower(collisionsClassName) || 
-        toLower(layer.name) === toLower(collisionsClassName)
-      ).flatMap((layer: any) => {
-        if (layer.layers && Array.isArray(layer.layers)) {
-          return layer.layers.flatMap((object: any) => ({
-            id: object.id,
-            name: object.name,
-            data: object.data,
-            width: object.width,
-            height: object.height,
-            visible: object.visible
-          }))
-        } else {
-          console.warn("Layer missing 'layers' property:", layer)
-          return []
-        }
-      })
-  } catch (err: any) {
-    throw new CustomError("Error fetching map collisions", 400)
-  }
+    .filter((layer: any) => 
+      toLower(layer.class) === toLower(collisionsClassName) || 
+      toLower(layer.name) === toLower(collisionsClassName)
+    ).flatMap((layer: any) => {
+      if (layer.layers && Array.isArray(layer.layers)) {
+        return layer.layers.flatMap((object: any) => ({
+          id: object.id,
+          name: object.name,
+          data: object.data,
+          width: object.width,
+          height: object.height,
+          visible: object.visible
+        }))
+      } else {
+        console.warn("Layer missing 'layers' property:", layer)
+        return []
+      }
+    })
+} catch (err: any) {
+  throw new CustomError("Error fetching map collisions", 400)
+}
 }
 
 const getMapLayersService = async (mapId : string) : Promise<[{ 
@@ -342,39 +342,72 @@ const getMapLayersService = async (mapId : string) : Promise<[{
 }]> => {
   try {
     const map = await repo.getMapById(mapId)
-
+    
     if (!map) {
-      throw new CustomError("Map not found", 404)
+      throw new CustomError("Map not found", 400)
     }
-
+    
     const res = await getFileByTypeFromFolder(map.folderId, "json")
-
+    
     const jsonData = JSON.parse(res.data.toString())
-
+    
     return jsonData.layers
-      .filter((layer: any) =>
-        toLower(layer.class) !== toLower(collisionsClassName) &&
-        toLower(layer.name) !== toLower(collisionsClassName)
-      ).flatMap((layer: any) => {
-        if (layer.layers && Array.isArray(layer.layers)) {
-          return layer.layers.flatMap((object: any) => ({
-            id: object.id,
-            name: object.name,
-            data: object.data,
-            width: object.width,
-            height: object.height,
-            visible: object.visible,
-          }))
-        } else {
-          console.warn("Layer missing 'layers' property:", layer)
-          return []
-        }
-      })
-  } catch (err: any) {
-    throw new CustomError("Error fetching map layers", 400)
+    .filter((layer: any) =>
+      toLower(layer.class) !== toLower(collisionsClassName) &&
+      toLower(layer.name) !== toLower(collisionsClassName)
+    ).flatMap((layer: any) => {
+      if (layer.layers && Array.isArray(layer.layers)) {
+        return layer.layers.flatMap((object: any) => ({
+          id: object.id,
+          name: object.name,
+          data: object.data,
+          width: object.width,
+          height: object.height,
+          visible: object.visible,
+        }))
+      } else {
+        console.warn("Layer missing 'layers' property:", layer)
+        return []
+      }
+    })
+} catch (err: any) {
+  throw new CustomError("Error fetching map layers", 400)
   }
 }
 
+
+const getspawnLocationService = async (mapId : string) : Promise<Object[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    const jsonData = JSON.parse(res.data.toString())
+
+    return jsonData.layers
+    .filter((layer: any) =>
+      toLower(layer.class) === toLower(spawnLocationClassName) ||
+      toLower(layer.name) === toLower(spawnLocationClassName)
+    ).flatMap((layer: any) => {
+      if (layer.objects) {
+        return layer.objects.map((object: any) => ({
+          id: object.id,
+          name: object.name,
+          x: object.x,
+          y: object.y
+        }))
+      } else {
+        console.warn("Layer missing 'objects' property:", layer)
+        return []
+      }
+    })
+  } catch (err: any) {
+    throw new CustomError("Error fetching map booths", 400)
+  }
+}
 export {
   getMapsService,
   getMapByIdService,
@@ -387,5 +420,6 @@ export {
   getMapDataByIdService,
   getMapCollisionsService,
   getMapLayersService,
+  getspawnLocationService,
 }
 
