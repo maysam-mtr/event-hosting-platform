@@ -32,6 +32,7 @@ export default function useSendRequest() {
             // handle expired tokens 
             if (request.status === 401 && isAuthenticated) {
                 setUser(null);
+                localStorage.removeItem("user");
                 window.location.href = '/login'
                 //navigate('/login', {replace: true});
             }
@@ -39,6 +40,7 @@ export default function useSendRequest() {
             response = await request.json();
 
         } catch (error) {
+            //console.log(error)
             response = null;
             request = null;
         }

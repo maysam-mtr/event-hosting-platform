@@ -111,7 +111,7 @@ export const Button3 = styled.button`
   }
 `;
 
-const LogoContainer = styled.img`
+export const LogoContainer = styled.img`
   max-height: 100px;
   max-width: 200px;
   padding: 20px;

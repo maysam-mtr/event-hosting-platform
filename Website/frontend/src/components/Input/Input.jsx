@@ -50,6 +50,7 @@ const Input = ({ label, type = "text", name, data, setData, placeholder, require
     if (typeof data === "object") {
       setData({ ...data, [name]: e.target.value });
     } else {
+      console.log(e.target.value)
       setData(e.target.value);
     }
   };

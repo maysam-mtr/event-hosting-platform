@@ -7,13 +7,14 @@ import useUserState from "../../../hooks/use-user-state";
 import useSendRequest from "../../../hooks/use-send-request";
 import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
+import Input from "../../../components/Input/Input";
+import getEventStatus from "../../../utils/getEventStatus";
 
 export const CardsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   align-items: flex-start;
-  padding: 20px;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -57,12 +58,15 @@ export const StatusIndicator = styled.span`
   font-size: 0.9rem;
   color: ${(props) => 
     props.$status === "live" ? "green" : 
-    props.$status === "closed" ? "red" : "gray"};
+    props.$status === "closed" ? "red" : 
+    props.$status === "upcoming" ? "orange" : "gray"};
   border-radius: 15px;
   padding: 5px 15px;
+  max-width: fit-content;
   background-color: ${(props) => 
     props.$status === "live" ? "rgba(0, 128, 0, 0.2)" : 
-    props.$status === "closed" ? "rgba(255, 0, 0, 0.2)" : "rgba(169, 169, 169, 0.2)"};
+    props.$status === "closed" ? "rgba(255, 0, 0, 0.2)" : 
+    props.$status === "upcoming" ? "rgba(255, 165, 0, 0.2)" : "rgba(169, 169, 169, 0.2)"};
   
   &::before {
     content: "";
@@ -71,7 +75,8 @@ export const StatusIndicator = styled.span`
     border-radius: 15px;
     background-color: ${(props) => 
       props.$status === "live" ? "green" : 
-      props.$status === "closed" ? "red" : "grey"};
+      props.$status === "closed" ? "red" : 
+      props.$status === "upcoming" ? "orange" : "grey"};
     margin-right: 5px;
   }
 `;
@@ -88,61 +93,97 @@ export const Schedule = styled.p`
   color: #777;
 `;
 
+export const PageSubtitle = styled.div`
+color: var(--text-primary);
+font-size: var(--heading-4);
+font-weight: 500;
+`;
+
+export const NotFoundMessage = styled.p`
+text-align: center; 
+width: 100%;
+color: gray;
+font-size: 1.2rem;
+`;
+
 export default function MyEventsPage() {
-  const [events, setEvents] = useState([]);
   const {user} = useUserState();
   const [sendRequest] = useSendRequest();
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
 
+  const [events, setEvents] = useState([]);
+  const [status, setStatus] = useState("all");
+
   useEffect(() => {
-    getPublicEvents();
-  }, []);
+    fetchEvents(status);
+  }, [status]);
 
-  async function getPublicEvents(){
-    const URL = `/api/events/hosts/${user.id}`;
+  async function fetchEvents(status) {
+    if(status === 'all'){
+      
+      const URL = `/api/events/hosts/${user.id}`;
 
-    const {request, response} = await sendRequest(URL);
+      const {request, response} = await sendRequest(URL);
+  
+      if(response?.success === true && response.data[0]?.events?.length > 0){
+        const eventsList = response.data[0].events;
+        setEvents(eventsList);
+      }else if(!response?.success){
+        setEvents([])
+        setPopup({message: 'Failed to retrieve events', type: 'fail', isVisible: true});
+      }else if(response?.success === true && response.data[0]?.events?.length == 0){
+        setEvents([]);
+      }
 
-    if(response?.success === true && response.data[0]?.events?.length > 0){
-      setEvents(response.data[0].events);
-    }else if(!response?.success){
-      setEvents([])
-      setPopup({message: 'Failed to retrieve events', type: 'fail', isVisible: true});
+    }else {
+      const URL = `/api/events/filter/${user.id}`;
+      const INIT = { method: 'POST', body: JSON.stringify({ status: status }) };
+
+      const { request, response } = await sendRequest(URL, INIT);
+      if (response?.success === true && response.data[0]?.events.length > 0) {
+        const eventsList = response.data[0].events;
+        setEvents(eventsList);
+      } else if (!response?.success) {
+        setEvents([]);
+        setPopup({ message: 'Failed to retrieve events', type: 'fail', isVisible: true });
+      }else if(response?.success === true && response.data[0]?.events?.length == 0){
+        setEvents([]);
+      }
+
     }
-
   }
-
-  const eventss = [
-    {
-      "id": "4e3682bd-f6ff-4e2a-829d-8630237ee2fb",
-      "hostId": "fe4f6b2e-afad-467d-9c82-dcdb9b532406",
-      "eventName": "Career Fair",
-      "eventType": "public",
-      "eventDate": "2025-05-15",
-      "eventTime": "12:00:00",
-      "subscriptionId": "2a7d913f-5f56-40d7-b7cb-3ced1c6dceff",
-      "mapTemplateId": "123e4567-e89b-12d3-a456-426614174001",
-      "createdAt": "2025-04-02T19:03:14.000Z",
-      "updatedAt": "2025-04-02T19:03:14.000Z"
-  }
-  ];
+  
 
   return (
     <Section>
       <Popup popUpSettings={popup}/>
       <PageTitle>My Events</PageTitle>
+      <Input name={'status'} 
+             id='status' 
+             type="dropdown" 
+             options={[{name: "All", value: "all"}, 
+                      {name: "Ongoing", value: "ongoing"}, 
+                      {name: "Future", value: "future"},
+                      {name: "Past", value: "past"}]}
+              data={status}
+              setData={setStatus}
+              label={'Filter: '}
+              style={{width: '100px'}}
+              role="host"/>
       <CardsWrapper>
         {events?.map((event) => (
           <Card key={event.id}>
             <PreviewImg src={previewImg} alt={event.eventName} />
             <EventTitle>{event.eventName}</EventTitle>
-            {/* <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator> */}
+            <StatusIndicator style={{alignSelf: 'center'}} $status={getEventStatus(event.eventDate, event.eventTime)}>{getEventStatus(event.eventDate, event.eventTime).toUpperCase()}</StatusIndicator>
             <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
             <Schedule><strong>Scheduled at:</strong> {event.eventDate} - {event.eventTime}</Schedule>
             <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}}>Edit(or view if past) Details</Button3>
+            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}}>View Details</Button3>
           </Card>
         ))}
+        {events.length == 0 && 
+          <NotFoundMessage>No events found.</NotFoundMessage>}
       </CardsWrapper>
     </Section>
   );

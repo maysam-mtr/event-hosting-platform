@@ -165,14 +165,14 @@ export default function LoginPage(){
             </BackButton>
               <RoleContainer>
                 <h2 style={{color: 'var(--text-primary)', marginBottom: '2rem'}}>
-                  Choose Your Role
+                  Welcome Back!
                 </h2>
                 <div style={{display: 'flex', gap: '1rem'}}>
                   <RoleButton onClick={() => setSelectedRole('user')}>
-                    🎮 Join as User
+                    🎮 Login as User
                   </RoleButton>
                   <RoleButton onClick={() => setSelectedRole('host')}>
-                    🏢 Join as Host
+                    🏢 Login as Host
                   </RoleButton>
                 </div>
               </RoleContainer>

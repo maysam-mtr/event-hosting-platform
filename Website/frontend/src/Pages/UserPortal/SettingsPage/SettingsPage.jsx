@@ -8,7 +8,6 @@ import useSendRequest from '../../../hooks/use-send-request';
 
 const Container = styled.div`
   max-width: 100%;
-  margin: 40px auto;
   padding: 20px;
 `;
 
@@ -114,6 +113,9 @@ padding: 10px 0;
 
 export const Section = styled.div`
 padding: 30px;
+display: flex;
+gap: 20px;
+flex-direction: column;
 `;
 
 export default function SettingsPage() {
