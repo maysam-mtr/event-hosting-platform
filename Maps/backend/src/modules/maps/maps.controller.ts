@@ -10,6 +10,7 @@ import {
   getMapDataByIdService,
   getMapCollisionsService,
   getMapLayersService,
+  getspawnLocationService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -172,6 +173,18 @@ const getMapLayersController = async (req: Request, res: Response, next: NextFun
   }
 }
 
+const getspawnLocationController = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
+  try {
+    const { id } = req.params
+
+    const response = await getspawnLocationService(id)
+
+    CustomResponse(res, 200, "Map spawn location successfully retrieved", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
 const getMapBoothsDisplayController = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
   try {
     const { id } = req.params
@@ -204,5 +217,6 @@ export {
   getDetailedMapByIdController,
   getMapCollisionsController,
   getMapLayersController,
+  getspawnLocationController,
 }
 

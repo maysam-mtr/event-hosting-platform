@@ -11,6 +11,7 @@ import {
   getDetailedMapByIdController,
   getMapCollisionsController,
   getMapLayersController,
+  getspawnLocationController,
 } from "./maps.controller"
 import fileUpload from "express-fileupload"
 import { adminAuthMiddleware, adminAndHostAuthMiddleware } from "@/middlewares/auth.middleware"
@@ -38,6 +39,7 @@ mapsRouter.get("/getDetailedMap/:id", adminAndHostAuthMiddleware, getDetailedMap
 mapsRouter.get("/getMapBooths/:id", adminAndHostAuthMiddleware, getMapBoothsController)
 mapsRouter.get("/getMapCollisions/:id", adminAndHostAuthMiddleware, getMapCollisionsController)
 mapsRouter.get("/getMapLayers/:id", adminAndHostAuthMiddleware, getMapLayersController)
+mapsRouter.get("/getSpawnLocation/:id", adminAndHostAuthMiddleware, getspawnLocationController)
 
 // Website
 mapsRouter.get("/getMapBoothsDisplay/:id", adminAndHostAuthMiddleware, getMapBoothsDisplayController)
