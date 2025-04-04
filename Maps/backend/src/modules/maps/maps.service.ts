@@ -1,9 +1,8 @@
 import { repo } from "./maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { boothesClassName, collisionsClassName, spawnLocationClassName } from "@/utils/maps.handler"
+import { getMapComponents } from "@/utils/maps.handler"
 import archiver from "archiver"
-import { toLower } from "lodash"
 import { 
   listFolderContent,
   getFile,
@@ -17,6 +16,7 @@ import {
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
 import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
+import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -55,11 +55,12 @@ const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }
       throw new Error()
     }
     
-    const json = convertBufferToJson(data)
+    const jsonData = convertBufferToJson(data)
+    const components = getMapComponents(jsonData.layers)
 
     return {
       ...res,
-      data: json
+      data: components
     }
   } catch (err: any) {
     throw new CustomError("Error fetching map data", 400)
@@ -122,10 +123,7 @@ const downloadMapService = async (id: string): Promise<Buffer> => {
 const createMapService = async (mapData: Map): Promise<Map> => {
   try {
     // override original map id incase present and set to null
-    mapData = {
-      ...mapData,
-      original_map_id: null
-    }
+    mapData.original_map_id = null
     
     const createdMap = await repo.createMap(mapData)
     if (!createdMap) {
@@ -256,7 +254,7 @@ const deleteMapsByOriginalMapIdService = async (oid: string) : Promise<number> =
   }
 }
 
-const getMapBoothsService = async (mapId : string) : Promise<Object[]> => {
+const getMapBoothsService = async (mapId : string) : Promise<Booth[]> => {
   try {
     const map = await repo.getMapById(mapId)
 
@@ -265,39 +263,17 @@ const getMapBoothsService = async (mapId : string) : Promise<Object[]> => {
     }
 
     const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
     const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
 
-    return jsonData.layers
-    .filter((layer: any) => 
-      toLower(layer.name) === toLower(boothesClassName) ||
-      toLower(layer.class) === toLower(boothesClassName)
-    ).flatMap((layer: any) => {
-      if (layer.layers && Array.isArray(layer.layers)) {
-        return layer.layers.flatMap((subLayer: any) => {
-          if (subLayer.objects && Array.isArray(subLayer.objects)) {
-            return subLayer.objects
-          } else {
-            console.warn("Unexpected subLayer structure: missing or invalid 'objects'", subLayer)
-            return []
-          }
-        })
-      } else {
-        console.warn("Unexpected layer structure: missing or invalid 'layers'", layer)
-        return []
-      }
-    })
+    return components.booths
   } catch (err: any) {
     throw new CustomError("Error fetching map booths", 400)
   }
 }
 
-const getMapCollisionsService = async (mapId : string) : Promise<[{ 
-  id: string,
-  name: string,
-  data: number[],
-  width: number,
-  height: number
-}]> => {
+const getMapCollisionsService = async (mapId : string) : Promise<Collision[]> => {
   try {
     const map = await repo.getMapById(mapId)
     
@@ -308,75 +284,35 @@ const getMapCollisionsService = async (mapId : string) : Promise<[{
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    
-    return jsonData.layers
-    .filter((layer: any) => 
-      toLower(layer.class) === toLower(collisionsClassName) || 
-      toLower(layer.name) === toLower(collisionsClassName)
-    ).flatMap((layer: any) => {
-      if (layer.layers && Array.isArray(layer.layers)) {
-        return layer.layers.flatMap((object: any) => ({
-          id: object.id,
-          name: object.name,
-          data: object.data,
-          width: object.width,
-          height: object.height,
-          visible: object.visible
-        }))
-      } else {
-        console.warn("Layer missing 'layers' property:", layer)
-        return []
-      }
-    })
-} catch (err: any) {
-  throw new CustomError("Error fetching map collisions", 400)
-}
-}
+    const components = getMapComponents(jsonData.layers)
 
-const getMapLayersService = async (mapId : string) : Promise<[{ 
-  id: string,
-  name: string,
-  data: number[],
-  width: number,
-  height: number
-}]> => {
-  try {
-    const map = await repo.getMapById(mapId)
-    
-    if (!map) {
-      throw new CustomError("Map not found", 400)
-    }
-    
-    const res = await getFileByTypeFromFolder(map.folderId, "json")
-    
-    const jsonData = JSON.parse(res.data.toString())
-    
-    return jsonData.layers
-    .filter((layer: any) =>
-      toLower(layer.class) !== toLower(collisionsClassName) &&
-      toLower(layer.name) !== toLower(collisionsClassName)
-    ).flatMap((layer: any) => {
-      if (layer.layers && Array.isArray(layer.layers)) {
-        return layer.layers.flatMap((object: any) => ({
-          id: object.id,
-          name: object.name,
-          data: object.data,
-          width: object.width,
-          height: object.height,
-          visible: object.visible,
-        }))
-      } else {
-        console.warn("Layer missing 'layers' property:", layer)
-        return []
-      }
-    })
-} catch (err: any) {
-  throw new CustomError("Error fetching map layers", 400)
+    return components.collisions
+  } catch (err: any) {
+    throw new CustomError("Error fetching map collisions", 400)
   }
 }
 
+const getMapLayersService = async (mapId : string) : Promise<Layer[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+    
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+    
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
 
-const getspawnLocationService = async (mapId : string) : Promise<Object[]> => {
+    return components.layers
+    
+  } catch (err: any) {
+    throw new CustomError("Error fetching map layers", 400)
+  }
+}
+
+const getspawnLocationService = async (mapId : string) : Promise<Spawn | null> => {
   try {
     const map = await repo.getMapById(mapId)
 
@@ -385,29 +321,16 @@ const getspawnLocationService = async (mapId : string) : Promise<Object[]> => {
     }
 
     const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
     const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
 
-    return jsonData.layers
-    .filter((layer: any) =>
-      toLower(layer.class) === toLower(spawnLocationClassName) ||
-      toLower(layer.name) === toLower(spawnLocationClassName)
-    ).flatMap((layer: any) => {
-      if (layer.objects) {
-        return layer.objects.map((object: any) => ({
-          id: object.id,
-          name: object.name,
-          x: object.x,
-          y: object.y
-        }))
-      } else {
-        console.warn("Layer missing 'objects' property:", layer)
-        return []
-      }
-    })
+    return components.spawn
   } catch (err: any) {
     throw new CustomError("Error fetching map booths", 400)
   }
 }
+
 export {
   getMapsService,
   getMapByIdService,

@@ -22,10 +22,6 @@ app.options('*', cors(corsOptions)) // Handle preflight requests for all routes
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-
-// Serve static files from the 'public' directory
-app.use(express.static('public'))
-
 // Middleware for parsing cookies
 app.use(cookieParser())
 

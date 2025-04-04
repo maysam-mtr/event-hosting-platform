@@ -16,6 +16,7 @@ import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
+import { Booth } from "@/interfaces/map-layers.interface"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -191,7 +192,7 @@ const getMapBoothsDisplayController = async (req: Request, res: Response, next: 
 
     const fullResponse = await getMapBoothsService(id)
 
-    const response = fullResponse.map((booth: any) => ({
+    const response = fullResponse.map((booth: Booth) => ({
       id: booth.id,
       x: booth.x,
       y: booth.y,
