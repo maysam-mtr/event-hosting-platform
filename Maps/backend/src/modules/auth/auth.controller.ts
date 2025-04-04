@@ -1,6 +1,5 @@
 import type { NextFunction, Request, Response } from "express"
 import { adminLoginService } from "./auth.service"
-import { validationResult } from "express-validator"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
 import { clearToken, verifyJWT } from "@/middlewares/jwt.service"
