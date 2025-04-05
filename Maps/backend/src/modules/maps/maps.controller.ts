@@ -11,6 +11,7 @@ import {
   getMapCollisionsService,
   getMapLayersService,
   getspawnLocationService,
+  getRawMapService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -45,6 +46,19 @@ const getDetailedMapByIdController = async (req: Request, res: Response, next: N
     const response = await getMapDataByIdService(id)
     
     CustomResponse(res, 200, "Map fetched", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
+const getRawMapController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = "f1b39ef0-ed1e-48db-846c-761fa67b9142"
+    const response = await getRawMapService(id)
+
+    res.status(200).json(response)
+    
+    // CustomResponse(res, 200, "Raw Map Data fetched", response)
   } catch (err: any) {
     next(err)
   }
@@ -219,5 +233,6 @@ export {
   getMapCollisionsController,
   getMapLayersController,
   getspawnLocationController,
+  getRawMapController,
 }
 

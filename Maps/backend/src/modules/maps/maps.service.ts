@@ -67,6 +67,28 @@ const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }
   }
 }
 
+const getRawMapService = async (id: string): Promise<Object> => {
+  try {
+    const res = await repo.getMapRawById(id)
+    if (!res) {
+      throw new CustomError("Error fetching map", 400)
+    }
+    
+    const { data } = await getFileByTypeFromFolder(res.folderId, "json")
+
+    if (!data) {
+      throw new Error()
+    }
+    
+    const jsonData = convertBufferToJson(data)
+
+    return jsonData
+
+  } catch (err: any) {
+    throw new CustomError("Error fetching raw map data", 400)
+  }
+}
+
 const downloadMapService = async (id: string): Promise<Buffer> => {
   try {
     // Get map details
@@ -344,5 +366,6 @@ export {
   getMapCollisionsService,
   getMapLayersService,
   getspawnLocationService,
+  getRawMapService,
 }
 
