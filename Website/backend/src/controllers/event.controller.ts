@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
-    getEventsForHost, filterEventsByStatus
+    getEventsForHost, filterEventsByStatus,
+    filterPublicEventsByStatus
 } from '../services/event.service';
 import { sendResponse
 
@@ -13,7 +14,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 // Check for validation errors
 const errors = validationResult(req);
 if (!errors.isEmpty()) {
-   sendResponse(res, false, 400, 'Login failed', [], [
+   sendResponse(res, false, 400, 'Validation failed', [], [
         { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
       ]);
     return;
