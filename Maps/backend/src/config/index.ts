@@ -7,7 +7,10 @@ export const {
     PORT,
     NODE_ENV,
     BASE_URL,
-    JWT_ACCESS_TOKEN_SECRET,
+    ADMIN_TOKEN_COOKIE_NAME,
+    JWT_ADMIN_ACCESS_TOKEN_SECRET,
+    HOST_TOKEN_COOKIE_NAME,
+    JWT_HOST_ACCESS_TOKEN_SECRET,
 } = process.env
 
 export const {
@@ -26,4 +29,9 @@ export const {
     GOOGLE_REFRESH_TOKEN,
     GOOGLE_PROJECT_ID,
     GOOGLE_MAPS_FOLDER_ID,
+} = process.env
+
+export const {
+    ADMIN_USERNAME,
+    ADMIN_PASSWORD,
 } = process.env

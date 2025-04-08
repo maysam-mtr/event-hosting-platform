@@ -16,18 +16,26 @@ h1, h2, h3, h4, h5, h6 {
   --general-bg-base: #EB5306;
   --general-bg-base-hover: #d94c04;
   --general-bg-dark: #BC4204;
+  
+  --host-bg-light: #3a61d1;
+  --host-bg-base: #0c2ec7;
+  --host-bg-base-hover: #061f99;
+  --host-bg-dark: #03176f;
+
   --text-background: #ffffff;
   --text-second: #374151;
   --text-secondary:#858585;
   --text-third:#b7b7b7 ;
   --text-primary: #000000;
   --disabled: #353535 ;
+
   --background-main: #FFFFFF;
   --background-second: #f8f9fc; 
   --background-three: #f9fafb;
   --background-four: #313131;
   --background-five: #464646;
   --border-color:#d1d5db;
+  
   --heading-1: 42px;
   --heading-2: 35px;
   --heading-3: 29px;

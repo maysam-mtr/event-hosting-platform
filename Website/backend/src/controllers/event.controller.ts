@@ -4,9 +4,8 @@ import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
     getEventsForHost, filterEventsByStatus,
     filterPublicEventsByStatus
 } from '../services/event.service';
-import { sendResponse
+import { sendResponse} from '../Utils/responseHelper';
 
- } from '../Utils/responseHelper';
 const createEventController = async (req: Request, res: Response): Promise<void> => {
     const eventData = req.body;
     const hostUser = (req as any).hostUser;
@@ -20,15 +19,16 @@ if (!errors.isEmpty()) {
     return;
 }
 
-    try {
-        const event = await createEvent(eventData, hostUser.id);
-        sendResponse(res, true, 201, 'Event created successfully', [event]);
-    } catch (err) {
-        sendResponse(res, false, 500, 'Failed to create event', [], [
-            { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
-          ]);
-    }
+        try {
+            const event = await createEvent(eventData, hostUser.id);
+            sendResponse(res, true, 201, 'Event created successfully', [event]);
+        } catch (err) {
+            sendResponse(res, false, 500, 'Failed to create event', [], [
+                { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
+            ]);
+        }
 };
+
 const updateEventController = async (req: Request, res: Response): Promise<void> => {
 try {
     const { eventId } = req.params; // Extract event ID from URL parameters

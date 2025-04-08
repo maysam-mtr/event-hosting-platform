@@ -9,6 +9,7 @@ import { useToast } from "../hooks/use-toast"
 import { getMaps, deleteMap } from "../lib/api"
 import { Link } from "react-router-dom"
 import DeleteConfirmationDialog from "../components/DeleteConfirmationDialog"
+import LogoutButton from "../components/LogoutButton"
 import type { Map } from "../lib/types"
 
 export default function Home() {
@@ -89,7 +90,10 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-6">Maps Overview</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Maps Overview</h1>
+          <LogoutButton />
+        </div>
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-1/2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

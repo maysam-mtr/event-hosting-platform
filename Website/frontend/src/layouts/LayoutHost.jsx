@@ -11,7 +11,7 @@ export default function LayoutHost() {
 
   return (
       <MainContainer>
-        <NavBar mode={'host'} toggleSidebar={toggleSidebar}/>
+        <NavBar role={'host'} toggleSidebar={toggleSidebar}/>
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} role="host" />
         <BodySection style={{ marginLeft: isSidebarOpen ? "250px" : "0", transition: "margin-left 0.3s ease" }}>
           <Outlet />

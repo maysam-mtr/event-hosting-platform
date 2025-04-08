@@ -14,6 +14,13 @@ import ContactUsPage from "../Pages/ContactUsPage/ContactUsPage";
 import HomePage from "../Pages/UserPortal/HomePage/HomePage";
 import SettingsPage from "../Pages/UserPortal/SettingsPage/SettingsPage";
 import HostHomePage from "../Pages/HostPortal/HostHomePage/HostHomePage";
+import MyEventsPage from "../Pages/HostPortal/MyEventsPage/MyEventsPage";
+import SettingsHostPage from "../Pages/HostPortal/SettingsHostPage/SettingsHostPage";
+import ProtectedRoute from "../middlewares/ProtectedRoute";
+import EventDetailsPage from "../Pages/EventDetailsPage/EventDetailsPage";
+import EventAccessRoute from "../middlewares/EventAccessRoute";
+import EventGameSpace from "../Pages/EventGameSpace/EventGameSpace";
+import ExploreEventsPage from "../Pages/UserPortal/ExploreEventsPage/ExploreEventsPage";
 
 export const Router = createBrowserRouter([
     {
@@ -71,6 +78,14 @@ export const Router = createBrowserRouter([
                         path: '',
                         element: <HostHomePage/>,
                     },
+                    {
+                        path: 'my-events',
+                        element: <MyEventsPage/>
+                    },
+                    {
+                        path: 'settings',
+                        element: <SettingsHostPage/>
+                    }
                 ]
             },
         ]
@@ -87,6 +102,10 @@ export const Router = createBrowserRouter([
                         element: <HomePage/>,
                     },
                     {
+                        path: 'explore',
+                        element: <ExploreEventsPage/>
+                    },
+                    {
                         path: 'settings',
                         element: <SettingsPage/>
                     }
@@ -94,4 +113,28 @@ export const Router = createBrowserRouter([
             },
         ]
     }, 
+    {
+        path: '/event',
+        element: <ProtectedRoute/>,
+        children:[
+            {
+                element: <LayoutSimplified/>,
+                children: [
+                    {
+                        path: 'details/:eventId',
+                        element: <EventDetailsPage/>
+                    },
+                    {
+                        element: <EventAccessRoute/>,
+                        children: [
+                            {
+                                path: 'space',
+                                element: <EventGameSpace/>
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
 ])

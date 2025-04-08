@@ -7,7 +7,7 @@ const SidebarContainer = styled.div`
   background-color: var(--background-main);
   position: fixed;
   top: 0;
-  left: ${({ isOpen }) => (isOpen ? "0" : "-255px")};
+  left: ${({ $isOpen }) => ($isOpen ? "0" : "-255px")};
   transition: left 0.3s ease;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -20,12 +20,12 @@ const SidebarItem = styled(Link)`
   padding: 15px 20px;
   color: var(--text-primary);
   text-decoration: none;
-  background-color: ${({ active }) => (active ? "var(--general-bg-light)" : "transparent")};
-  color: ${({ active }) => (active ? "white" : "black")};
+  background-color: ${({ $active, $role }) => ($active ? $role === 'host' ? 'var(--host-bg-light)' : "var(--general-bg-light)" : "transparent")};
+  color: ${({ $active }) => ($active ? "white" : "black")};
   transition: background 0.3s;
 
   &:hover {
-    background-color: var(--general-bg-light);
+    background-color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-light)' : "var(--general-bg-light)"};
   }
 `;
 
@@ -44,26 +44,29 @@ export default function Sidebar({ isOpen, toggleSidebar, role }) {
   const location = useLocation();
 
   return (
-    <SidebarContainer isOpen={isOpen}>
+    <SidebarContainer $isOpen={isOpen}>
       <CloseButton onClick={toggleSidebar}>×</CloseButton>
       {role === "host" ? (
         <>
-          <SidebarItem to="/host/dashboard" active={location.pathname === "/host/dashboard"} onClick={() => toggleSidebar()}>
-            Dashboard
+          <SidebarItem $role={role} to="/host" $active={location.pathname === "/host"} onClick={() => toggleSidebar()}>
+            Home
           </SidebarItem>
-          <SidebarItem to="/host/events" active={location.pathname === "/host/events"} onClick={() => toggleSidebar()}>
+          <SidebarItem $role={role} to="/host/my-events" $active={location.pathname === "/host/my-events"} onClick={() => toggleSidebar()}>
             My Events
           </SidebarItem>
-          <SidebarItem to="/host/settings" active={location.pathname === "/host/settings"} onClick={() => toggleSidebar()}>
+          <SidebarItem $role={role} to="/host/settings" $active={location.pathname === "/host/settings"} onClick={() => toggleSidebar()}>
             Settings
           </SidebarItem>
         </>
       ) : (
         <>
-          <SidebarItem to="/user" active={location.pathname === "/user"} onClick={() => toggleSidebar()}>
+          <SidebarItem $role={role} to="/user" $active={location.pathname === "/user"} onClick={() => toggleSidebar()}>
             Home
           </SidebarItem>
-          <SidebarItem to="/user/settings" active={location.pathname === "/user/settings"} onClick={() => toggleSidebar()}>
+          <SidebarItem $role={role} to="/user/explore" $active={location.pathname === "/user/explore"} onClick={() => toggleSidebar()}>
+            Explore Events
+          </SidebarItem>
+          <SidebarItem $role={role} to="/user/settings" $active={location.pathname === "/user/settings"} onClick={() => toggleSidebar()}>
             Settings
           </SidebarItem>
         </>

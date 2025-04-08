@@ -8,3 +8,9 @@ export interface Map {
   updated_at?: string
 }
 
+export interface CustomResponse<T = any> {
+  statusCode: number;
+  messages: string | string[];
+  data: T | null;
+  errors: any | null;
+}

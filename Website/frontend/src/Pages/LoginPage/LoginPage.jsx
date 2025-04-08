@@ -4,6 +4,10 @@ import Input from "../../components/Input/Input";
 import { Link, replace, useNavigate } from "react-router-dom";
 import useSendRequest from "../../hooks/use-send-request";
 import useUserState from "../../hooks/use-user-state";
+import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
+import { OrangeShape, OverlayShape, RoleButton, RoleContainer } from "../SignUpPage/SignUpPage";
+import { BackButton } from "../EventDetailsPage/EventDetailsPage";
+import { FaArrowLeft } from "react-icons/fa";
 
 const Section = styled.section`
   background-color: var(--background-three);
@@ -25,6 +29,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+  z-index: 1;
 `;
 
 const Title = styled.h1`
@@ -37,7 +42,7 @@ const Title = styled.h1`
 const Form = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 `;
 
 const Label = styled.label`
@@ -45,15 +50,6 @@ const Label = styled.label`
   font-weight: 500;
   color: var(--text-second);
 `;
-
-// const Input = styled.input`
-//   width: 100%;
-//   padding: 0.625rem;
-//   border: 1px solid var(--border-color);
-//   border-radius: 6px;
-//   background-color: var(--background-three);
-//   color:var(--text-primary);
-// `;
 
 const CheckboxContainer = styled.div`
   display: flex;
@@ -100,49 +96,111 @@ export default function LoginPage(){
     const navigate = useNavigate();
 
     const [loginForm, setLoginForm] = useState({
-        username: '',
+        usernameOrEmail: '',
         password: ''
     });
 
-    async function onLoginClick(){
-      const URL = '/api/login';
-      //...
+    const [selectedRole, setSelectedRole] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
 
-      const response = {
-        user: {
-          id: 1,
-          profile_picture: null,//defaultPicture, 
-          name: "Maysam Matar",
-          email: "maysam@hotmail.com",
-          role: {
-              name: "user",
-              id: 1,
-          },
+    async function onLoginClick(){
+      setErrorMsg(null);
+      if(loginForm.usernameOrEmail === '' || loginForm.password === ''){
+        setErrorMsg("Fields must not be empty");
+        return;
+      }
+
+      if(selectedRole === 'user'){
+        let URL = '/api/auth/user/login';
+        let INIT = {method: 'POST', body: JSON.stringify(loginForm)}
+  
+        let {request, response} = await sendRequest(URL, INIT);
+        if(response?.success === false){
+          setErrorMsg(response.error[0]?.message);
+          return;
+        }else if(response?.success === true){
+          const user = response?.data[0]?.user;
+          console.log({...user, role: 'user'})
+          setUser({...user, role: 'user'})
+          localStorage.setItem("user", JSON.stringify({...user, role: 'user'}));
+        }
+
+      }else if(selectedRole === 'host'){
+        let URL = '/api/auth/host/login';
+        let INIT = {method: 'POST', body: JSON.stringify({email: loginForm.usernameOrEmail, password: loginForm.password})}
+
+        let {request, response} = await sendRequest(URL, INIT);
+
+        if(response?.success === false){
+          setErrorMsg(response.error[0]?.message);
+          return;
+        }else if(response?.success === true){
+          const host = response?.data[0]?.host;
+          setUser({...host, role: 'host'})
+          localStorage.setItem("user", JSON.stringify({...host, role: 'host'}));
         }
       }
 
-      setUser(response.user)
-      localStorage.setItem("user", JSON.stringify(response.user));
-      if(response.user.role.name == 'user'){
-        navigate('/user', {replace: true});
-      }else if(response.user.role.name == 'host'){
-        navigate('/host', {replace: true});
-      }
+      //console.log(response?.error[0].message)
+
+      //navigate('/', {replace: true});
+      window.location.href = '/';
+      console.log(request, response)
+
+      // if(response.user.role.name == 'user'){
+      //   navigate('/user', {replace: true});
+      // }else if(response.user.role.name == 'host'){
+      //   navigate('/host', {replace: true});
+      // }
     }
+
+      if (!selectedRole) {
+        return (
+          <Section>
+            <OrangeShape />
+            <OverlayShape />
+            <BackButton onClick={() => navigate("/", {replace: true})}>
+              <FaArrowLeft />
+                Back
+            </BackButton>
+              <RoleContainer>
+                <h2 style={{color: 'var(--text-primary)', marginBottom: '2rem'}}>
+                  Choose Your Role
+                </h2>
+                <div style={{display: 'flex', gap: '1rem'}}>
+                  <RoleButton onClick={() => setSelectedRole('user')}>
+                    🎮 Join as User
+                  </RoleButton>
+                  <RoleButton onClick={() => setSelectedRole('host')}>
+                    🏢 Join as Host
+                  </RoleButton>
+                </div>
+              </RoleContainer>
+          </Section>
+        );
+      }
 
     return (
         <Section>
+          <OverlayShape/>
+          <OrangeShape/>
+          <OverlayShape />
+          <BackButton onClick={() => navigate("/", {replace: true})}>
+            <FaArrowLeft />
+             Back
+          </BackButton>
           <Container>
             <Title>Login to your account</Title>
             <Form>
-              <Input label={"Your email"} type="email" name={"email"} data={loginForm} setData={setLoginForm} placeholder={"name@company.com"} reqiured/>
-              <Input label={"Password"} type="password" name={"password"} data={loginForm} setData={setLoginForm} placeholder={"••••••••"} reqiured/>
+              <Input label={"Email or username"} type="text" name={"usernameOrEmail"} data={loginForm} setData={setLoginForm} placeholder={"name@company.com or yourusername..."} reqiured={true}/>
+              <Input label={"Password"} type="password" name={"password"} data={loginForm} setData={setLoginForm} placeholder={"••••••••"} reqiured={true}/>
               {/* <CheckboxContainer>
                 <label>
                   <input type="checkbox" /> Remember me
                 </label>
                 <Link href="#">Forgot password?</Link>
               </CheckboxContainer> */}
+              <ErrorMessage message={errorMsg}/>
               <Button onClick={onLoginClick}>Login</Button>
             </Form>
             <Footer>

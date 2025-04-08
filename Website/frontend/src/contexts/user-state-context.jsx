@@ -2,24 +2,24 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const DEFAULT_USER = {
     id: null,
-    profile_picture: null,//defaultPicture, 
-    name: null,
-    email: null,
-    role: {
-        name: null,
-        id: null,
-    },
+};
+
+const EVENT_ACCESS = {
+    id: null,
 };
 
 export const userStateContext = createContext({
     user: DEFAULT_USER,
     isAuthenticated: false,
     isLoading: true,
+    eventAccess: EVENT_ACCESS,
     setUser: () => {},
+    setEventAccess: () => {}
 });
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(DEFAULT_USER);
+    const [eventAccess, setEventAccess] = useState(EVENT_ACCESS);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export const UserProvider = ({ children }) => {
     const isAuthenticated = !isLoading && user.id !== null;
 
     return (
-        <userStateContext.Provider value={{ user, isAuthenticated, isLoading, setUser }}>
+        <userStateContext.Provider value={{ user, isAuthenticated, isLoading, eventAccess, setUser, setEventAccess }}>
             {children}
         </userStateContext.Provider>
     );

@@ -9,8 +9,9 @@ import router from '@routes/routes'
 const app = express()
 
 const corsOptions = {
-    origin: '*',
+    origin: "http://localhost:5173",
     optionsSuccessStatus: 200,
+    credentials: true,
 }
 
 // Enable CORS
@@ -20,10 +21,6 @@ app.options('*', cors(corsOptions)) // Handle preflight requests for all routes
 // Middleware for parsing JSON and URL-encoded bodies
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-
-
-// Serve static files from the 'public' directory
-app.use(express.static('public'))
 
 // Middleware for parsing cookies
 app.use(cookieParser())

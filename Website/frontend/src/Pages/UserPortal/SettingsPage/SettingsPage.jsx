@@ -1,7 +1,10 @@
 import profile from '../../../assets/profile.png'
 import styled from "styled-components";
-import { use, useState } from "react";
+import { useState } from "react";
 import Input from '../../../components/Input/Input';
+import useUserState from '../../../hooks/use-user-state';
+import Popup from '../../../components/Popup/Popup';
+import useSendRequest from '../../../hooks/use-send-request';
 
 const Container = styled.div`
   max-width: 100%;
@@ -9,7 +12,7 @@ const Container = styled.div`
   padding: 20px;
 `;
 
-const CardsWrapper = styled.div`
+export const CardsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
@@ -20,7 +23,7 @@ const CardsWrapper = styled.div`
   }
 `;
 
-const Card = styled.div`
+export const Card = styled.div`
   flex: 1;
   min-width: 250px;
   background: white;
@@ -29,7 +32,7 @@ const Card = styled.div`
   padding: 20px;
 `;
 
-const ProfileCardWrapper = styled.div`
+export const ProfileCardWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,10 +44,11 @@ const ProfileCardWrapper = styled.div`
   }
 `;
 
-const ProfileCard = styled(Card)`
+export const ProfileCard = styled(Card)`
   display: flex;
   align-items: center;
   min-height: 120px;
+  width: 100%;
 
   @media (max-width: 600px) {
     flex-direction: column;
@@ -72,28 +76,18 @@ const Info = styled.div`
 
 const Text = styled.p`
   margin: 5px 0;
-  color: ${({ secondary }) => (secondary ? "gray" : "black")};
-  font-weight: ${({ bold }) => (bold ? "bold" : "normal")};
+  color: ${({ $secondary }) => ($secondary ? "gray" : "black")};
+  font-weight: ${({ $bold }) => ($bold ? "bold" : "normal")};
 `;
 
 const EditableDetails = styled.div`
-  display: flex;
+  /*display: flex;
   flex-direction: column;
+  gap: 15px;*/
+    display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
 `;
-
-// const Label = styled.p`
-//   font-weight: bold;
-//   color: #555;
-// `;
-
-// const Input = styled.input`
-//   background: #f8f8f8;
-//   padding: 10px;
-//   border-radius: 5px;
-//   border: 1px solid #ddd;
-//   width: 100%;
-// `;
 
 const UpdateButton = styled.button`
   width: 100%;
@@ -110,7 +104,7 @@ const UpdateButton = styled.button`
   }
 `;
 
-const PageTitle = styled.div`
+export const PageTitle = styled.div`
 border-bottom: 2px solid #ddd;
 color: var(--text-primary);
 font-size: var(--heading-2);
@@ -118,82 +112,108 @@ font-weight: 600;
 padding: 10px 0;
 `;
 
-const Section = styled.div`
+export const Section = styled.div`
 padding: 30px;
 `;
 
 export default function SettingsPage() {
-    const [userData, setUserData] = useState({
-        name: "John Doe",
-        email: "johndoe@example.com",
-        username: "johndoe123",
-        birthdate: "2000-01-01",
-        phone: "123-456-7890",
-        location: "New York, USA",
-        role: "partner", // Change to "user" to hide Partner Card
-        company: "Tech Corp",
-        position: "Lead Developer",
-      });
+  const { user, setUser } = useUserState();
+  const [sendRequest] = useSendRequest();
 
-  const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
-  };
+  const [userData, setUserData] = useState({
+    //profilePic: user.profilePic || profile,
+    dateOfBirth: user.dateOfBirth || "",
+    phone: user.phone || "",
+    location: user.country || "",
+    educationLevel: user.educationLevel || "",
+    fieldOfStudy: user.fieldOfStudy || "",
+    preferredEventType: user.preferredEventType || "",
+    yearsOfExperience: user.yearsOfExperience || "",
+    linkedin: user.linkedin || "",
+    github: user.github || "",
+  });
+
+  const [partnerData, setPartnerData] = useState({
+    company: user.company || "",
+    position: user.position || "",
+  });
+
+  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+
+  async function updateUserInformation (){
+    if(!userData.phoneNumber){
+      setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
+      return;
+    }
+
+    let URL = '/api/host/update';
+    let INIT = {method: 'PUT', body: JSON.stringify(userData)}
+
+    let {request, response} = await sendRequest(URL, INIT);
+
+    if(response?.success){
+      console.log({...response.data, role: 'host'}, response)
+      const newHostInfo = {...response.data, role: 'host'};
+      setUser(newHostInfo)
+      localStorage.setItem("user", JSON.stringify({...newHostInfo, role: 'host'}));
+      setPopup({message: 'Info updated!', type: 'success', isVisible: true});
+    }else{
+      setPopup({message: 'Failed to update! Try again', type: 'fail', isVisible: true});
+      return;
+    }
+  }
 
   return (
     <Section>
-    <PageTitle>Settings</PageTitle>
-    <Container>
-      <CardsWrapper>
-        {/* Profile Card (Static Info) */}
-        <ProfileCardWrapper>
+      <Popup popUpSettings={popup}/>
+      <PageTitle>Settings</PageTitle>
+      <Container>
+        <CardsWrapper>
+          <ProfileCardWrapper>
             <ProfileCard>
-              <ProfilePic src={profile} alt="Profile" />
+              <ProfilePic src={user.profilePic || profile} alt="Profile" />
               <Info>
-                <Text bold>{userData.name}</Text>
-                <Text secondary>{userData.email}</Text>
-                <Text secondary>@{userData.username}</Text>
+                <Text $bold>{user.fullName}</Text>
+                <Text $secondary>{user.email}</Text>
+                <Text $secondary>@{user.username}</Text>
               </Info>
             </ProfileCard>
-            <UpdateButton>Update</UpdateButton>
+            <UpdateButton onClick={updateUserInformation}>Update</UpdateButton>
           </ProfileCardWrapper>
 
-        {/* Editable Info Card */}
-        <Card>
-          <EditableDetails>
-            {["birthdate", "phone", "location"].map((field) => (
-              <div key={field}>
-                <Input
-                  type={field === "birthdate" ? "date" : "text"}
-                  name={field}
-                  label={field.charAt(0).toUpperCase() + field.slice(1)}
-                  data={userData}
-                  setData={setUserData}
-                />
-              </div>
-            ))}
-          </EditableDetails>
-        </Card>
-
-        {/* Partner Card (Only if role === "partner") */}
-        {userData.role === "partner" && (
           <Card>
             <EditableDetails>
-              {["company", "position"].map((field) => (
-                <div key={field}>
-                  <Input
-                    type="text"
-                    name={field}
-                    data={userData}
-                    setData={setUserData}
-                    label={field.charAt(0).toUpperCase() + field.slice(1)}
-                  />
+              {Object.entries(userData).map(([key, value]) => (
+                <div key={key}>
+                  <Input label={key.replace(/([A-Z])/g, ' $1').trim()} 
+                          type='text' 
+                          name={key} 
+                          data={userData} 
+                          setData={setUserData} 
+                          placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').trim()}`}/>
                 </div>
               ))}
             </EditableDetails>
           </Card>
-        )}
-      </CardsWrapper>
-    </Container>
+
+          {user.isPartner === 1 && (
+            <Card>
+              <EditableDetails>
+                {Object.entries(partnerData).map(([key, value]) => (
+                  <div key={key}>
+                    <Input label={key.replace(/([A-Z])/g, ' $1').trim()} 
+                            type='text' 
+                            name={key} 
+                            data={userData} 
+                            setData={setUserData} 
+                            placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').trim()}`}/>
+                  </div>
+                                  ))}
+              </EditableDetails>
+            </Card>
+          )}
+        </CardsWrapper>
+      </Container>
     </Section>
   );
 }

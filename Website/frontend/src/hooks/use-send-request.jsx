@@ -2,16 +2,17 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useUserState from './use-user-state';
 
-export function buildUrl(url, searchParams, supportedParams, extraParams = []){
+// export function buildUrl(url, searchParams, supportedParams, extraParams = []){
 
-}
+// }
 
 export function setApiUrl(url){
-    return import.meta.env.API_URL + url;
+    return import.meta.env.VITE_API_URL + url;
 }
 
 export default function useSendRequest() {
-    const {setUser} = useUserState();
+    const {user, isAuthenticated, setUser} = useUserState();
+    const navigate = useNavigate();
 
     const sendRequest = useCallback(async (url, init = {}) => {
         let request, response;
@@ -23,17 +24,20 @@ export default function useSendRequest() {
         };
 
         const apiUrl = setApiUrl(url);
+        //console.log(apiUrl, init, defaultInit)
 
         try {
             request = await fetch(apiUrl, defaultInit);
 
             // handle expired tokens 
-            if (request.status === 401) {
+            if (request.status === 401 && isAuthenticated) {
                 setUser(null);
-                //navigate to login page
+                window.location.href = '/login'
+                //navigate('/login', {replace: true});
             }
 
             response = await request.json();
+
         } catch (error) {
             response = null;
             request = null;

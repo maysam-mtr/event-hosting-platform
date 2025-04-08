@@ -30,7 +30,7 @@ export const MainSection = styled.main`
 export default function LayoutDefault() {
     return(
         <MainContainer>
-            <NavBar mode="guest"/>
+            <NavBar role="guest"/>
             <BodySection>
                 <Outlet/>
             </BodySection>

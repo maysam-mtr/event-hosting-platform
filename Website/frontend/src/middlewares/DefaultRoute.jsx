@@ -1,48 +1,34 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import useUserState from "../hooks/use-user-state";
-//import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
+import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 
 export default function DefaultRoute(){
     const navigate = useNavigate();
-    const {user, isAuthenticated, isLoading} = useUserState();
+    const { user, isAuthenticated, isLoading } = useUserState();
 
-    useEffect(()=>{
-        if (isLoading){
-            return// <LoadingSpinner />
+    useEffect(() => {
+        if (!isLoading) {
+            if (!isAuthenticated) {
+                navigate('/index', { replace: true });
+            } else {
+                switch (user.role) {
+                    case "host":
+                        navigate("/host", { replace: true });
+                        break;
+                    case "admin":
+                        // navigate("/dashboard/", {replace : true});
+                        break;
+                    case "user":
+                        navigate("/user", { replace: true });
+                        break;
+                    default:
+                        navigate('/index', { replace: true });
+                }
+            }
         }
-    
-        if (!isAuthenticated) {
-            navigate('/index', {replace: true});
-            return// <LoadingSpinner />;
-        }
-    
-        
-        if (!isAuthenticated && !isLoading) {
-            //navigate("/login", {replace : true}); 
-            navigate('/index', {replace: true});
-        }
+    }, [user, isAuthenticated, isLoading, navigate]);
 
-        if (isAuthenticated && user.role.name == "host"){
-            //navigate("/superadmin/", {replace : true});
-        }
-
-        if (isAuthenticated && user.role.name == "admin"){
-            //navigate("/dashboard/", {replace : true});
-        }
-        
-        if (isAuthenticated && user.role.name == "user"){
-            navigate("/user", {replace : true});
-        }
-
-        if (isAuthenticated && user.role.name == "partner"){
-            //navigate("/system/", {replace : true});
-        }
-    },[user, isAuthenticated, isLoading])
-
-    if (isLoading) {
-        return null;
-    }
-
+    if (isLoading) return <LoadingSpinner />;
     return <Outlet />;
 }

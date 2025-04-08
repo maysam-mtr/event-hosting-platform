@@ -7,17 +7,19 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
     const credentials = req.body;
     try {
         const user = await loginUser(credentials);
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '12h' });
         console.log(token);
-        res.cookie('token', token, {
+
+
+        res.cookie(process.env.USER_TOKEN_COOKIE_NAME || 'token', token, {
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
             maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             secure: false
         });
-        res.clearCookie('hostToken');
+        res.clearCookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken');
         // Success response
-    sendResponse(res, true, 200, 'Login successful', [{ userId: user.id }]);
+    sendResponse(res, true, 200, 'Login successful', [{ user: user }]);
     } catch (err) {
         sendResponse(res, false, 401, 'Login failed', [], [
             { code: 'LOGIN_ERROR', message: (err as Error).message },
@@ -31,17 +33,18 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
         const host = await loginHost(credentials);
         console.log("host id _",host._id);
         console.log("host id without -",host.id)
-        const token = jwt.sign({ id: host.id }, process.env.JWT_SECRET_HOST as string, { expiresIn: '1h' });
+        const token = jwt.sign({ id: host.id }, process.env.JWT_SECRET_HOST as string, { expiresIn: '12h' });
         console.log(token);
-        res.cookie('hostToken', token, {
+        
+        res.cookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken', token, {
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
             maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             secure: false
         });
-        res.clearCookie('token');
+        res.clearCookie(process.env.USER_TOKEN_COOKIE_NAME || 'token');
 
-      sendResponse(res, true, 200, 'Host login successful', [{ hostId: host.id }]);
+      sendResponse(res, true, 200, 'Host login successful', [{ host: host }]);
     } catch (err) {
         sendResponse(res, false, 401, 'Host Login failed', [], [
             { code: 'HOST_LOGIN_ERROR', message: (err as Error).message },

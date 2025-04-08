@@ -4,13 +4,9 @@ import { Readable } from "stream"
 import type { FileArray, UploadedFile } from "express-fileupload"
 import { GOOGLE_MAPS_FOLDER_ID } from "@/config"
 import { toLower } from "lodash"
-import { 
-  boothesClassName,
-  FileTypes,
-  fileTypes,
-  getRequiredFilesFromJSONFile,
-  thumbnailFileType } from "@/utils/maps.handler"
 import { convertJsonToBuffer, convertXmlBufferToJson, ensureArray, sanitizePath } from "./Helpers/helper-functions"
+import { boothesClassName, fileTypes, FileTypes, thumbnailFileType } from "@/constants"
+import { getRequiredFilesFromJSONFile } from "./maps.handler"
 
 interface UploadResult {
   folderId: string

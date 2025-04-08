@@ -17,7 +17,9 @@ const loginUser = async ({ usernameOrEmail, password }: { usernameOrEmail: strin
             throw new Error('Incorrect password');
         }
 
-        return user;
+        const { password: _, ...userWithoutPassword } = user.get({ plain: true });
+
+        return userWithoutPassword;
     } catch (err) {
         throw new Error((err as Error).message || ''); 
     }
@@ -36,14 +38,16 @@ const loginHost = async ({ email, password }: { email: string, password: string 
             throw new Error('Incorrect password');
         }
 
-        return host;
+        const { password: _, ...hostWithoutPassword } = host.get({ plain: true });
+
+        return hostWithoutPassword;
     } catch (err) {
         throw new Error((err as Error).message || ''); 
     }
 };
 
 const clearToken = (res: Response): void => {
-    res.clearCookie('token', {
+    res.clearCookie(process.env.USER_TOKEN_COOKIE_NAME || 'token', {
         httpOnly: true,
         sameSite: 'strict'
     });
@@ -51,7 +55,7 @@ const clearToken = (res: Response): void => {
 
 
 const clearHostToken = (res: Response): void => {
-    res.clearCookie('hostToken', {
+    res.clearCookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken', {
         httpOnly: true,
         sameSite: 'strict'
     });

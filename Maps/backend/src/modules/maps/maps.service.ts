@@ -1,7 +1,7 @@
 import { repo } from "./maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { Map } from "@/interfaces/map.interface"
-import { boothesClassName } from "@/utils/maps.handler"
+import { getMapComponents } from "@/utils/maps.handler"
 import archiver from "archiver"
 import { 
   listFolderContent,
@@ -15,6 +15,8 @@ import {
   getLatestMapByOriginalMapIdService,
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
+import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
+import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -37,6 +39,31 @@ const getMapByIdService = async (id: string): Promise<Map | null> => {
     return res
   } catch (err: any) {
     throw new CustomError("Error fetching map", 400)
+  }
+}
+
+const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }> => {
+  try {
+    const res = await repo.getMapRawById(id)
+    if (!res) {
+      throw new CustomError("Error fetching map", 400)
+    }
+    
+    const { data } = await getFileByTypeFromFolder(res.folderId, "json")
+
+    if (!data) {
+      throw new Error()
+    }
+    
+    const jsonData = convertBufferToJson(data)
+    const components = getMapComponents(jsonData.layers)
+
+    return {
+      ...res,
+      data: components
+    }
+  } catch (err: any) {
+    throw new CustomError("Error fetching map data", 400)
   }
 }
 
@@ -96,10 +123,7 @@ const downloadMapService = async (id: string): Promise<Buffer> => {
 const createMapService = async (mapData: Map): Promise<Map> => {
   try {
     // override original map id incase present and set to null
-    mapData = {
-      ...mapData,
-      original_map_id: null
-    }
+    mapData.original_map_id = null
     
     const createdMap = await repo.createMap(mapData)
     if (!createdMap) {
@@ -230,22 +254,78 @@ const deleteMapsByOriginalMapIdService = async (oid: string) : Promise<number> =
   }
 }
 
-const getMapBoothsService = async (mapId : string) : Promise<{ booths : Object[] }> => {
+const getMapBoothsService = async (mapId : string) : Promise<Booth[]> => {
   try {
     const map = await repo.getMapById(mapId)
 
     if (!map) {
-      throw new CustomError("Map not found", 404)
+      throw new CustomError("Map not found", 400)
     }
 
     const res = await getFileByTypeFromFolder(map.folderId, "json")
-
+    
     const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
 
-    return {
-      booths: jsonData.layers.filter((layer: any) => layer.class === boothesClassName)
-      .flatMap((obj: any) => obj.layers.map((object: any) => object.objects.map((booth: any) => booth)))
+    return components.booths
+  } catch (err: any) {
+    throw new CustomError("Error fetching map booths", 400)
+  }
+}
+
+const getMapCollisionsService = async (mapId : string) : Promise<Collision[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+    
+    if (!map) {
+      throw new CustomError("Map not found", 400)
     }
+    
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
+
+    return components.collisions
+  } catch (err: any) {
+    throw new CustomError("Error fetching map collisions", 400)
+  }
+}
+
+const getMapLayersService = async (mapId : string) : Promise<Layer[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+    
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+    
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
+
+    return components.layers
+    
+  } catch (err: any) {
+    throw new CustomError("Error fetching map layers", 400)
+  }
+}
+
+const getspawnLocationService = async (mapId : string) : Promise<Spawn | null> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData.layers)
+
+    return components.spawn
   } catch (err: any) {
     throw new CustomError("Error fetching map booths", 400)
   }
@@ -260,5 +340,9 @@ export {
   downloadMapService,
   deleteMapsByOriginalMapIdService,
   getMapBoothsService,
+  getMapDataByIdService,
+  getMapCollisionsService,
+  getMapLayersService,
+  getspawnLocationService,
 }
 

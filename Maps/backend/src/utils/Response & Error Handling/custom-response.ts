@@ -1,5 +1,5 @@
 import { Response } from "express"
-import { ApiResponse } from "./response.interface"
+import { ApiResponse } from "../../interfaces/response.interface"
 
 export function CustomResponse<T>(
     res: Response,

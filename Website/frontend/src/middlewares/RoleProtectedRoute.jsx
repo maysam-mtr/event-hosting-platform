@@ -3,6 +3,8 @@ import useUserState from "../hooks/use-user-state";
 //import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import { useEffect } from "react";
 import PropType from 'prop-types';
+import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
+import PropTypes from "prop-types";
 
 export default function RoleProtectedRoute({requiredRole}){
     const navigate = useNavigate();
@@ -13,11 +15,10 @@ export default function RoleProtectedRoute({requiredRole}){
             navigate("/login", {replace : true}); 
         }
 
-        if (isAuthenticated && user.role.name != requiredRole){
+        if (isAuthenticated && user.role != requiredRole){
             navigate("/errors", {
                 state: {
                     errorCode: "403",
-                    errorTitle: "Forbidden",
                     errorMessage: "You do not have the required role to access this page."
                 }
             });
@@ -25,20 +26,14 @@ export default function RoleProtectedRoute({requiredRole}){
     },[user, isAuthenticated,isLoading, requiredRole])
 
     if (isLoading){
-        return// <LoadingSpinner />
+        return <LoadingSpinner />
     }
 
-    if (!isAuthenticated) {
-        return// <LoadingSpinner />;
-    }
-
-    if (isAuthenticated && user.role.name != requiredRole) {
-        return// <LoadingSpinner />;
-    }
+    if (!isAuthenticated || (isAuthenticated && user.role !== requiredRole)) return null;
     
     return <Outlet />;
 }
 
 RoleProtectedRoute.propTypes = {
-    requiredRole: PropType.any,
-}
+    requiredRole: PropTypes.string.isRequired,
+};

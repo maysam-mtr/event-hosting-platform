@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const FooterContainer = styled.div`
-  background-color: var(--general-bg-base);
+  background-color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-base)' : "var(--general-bg-base)"};
   width: 100%;
   padding: 40px 20px;
   display: flex;
@@ -20,7 +20,7 @@ const Column = styled.div`
 const Title = styled.h4`
   font-weight: normal;
   margin-bottom: 10px;
-  color: var(--general-bg-dark);
+  color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-dark)' : "var(--general-bg-dark)"};
 `;
 
 const List = styled.ul`
@@ -48,12 +48,12 @@ align-items: center;
 text-align: center;
 `;
 
-export default function Footer() {
+export default function Footer({role = 'guest'}) {
   return (
-    <FooterContainer>
+    <FooterContainer $role={role}>
         <Links>
       <Column>
-        <Title>Quick Links</Title>
+        <Title $role={role}>Quick Links</Title>
         <List>
           <ListItem>About Us</ListItem>
           <ListItem>Contact Us</ListItem>
@@ -63,7 +63,7 @@ export default function Footer() {
         </List>
       </Column>
       <Column>
-        <Title>Resources</Title>
+        <Title $role={role}>Resources</Title>
         <List>
           <ListItem>Help Center</ListItem>
           <ListItem>Community Forum</ListItem>
@@ -73,7 +73,7 @@ export default function Footer() {
         </List>
       </Column>
       <Column>
-        <Title>Company Info</Title>
+        <Title $role={role}>Company Info</Title>
         <List>
           <ListItem>Careers</ListItem>
           <ListItem>Press Releases</ListItem>
@@ -83,7 +83,7 @@ export default function Footer() {
         </List>
       </Column>
       <Column>
-        <Title>Connect</Title>
+        <Title $role={role}>Connect</Title>
         <List>
           <ListItem>Facebook</ListItem>
           <ListItem>Twitter</ListItem>
@@ -93,7 +93,7 @@ export default function Footer() {
         </List>
       </Column>
       <Column>
-        <Title>Support</Title>
+        <Title $role={role}>Support</Title>
         <List>
           <ListItem>Contact Support</ListItem>
           <ListItem>Submit Feedback</ListItem>
@@ -103,7 +103,7 @@ export default function Footer() {
         </List>
       </Column>
       <Column>
-        <Title>Legal</Title>
+        <Title $role={role}>Legal</Title>
         <List>
           <ListItem>Terms of Use</ListItem>
           <ListItem>Cookie Policy</ListItem>

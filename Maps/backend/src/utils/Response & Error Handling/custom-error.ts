@@ -1,5 +1,5 @@
 import { ensureArray } from "../Helpers/helper-functions"
-import { ApiResponse } from "./response.interface"
+import { ApiResponse } from "../../interfaces/response.interface"
 
 export class CustomError extends Error implements ApiResponse {
     public statusCode: number
