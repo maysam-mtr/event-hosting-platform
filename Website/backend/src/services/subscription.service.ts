@@ -1,5 +1,5 @@
 import Subscription from '../models/Subscription';
-
+import Subscriptionplan from '../models/Subscriptionplan';
 const createSubscription = async (subscriptionData: any, hostId: string): Promise<any> => {
     try {
         const { planId} = subscriptionData;
@@ -103,6 +103,37 @@ export const getNumberOfBooths = async (subscriptionId: string): Promise<number>
         return await getNumberOfRoomsByPlanId(subscription1.planId);
     } catch (error) {
         throw new Error((error as Error).message || "Failed to fetch number of rooms");
+    }
+};
+
+export const getMaxDurationBySubscriptionId = async (subscriptionId: string): Promise<number> => {
+    try {
+        // Step 1: Fetch the subscription to get the associated planId
+        const subscription = await Subscription.findByPk(subscriptionId, {
+            attributes: ["planId"], // Only fetch the planId field
+        });
+
+        if (!subscription) {
+            throw new Error("Subscription not found.");
+        }
+
+        const { planId } = subscription;
+
+        // Step 2: Fetch the subscription plan to get the maxDuration
+        const subscriptionPlan = await Subscriptionplan.findByPk(planId, {
+            attributes: ["maxDuration"], // Only fetch the maxDuration field
+        });
+
+        if (!subscriptionPlan) {
+            throw new Error("Subscription plan not found.");
+        }
+
+        const { maxDuration } = subscriptionPlan;
+
+        return maxDuration;
+    } catch (error) {
+        console.error("Error in getMaxDurationBySubscriptionId:", error);
+        throw new Error((error as Error).message || "Failed to retrieve maximum duration.");
     }
 };
 

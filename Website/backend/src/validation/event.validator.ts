@@ -9,13 +9,12 @@ export const eventNameValidation = () => [
         .withMessage("Event name must be between 1 and 255 characters long"),
 ];
 
-// Validation for eventDate
-export const eventDateValidation = () => [
-    check('eventDate')
+export const startDateValidation = () => [
+    check('startDate')
         .notEmpty()
-        .withMessage("Event date is required")
+        .withMessage("Start date is required")
         .isISO8601().toDate()
-        .withMessage("Event date must be a valid ISO 8601 date (YYYY-MM-DD)")
+        .withMessage("Start date must be a valid ISO 8601 date (YYYY-MM-DD)")
         .custom((value) => {
             const today = new Date();
             const inputDate = new Date(value);
@@ -25,19 +24,47 @@ export const eventDateValidation = () => [
             inputDate.setHours(0, 0, 0, 0);
 
             if (inputDate < today) {
-                throw new Error("Event date cannot be in the past");
+                throw new Error("Start date cannot be in the past");
+            }
+            return true;
+        }),
+];
+export const endDateValidation = () => [
+    check('endDate')
+        .notEmpty()
+        .withMessage("End date is required")
+        .isISO8601().toDate()
+        .withMessage("End date must be a valid ISO 8601 date (YYYY-MM-DD)")
+        .custom((value) => {
+            const today = new Date();
+            const inputDate = new Date(value);
+
+            // Normalize both dates to midnight for comparison
+            today.setHours(0, 0, 0, 0);
+            inputDate.setHours(0, 0, 0, 0);
+
+            if (inputDate < today) {
+                throw new Error("End date cannot be in the past");
             }
             return true;
         }),
 ];
 
+
 // Validation for eventTime
-export const eventTimeValidation = () => [
-    check('eventTime')
+export const startTimeValidation = () => [
+    check('startTime')
         .notEmpty()
-        .withMessage("Event time is required")
+        .withMessage("Start time is required")
         .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
-        .withMessage("Event time must be in HH:mm format (24-hour clock)"),
+        .withMessage("Start time must be in HH:mm format (24-hour clock)"),
+];
+export const endTimeValidation = () => [
+    check('endTime')
+        .notEmpty()
+        .withMessage("End time is required")
+        .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+        .withMessage("End time must be in HH:mm format (24-hour clock)"),
 ];
 
 // Validation for eventType
@@ -69,8 +96,10 @@ export const mapTemplateIdValidation = () => [
 // Combine all validations for creating an event
 export const createEventValidation = () => [
     ...eventNameValidation(),
-    ...eventDateValidation(),
-    ...eventTimeValidation(),
+    ...startDateValidation(),
+    ...endDateValidation(),
+    ...startTimeValidation(),
+    ...endTimeValidation(),
     ...eventTypeValidation(),
     ...subscriptionIdValidation(),
     ...mapTemplateIdValidation(),
@@ -79,8 +108,10 @@ export const createEventValidation = () => [
 // Combine all validations for updating an event
 export const updateEventValidation = () => [
     ...eventNameValidation().map((validation) => validation.optional()),
-    ...eventDateValidation().map((validation) => validation.optional()),
-    ...eventTimeValidation().map((validation) => validation.optional()),
+    ...startDateValidation().map((validation) => validation.optional()),
+    ...endDateValidation().map((validation) => validation.optional()),
+    ...startTimeValidation().map((validation) => validation.optional()),
+    ...endTimeValidation().map((validation) => validation.optional()),
     ...eventTypeValidation().map((validation) => validation.optional()),
     ...mapTemplateIdValidation().map((validation) => validation.optional()),
 ];

@@ -22,7 +22,7 @@ export const getBoothsForPartnerController = async (req: Request, res: Response)
 export const filterBoothsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { partnerId } = req.params;
-        const { status } = req.query;
+        const { status } = req.body
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
            sendResponse(res, false, 400, 'Login failed', [], [

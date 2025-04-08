@@ -1,11 +1,16 @@
 const getTodayDate = (): string => {
     const today = new Date();
-    return today.toISOString().split("T")[0]; // YYYY-MM-DD format
+    const utcYear = today.getUTCFullYear();
+    const utcMonth = String(today.getUTCMonth() + 1).padStart(2, "0"); // Months are zero-based
+    const utcDay = String(today.getUTCDate()).padStart(2, "0");
+    return `${utcYear}-${utcMonth}-${utcDay}`; // YYYY-MM-DD format in UTC
 };
 
 const getTimeNow = (): string => {
     const now = new Date();
-    return now.toTimeString().split(" ")[0]; // HH:mm:ss format
+    const utcHours = String(now.getUTCHours()).padStart(2, "0");
+    const utcMinutes = String(now.getUTCMinutes()).padStart(2, "0");
+    const utcSeconds = String(now.getUTCSeconds()).padStart(2, "0");
+    return `${utcHours}:${utcMinutes}:${utcSeconds}`; // HH:mm:ss format in UTC
 };
-
 export{getTimeNow, getTodayDate}
