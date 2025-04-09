@@ -136,8 +136,10 @@ export default function SettingsPage() {
   });
 
   const [partnerData, setPartnerData] = useState({
-    company: user.company || "",
-    position: user.position || "",
+    companyName:"techhub",
+    companyLogo:"https://cdn.pixabay.com/photo/2025/03/27/10/14/best-photographer-in-bangalore-9496232_960_720.jpg",
+    primaryContactFullName:"Ali a22",
+    primaryContactEmail:"ali@techhub.com"
   });
 
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
@@ -154,15 +156,19 @@ export default function SettingsPage() {
     let {request, response} = await sendRequest(URL, INIT);
 
     if(response?.success){
-      console.log({...response.data, role: 'host'}, response)
-      const newHostInfo = {...response.data, role: 'host'};
-      setUser(newHostInfo)
-      localStorage.setItem("user", JSON.stringify({...newHostInfo, role: 'host'}));
+      //console.log({...response.data, role: 'user'}, response)
+      const newUserInfo = {...response.data, role: 'user'};
+      setUser(newUserInfo)
+      localStorage.setItem("user", JSON.stringify({...newUserInfo, role: 'user'}));
       setPopup({message: 'Info updated!', type: 'success', isVisible: true});
     }else{
       setPopup({message: 'Failed to update! Try again', type: 'fail', isVisible: true});
       return;
     }
+  }
+
+  async function updatePartnerInformation(){
+
   }
 
   return (
@@ -180,7 +186,7 @@ export default function SettingsPage() {
                 <Text $secondary>@{user.username}</Text>
               </Info>
             </ProfileCard>
-            <UpdateButton onClick={updateUserInformation}>Update</UpdateButton>
+            {user.isPartner === 0 && <UpdateButton onClick={updateUserInformation}>Update</UpdateButton>}
           </ProfileCardWrapper>
 
           <Card>
@@ -195,22 +201,45 @@ export default function SettingsPage() {
                           placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').trim()}`}/>
                 </div>
               ))}
+              {user.isPartner === 1 && <UpdateButton onClick={updateUserInformation}>Update</UpdateButton>}
             </EditableDetails>
           </Card>
 
           {user.isPartner === 1 && (
             <Card>
               <EditableDetails>
-                {Object.entries(partnerData).map(([key, value]) => (
-                  <div key={key}>
-                    <Input label={key.replace(/([A-Z])/g, ' $1').trim()} 
-                            type='text' 
-                            name={key} 
-                            data={userData} 
-                            setData={setUserData} 
-                            placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').trim()}`}/>
-                  </div>
-                                  ))}
+                <Input label={'Company Name'} 
+                      type='text' 
+                      name={'companyName'} 
+                      data={userData} 
+                      setData={setUserData} 
+                      placeholder={`Enter company name`}
+                />
+
+                <Input label={'Company Logo'} 
+                      type='file' 
+                      name={'companyLogo'} 
+                      data={userData} 
+                      setData={setUserData} 
+                />
+
+                <Input label={'Primary Contact Full Name'} 
+                      type='text' 
+                      name={'primaryContactFullName'} 
+                      data={userData} 
+                      setData={setUserData} 
+                      placeholder={`Enter name`}
+                />
+
+                <Input label={'Primary Contact Email'} 
+                      type='email' 
+                      name={'primaryContactEmail'} 
+                      data={userData} 
+                      setData={setUserData} 
+                      placeholder={`name@company.com`}
+                />
+
+                <UpdateButton onClick={updatePartnerInformation}>Update</UpdateButton>
               </EditableDetails>
             </Card>
           )}

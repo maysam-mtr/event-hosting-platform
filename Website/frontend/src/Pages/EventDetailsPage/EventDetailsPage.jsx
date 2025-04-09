@@ -4,6 +4,15 @@ import { Button1 } from "../../components/Navbar/Navbar";
 import { StatusIndicator } from "../HostPortal/MyEventsPage/MyEventsPage";
 import { OrangeShape, OverlayShape } from "../SignUpPage/SignUpPage";
 import { FaArrowLeft } from "react-icons/fa";
+import useSendRequest from "../../hooks/use-send-request";
+import formatDateTime from "../../utils/formatDateTime";
+import { useEffect, useState } from "react";
+import previewImg from '../../assets/landing2.png';
+import Modal from "../../components/Modal/Modal";
+import Input from "../../components/Input/Input";
+import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
+import { Button } from "../UserPortal/HomePage/HomePage";
+import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 
 const Container = styled.div`
   display: flex;
@@ -42,9 +51,8 @@ const Card = styled.div`
   box-shadow: 0 0 30px rgba(241, 134, 80, 0.3);
   border-radius: 12px;
   overflow: hidden;
-  width: 100%;
+  width: 90%;
   max-width: 1200px;
-  margin: 20px auto;
   padding: 40px;
   z-index: 1;
 
@@ -55,13 +63,13 @@ const Card = styled.div`
 
 const PreviewImage = styled.img`
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
   border-radius: 10px;
 
   @media (min-width: 768px) {
     width: 40%;
-    height: auto;
+    height: 100%;
   }
 `;
 
@@ -78,7 +86,9 @@ const ContentWrapper = styled.div`
 `;
 
 const MainInfo = styled.div`
-  margin-bottom: 20px;
+display: flex;
+flex-direction: column;
+gap: 10px;
 `;
 
 const TitleWrapper = styled.div`
@@ -95,25 +105,97 @@ const Title = styled.h2`
 `;
 
 const InfoItem = styled.div`
-  margin: 5px 0;
   font-size: 16px;
   color: #666;
 `;
 
+export const ModalContainer = styled.div`
+display: flex;
+flex-direction: column;
+gap: 1rem;
+`;
+
 export default function EventDetailsPage() {
   const { eventId } = useParams();
-  const navigate = useNavigate(); // Use navigate hook for routing
-
-  const eventDetails = {
+  const [sendRequest] = useSendRequest();
+  const navigate = useNavigate();
+  const [eventDetails, setEventDetails] = useState({
     eventName: "Battle Royale Showdown",
     hostName: "Gaming Arena",
+    code: 'jggfyufufu',
     createdAt: "2025-03-25",
     scheduledTime: "2025-04-01T18:00",
     eventType: "Tournament",
-    eventStatus: "live", // Change this for testing status "live", "closed", "not started"
+    eventStatus: "live",
     gameMapName: "Desert Storm",
-    previewImageUrl: "https://dummyimage.com/600x400/000/fff&text=Game+Preview",
+    previewImageUrl: previewImg,
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    getEventDetails();
+  }, [])
+
+  const openModal = () => {
+    setIsModalOpen(true);
   };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  async function getEventDetails(){
+    const URL = `/api/events/details/${eventId}`;
+    const {request, response} = await sendRequest(URL);
+
+    if(response?.success === false){
+      setError("An Error occured. Try Again!");
+      return;
+    }else if(response?.success === true && response?.data){
+      const eventData = response.data[0];
+      setError("");
+      setEventDetails({
+        eventName: eventData.eventName,
+        hostName: eventData.hostName,
+        code: eventData.id,
+        createdAt: eventData.createdAt && formatDateTime(eventData.createdAt),
+        scheduledTime: "2025-04-01T18:00",
+        eventType: eventData.eventType,
+        eventStatus: "live",
+        gameMapName: "Desert Storm",
+        previewImageUrl: previewImg,
+      })
+    }
+  }
+
+  async function OnJoinEvent(){
+    //open  game
+  }
+
+  async function validateCredentials(password){
+    setLoading(true);
+    if(!passcode){
+      setError("Passcode is required");
+      setLoading(false);
+      return;
+    }
+
+    const URL = `/api/events/${eventDetails.code}/join`;
+    const INIT = {method: 'POST', body: JSON.stringify({passcode: password})}
+    const {request, response} = await sendRequest(URL, INIT);
+
+    if(response?.success === false){
+      setError(response.error[0]?.message);
+      setLoading(false);
+      return;
+    }else if (response.success === true){
+      //navigate to game space
+    }
+    setLoading(false);
+  }
 
   return (
     <Container>
@@ -138,6 +220,9 @@ export default function EventDetailsPage() {
               <strong>Host:</strong> {eventDetails.hostName}
             </InfoItem>
             <InfoItem>
+              <strong>Code:</strong> {eventDetails.code}
+            </InfoItem>
+            <InfoItem>
               <strong>Created At:</strong> {eventDetails.createdAt}
             </InfoItem>
             <InfoItem>
@@ -151,13 +236,29 @@ export default function EventDetailsPage() {
               <strong>Map Name:</strong> {eventDetails.gameMapName}
             </InfoItem>
           </MainInfo>
+
           {eventDetails.eventStatus === "live" && (
-            <Button1 onClick={() => alert("Joining Event...")}>
-              Join Event
-            </Button1>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Event</Button1>
+            </div>
           )}
         </ContentWrapper>
       </Card>
+      <Modal isOpen={isModalOpen} closeModal={closeModal} title="Enter Password">
+          <Input
+              type="text"
+              placeholder="Enter Event code"
+              name='passcode'
+              data={passcode}
+              setData={setPasscode}
+              required={true}
+              label='Passcode'
+          />
+      
+          <ErrorMessage message={error}/>
+                    
+          <Button onClick={() => validateCredentials(passcode)} style={{alignSelf: 'end'}}>{loading ? <LoadingSpinner/> : 'Join!'}</Button>
+      </Modal>
     </Container>
   );
 }

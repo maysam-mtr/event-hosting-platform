@@ -7,11 +7,13 @@ import useUserState from "../../../hooks/use-user-state";
 import useSendRequest from "../../../hooks/use-send-request";
 import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
+import { useNavigate } from "react-router-dom";
 
 export default function ExploreEventsPage(){
   const [events, setEvents] = useState([]);
     const {user} = useUserState();
     const [sendRequest] = useSendRequest();
+    const navigate = useNavigate();
     const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
   
     useEffect(() => {
@@ -58,7 +60,8 @@ export default function ExploreEventsPage(){
                   {/* <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator> */}
                   <Schedule><strong>Scheduled at:</strong> {event.eventDate} - {event.eventTime}</Schedule>
                   <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-                  <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}}>View Details</Button3>
+                  <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
+                      onClick={()=> {navigate(`/event/details/${event.id}`, {replace: true})}}>View Details</Button3>
                 </Card>
               ))}
             </CardsWrapper>

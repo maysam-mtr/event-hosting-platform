@@ -6,6 +6,8 @@ import Modal from "../../../components/Modal/Modal";
 import { useState } from "react";
 import Input from "../../../components/Input/Input";
 import ErrorMessage from "../../../components/ErrorMessage/ErrorMessage";
+import useSendRequest from "../../../hooks/use-send-request";
+import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 
 const HomeContainer = styled.div`
   width: 100vw;
@@ -66,6 +68,7 @@ export const Button = styled.button`
   border-radius: 10px;
   font-size: var(--body);
   border: 0;
+  min-width: 70px;
   height: fit-content;
   width: fit-content;
   color: var(--text-background);
@@ -89,24 +92,39 @@ export default function HomePage() {
     const [eventID, setEventID] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const [sendRequest] = useSendRequest();
+    const [loading, setLoading] = useState(false);
   
     const onJoinEventClick = () => {
       setIsModalOpen(true);
     };
   
     const closeModal = () => {
+      setEventID("");
       setIsModalOpen(false);
     };
     
     async function handleJoinEvent() {
+      setLoading(true);
         if(!eventID){
           setError("Please enter event code");
+          setLoading(false);
           return;
         }
 
-        setError("");
-        closeModal();
-        navigate(`/event/details/${eventID}`, {replace: true});
+        const URL = `/api/events/details/${eventID}`;
+        const {request, response} = await sendRequest(URL);
+
+        if(response?.success === false){
+          setError("Event not found.");
+          setLoading(false);
+          return;
+        }else if(response?.success === true){
+          setError("");
+          closeModal();
+          setLoading(false);
+          navigate(`/event/details/${eventID}`, {replace: true});
+        }
     };
   
     return (
@@ -121,7 +139,6 @@ export default function HomePage() {
   
         {/* Modal that opens when user clicks "Join Event" */}
         <Modal isOpen={isModalOpen} closeModal={closeModal} title="View Event">
-            <Container>
               <Input
                       type="text"
                       placeholder="Enter Event code"
@@ -134,8 +151,7 @@ export default function HomePage() {
 
               <ErrorMessage message={error}/>
               
-              <Button onClick={() => handleJoinEvent()} style={{alignSelf: 'end'}}>Go!</Button>
-            </Container>
+              <Button onClick={() => handleJoinEvent()} style={{alignSelf: 'end'}}>{loading ? <LoadingSpinner/> : 'Go!'}</Button>
         </Modal>
       </>
     );

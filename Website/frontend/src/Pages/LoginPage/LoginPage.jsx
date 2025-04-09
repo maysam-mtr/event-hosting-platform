@@ -192,7 +192,7 @@ export default function LoginPage(){
           <Container>
             <Title>Login to your account</Title>
             <Form>
-              <Input label={"Email or username"} type="text" name={"usernameOrEmail"} data={loginForm} setData={setLoginForm} placeholder={"name@company.com or yourusername..."} reqiured={true}/>
+              <Input label={selectedRole == 'host' ? "Email" : "Email or username"} type="text" name={"usernameOrEmail"} data={loginForm} setData={setLoginForm} placeholder={"name@company.com..."} reqiured={true}/>
               <Input label={"Password"} type="password" name={"password"} data={loginForm} setData={setLoginForm} placeholder={"••••••••"} reqiured={true}/>
               {/* <CheckboxContainer>
                 <label>

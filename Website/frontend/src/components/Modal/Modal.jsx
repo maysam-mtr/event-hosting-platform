@@ -51,6 +51,9 @@ const CloseButton = styled.button`
 const ModalContent = styled.div`
   padding: 20px;
   background-color: white;
+  display: flex;
+flex-direction: column;
+gap: 1rem;
 `;
 
 export default function Modal({ isOpen, closeModal, title, children }) {
