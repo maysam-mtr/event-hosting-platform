@@ -13,6 +13,7 @@ import {
   getMapLayersController,
   getspawnLocationController,
   getRawMapController,
+  loadMapDataForGameEngineController,
 } from "./maps.controller"
 import fileUpload from "express-fileupload"
 import { adminAuthMiddleware, adminAndHostAuthMiddleware } from "@/middlewares/auth.middleware"
@@ -43,7 +44,8 @@ mapsRouter.get("/getMapLayers/:id", adminAndHostAuthMiddleware, getMapLayersCont
 mapsRouter.get("/getSpawnLocation/:id", adminAndHostAuthMiddleware, getspawnLocationController)
 
 
-mapsRouter.get("/getRawMap", getRawMapController)
+mapsRouter.get("/getRawMap/:id", getRawMapController)
+mapsRouter.get("/loadMapData/:id", loadMapDataForGameEngineController)
 
 
 // Website

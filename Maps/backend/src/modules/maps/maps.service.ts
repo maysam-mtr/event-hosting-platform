@@ -67,7 +67,7 @@ const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }
   }
 }
 
-const getRawMapService = async (id: string): Promise<Object> => {
+const getRawMapService = async (id: string): Promise<{ map: Map, rawData: Object}> => {
   try {
     const res = await repo.getMapRawById(id)
     if (!res) {
@@ -82,7 +82,10 @@ const getRawMapService = async (id: string): Promise<Object> => {
     
     const jsonData = convertBufferToJson(data)
 
-    return jsonData
+    return {
+      map: res,
+      rawData: jsonData
+    }
 
   } catch (err: any) {
     throw new CustomError("Error fetching raw map data", 400)
