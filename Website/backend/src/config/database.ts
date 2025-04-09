@@ -58,6 +58,7 @@ export const connectDB = async () => {
     //await sequelize.sync({alter: true});
     await sequelize.sync();
     // await sequelize.sync({ alter: true });
+   await Subscriptionplan.sync({ alter: true });
     console.log("Database synchronized!");
   } catch (error) {
     console.error("Database connection failed:", error);

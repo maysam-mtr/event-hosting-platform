@@ -23,6 +23,10 @@ class Subscriptionplan extends Model {
   @Column(DataType.DECIMAL(10, 2))
   declare nbOfRooms: number;
 
+  @AllowNull(false)
+  @Column(DataType.INTEGER) 
+  declare maxDuration: number; // Duration in minutes
+
   @CreatedAt
   declare createdAt: Date;
 

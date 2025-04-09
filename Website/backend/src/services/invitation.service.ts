@@ -76,6 +76,7 @@ export const createInvitation = async ( eventId: string, boothTemplateId: string
 
         if(invitation){
             invitation.status = "pending"; // Update the status
+            invitation.expiresAt = expiresAt;
             await invitation.save(); // Save the changes to the database
         }
         else{
@@ -195,7 +196,7 @@ export const assignPartnerToBooth = async ( boothDetailsId: string, userId: stri
         if (partner===0) {
             console.log("new partner")
             if(!partnerDetails){
-                throw new Error("Partner details required for new partner 2");
+                throw new Error("Partner details required for new partner ");
             }
             // If no partner exists, create one using the user's details
             const user = await getUser(userId);

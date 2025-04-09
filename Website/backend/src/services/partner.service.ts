@@ -105,3 +105,22 @@ export const updatePartner = async (
         throw new Error((error as Error).message || "Failed to update partner");
     }
 };
+
+  /**
+   * Get partner information by ID
+   * @param {string} id - The unique identifier of the partner
+   * @returns {Promise<Partner>} - The partner object
+   */
+export const getPartnerById= async(id: string): Promise<any> =>{
+    try {
+      const partner = await Partner.findByPk(id);
+      if (!partner) {
+        throw new Error('Partner not found');
+      }
+      return partner;
+    } catch (error: any) {
+      throw new Error(`Error fetching partner: ${error.message}`);
+    }
+  }
+
+ 

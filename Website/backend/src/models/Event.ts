@@ -29,12 +29,23 @@ class Event extends Model {
 
 
   @AllowNull(false)
+  @Default('2025-01-01')
   @Column(DataType.DATEONLY)
-  declare eventDate: Date;
+  declare startDate: Date;
+
+  
+  @AllowNull(false)
+  @Default('2025-01-01')
+  @Column(DataType.DATEONLY)
+  declare endDate: Date;
 
   @AllowNull(false)
   @Column(DataType.TIME)
-  declare eventTime: string;
+  declare startTime: string;
+
+  @AllowNull(false)
+  @Column(DataType.TIME) 
+  declare endTime: string;
 
   @ForeignKey(() => Subscription)
   @AllowNull(false)

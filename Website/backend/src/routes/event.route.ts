@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createEventController,updateEventController ,getPublicEventsController ,getEventDetailsController, joinEventController,
-    getEventsForHostController, filterEventsByStatusController
+    getEventsForHostController, filterEventsByStatusController,
+    filterPublicEventsByStatusController
 } from '../controllers/event.controller';
 import { authenticateHost } from '../middleware/authentication';
 import { createEventValidation, updateEventValidation } from '../validation/event.validator';
@@ -18,5 +19,6 @@ router.get("/hosts/:hostId", getEventsForHostController);
 
 // Filter events by status (past, ongoing, future)
 router.get("/filter/:hostId", filterEventsByStatusController);
+router.get("/filter/public/:status",  filterPublicEventsByStatusController);
 
 export default router;

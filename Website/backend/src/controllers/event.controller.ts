@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
-    getEventsForHost, filterEventsByStatus
+    getEventsForHost, filterEventsByStatus,
+    filterPublicEventsByStatus
 } from '../services/event.service';
 import { sendResponse} from '../Utils/responseHelper';
 
@@ -9,14 +10,14 @@ const createEventController = async (req: Request, res: Response): Promise<void>
     const eventData = req.body;
     const hostUser = (req as any).hostUser;
 
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-    sendResponse(res, false, 400, 'Login failed', [], [
-            { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
-        ]);
-        return;
-    }
+// Check for validation errors
+const errors = validationResult(req);
+if (!errors.isEmpty()) {
+   sendResponse(res, false, 400, 'Validation failed', [], [
+        { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
+      ]);
+    return;
+}
 
         try {
             const event = await createEvent(eventData, hostUser.id);
@@ -31,7 +32,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 const updateEventController = async (req: Request, res: Response): Promise<void> => {
 try {
     const { eventId } = req.params; // Extract event ID from URL parameters
-    const { eventName, eventDate, eventTime, mapTemplateId, eventType,passcode } = req.body; // Allowed fields only
+    const { eventName, startDate, endTime, endDate, startTime, mapTemplateId, eventType,passcode } = req.body; // Allowed fields only
     const hostuserId = (req as any).hostUser?.id; // Extract authenticated user's ID (assuming middleware sets req.user)
     
     const errors = validationResult(req);
@@ -41,10 +42,12 @@ try {
           ]);
         return;
     }
-    const updateData: Partial<{ eventName?: string; eventDate?: Date; eventTime?: string; mapTemplateId?: string; eventType?: string }> = {};
+    const updateData: Partial<{ eventName?: string; startDate?: Date; startTime?: string;endDate?: Date; endTime?: string; mapTemplateId?: string; eventType?: string }> = {};
     if (eventName) updateData.eventName = eventName;
-    if (eventDate) updateData.eventDate = eventDate;
-    if (eventTime) updateData.eventTime = eventTime;
+    if (startDate) updateData.startDate = startDate;
+    if (startTime) updateData.startTime = startTime;
+    if (endDate) updateData.endDate = endDate;
+    if (endTime) updateData.endTime = endTime;
     if (mapTemplateId) updateData.mapTemplateId = mapTemplateId;
     if (eventType) updateData.eventType = eventType;
 
@@ -157,8 +160,31 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
           ]);
         }
 };
+
+const filterPublicEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { status } = req.params;
+
+        if (!status || !["ongoing", "future"].includes(status as string)) {
+             sendResponse(res, false, 400, "Invalid status. Use 'ongoing', or 'future'.", [], [
+                { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'ongoing', or 'future'."},
+              ]);
+            return;
+        }
+
+        // Call the service function to filter events
+        const result = await filterPublicEventsByStatus(status as string);
+
+        // Return success response
+        sendResponse(res, true, 200, 'Filter events successfully', result);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'FILTER_EVENT_ERROR', message: (err as Error).message },
+          ]);
+        }
+};
 export {
     createEventController, updateEventController,getPublicEventsController,
     getEventDetailsController,joinEventController,filterEventsByStatusController,
-    getEventsForHostController
+    getEventsForHostController, filterPublicEventsByStatusController
 };
