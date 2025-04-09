@@ -18,6 +18,6 @@ router.post('/:eventId/join',joinEventController);
 router.get("/hosts/:hostId", getEventsForHostController);
 
 // Filter events by status (past, ongoing, future)
-router.get("/filter/:hostId", filterEventsByStatusController);
+router.post("/filter/:hostId", filterEventsByStatusController);
 
 export default router;
