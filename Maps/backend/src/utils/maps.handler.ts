@@ -4,9 +4,8 @@ import { sanitizePath } from "./Helpers/helper-functions"
 import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
 import { boothesClassName, collisionsClassName, layersClassName, spawnLocationClassName } from "@/constants"
 
-export const getRequiredFilesFromJSONFile = (data : Buffer) : { tilesets: Set<string>, templates: Set<string> } => {
+export const getRequiredFilesFromJSONFile = (jsonData : any) : { tilesets: Set<string>, templates: Set<string> } => {
     try {
-        const jsonData = JSON.parse(data.toString())
 
         const templatesRequired: Set<string> = new Set()
         const tilesetsRequired: Set<string> = new Set(jsonData.tilesets.map((tileset: any) => sanitizePath(tileset.source)))
