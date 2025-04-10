@@ -228,7 +228,7 @@ const loadMapDataForGameEngineController = async (req: Request, res: Response, n
     
     const response = await getRawMapService(id)
 
-    const images: Buffer[] = []
+    const images: { name: string, image: string }[] = []
 
     const files = await listFolderContent(response.map.folderId)
     for(const file of files) {
@@ -239,7 +239,11 @@ const loadMapDataForGameEngineController = async (req: Request, res: Response, n
           const type = name.substring(lastperiod + 1)
           if (type === "png") {
             const { data } = await getFile(file.id as string)
-            images.push(data)
+            
+            // Converting the Buffer to a Base64 string
+            const base64Image = data.toString("base64");
+
+            images.push({ name, image: base64Image })
           }
         }
       }
