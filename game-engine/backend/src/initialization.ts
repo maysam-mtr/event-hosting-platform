@@ -25,26 +25,26 @@ export const initializeMapData = async () => {
 
         const { images, rawData } = await loadMapAPI(mapId)
 
-        // Ensuring the assets directory exists
-        const assetsDir = path.join(__dirname, "assets")
-        try {
-            await fs.access(assetsDir)
-        } catch {
-            await fs.mkdir(assetsDir, { recursive: true })
-        }
+        // // Ensuring the assets directory exists
+        // const assetsDir = path.join(__dirname, "assets")
+        // try {
+        //     await fs.access(assetsDir)
+        // } catch {
+        //     await fs.mkdir(assetsDir, { recursive: true })
+        // }
 
-        const mapJsonPath = path.join(assetsDir, "map.json")
-        await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
+        // const mapJsonPath = path.join(assetsDir, "map.json")
+        // await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
 
       
-        for(const image of images) {
-            const filePath = path.join(assetsDir, image.name)
+        // for(const image of images) {
+        //     const filePath = path.join(assetsDir, image.name)
 
-            // Decode the Base64 string into a Buffer
-            const imageData = Buffer.from(image.image, "base64")
+        //     // Decode the Base64 string into a Buffer
+        //     const imageData = Buffer.from(image.image, "base64")
             
-            await fs.writeFile(filePath, imageData)
-        }
+        //     await fs.writeFile(filePath, imageData)
+        // }
 
     } catch (err: any) {
         console.error("Error initializing map data:", err.message)
