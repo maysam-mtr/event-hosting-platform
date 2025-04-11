@@ -9,6 +9,7 @@ import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
 import Input from "../../../components/Input/Input";
 import getEventStatus from "../../../utils/getEventStatus";
+import { useNavigate } from "react-router-dom";
 
 export const CardsWrapper = styled.div`
   display: flex;
@@ -50,6 +51,7 @@ export const EventTitle = styled.h3`
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 5px;
+  text-align: center;
 `;
 
 export const StatusIndicator = styled.span`
@@ -57,16 +59,16 @@ export const StatusIndicator = styled.span`
   align-items: center;
   font-size: 0.9rem;
   color: ${(props) => 
-    props.$status === "live" ? "green" : 
-    props.$status === "closed" ? "red" : 
-    props.$status === "upcoming" ? "orange" : "gray"};
+    props.$status === "ongoing" ? "green" : 
+    props.$status === "past" ? "red" : 
+    props.$status === "future" ? "orange" : "gray"};
   border-radius: 15px;
   padding: 5px 15px;
   max-width: fit-content;
   background-color: ${(props) => 
-    props.$status === "live" ? "rgba(0, 128, 0, 0.2)" : 
-    props.$status === "closed" ? "rgba(255, 0, 0, 0.2)" : 
-    props.$status === "upcoming" ? "rgba(255, 165, 0, 0.2)" : "rgba(169, 169, 169, 0.2)"};
+    props.$status === "ongoing" ? "rgba(0, 128, 0, 0.2)" : 
+    props.$status === "past" ? "rgba(255, 0, 0, 0.2)" : 
+    props.$status === "future" ? "rgba(255, 165, 0, 0.2)" : "rgba(169, 169, 169, 0.2)"};
   
   &::before {
     content: "";
@@ -74,9 +76,9 @@ export const StatusIndicator = styled.span`
     height: 8px;
     border-radius: 15px;
     background-color: ${(props) => 
-      props.$status === "live" ? "green" : 
-      props.$status === "closed" ? "red" : 
-      props.$status === "upcoming" ? "orange" : "grey"};
+      props.$status === "ongoing" ? "green" : 
+      props.$status === "past" ? "red" : 
+      props.$status === "future" ? "orange" : "grey"};
     margin-right: 5px;
   }
 `;
@@ -114,6 +116,8 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState("all");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchEvents(status);
   }, [status]);
@@ -125,13 +129,14 @@ export default function MyEventsPage() {
 
       const {request, response} = await sendRequest(URL);
   
-      if(response?.success === true && response.data[0]?.events?.length > 0){
-        const eventsList = response.data[0].events;
+      if(response?.success === true && response.data?.length > 0){
+        const eventsList = response.data;
+        //console.log(eventsList)
         setEvents(eventsList);
       }else if(!response?.success){
         setEvents([])
         setPopup({message: 'Failed to retrieve events', type: 'fail', isVisible: true});
-      }else if(response?.success === true && response.data[0]?.events?.length == 0){
+      }else if(response?.success === true && response.data?.length == 0){
         setEvents([]);
       }
 
@@ -140,17 +145,22 @@ export default function MyEventsPage() {
       const INIT = { method: 'POST', body: JSON.stringify({ status: status }) };
 
       const { request, response } = await sendRequest(URL, INIT);
-      if (response?.success === true && response.data[0]?.events.length > 0) {
+      //console.log(response)
+      if (response?.success === true && response.data[0]?.events?.length > 0) {
         const eventsList = response.data[0].events;
         setEvents(eventsList);
       } else if (!response?.success) {
         setEvents([]);
         setPopup({ message: 'Failed to retrieve events', type: 'fail', isVisible: true });
-      }else if(response?.success === true && response.data[0]?.events?.length == 0){
+      }else if(response?.success === true && response.data[0]?.events.length == 0){
         setEvents([]);
       }
 
     }
+  }
+
+  const viewEventDetails = (id) => {
+    navigate(`/host/eventDetails/${id}`);
   }
   
 
@@ -175,11 +185,15 @@ export default function MyEventsPage() {
           <Card key={event.id}>
             <PreviewImg src={previewImg} alt={event.eventName} />
             <EventTitle>{event.eventName}</EventTitle>
-            <StatusIndicator style={{alignSelf: 'center'}} $status={getEventStatus(event.eventDate, event.eventTime)}>{getEventStatus(event.eventDate, event.eventTime).toUpperCase()}</StatusIndicator>
+            <StatusIndicator style={{alignSelf: 'center'}} $status={event.status || status.toLowerCase()}>
+              {event.status ? 
+                getEventStatus(event.status) : status !== 'All' ? 
+                getEventStatus(status) : 'Unknown'}
+            </StatusIndicator>
             <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
-            <Schedule><strong>Scheduled at:</strong> {event.eventDate} - {event.eventTime}</Schedule>
+            <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
             <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}}>View Details</Button3>
+            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} onClick={()=>viewEventDetails(event.id)}>View Details</Button3>
           </Card>
         ))}
         {events.length == 0 && 

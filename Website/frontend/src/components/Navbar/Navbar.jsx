@@ -12,7 +12,7 @@ const NavbarContainer = styled.div`
   height: 70px;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 300;
   background-color: var(--background-main);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
   padding: 0 20px;

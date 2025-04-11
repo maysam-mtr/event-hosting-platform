@@ -4,6 +4,7 @@ import hostHero from '../../../assets/heroHost.png';
 import { Button3 } from "../../../components/Navbar/Navbar";
 import { useState } from "react";
 import CreateEventModal from "../CreateEventModal/CreateEventModal";
+import Popup from "../../../components/Popup/Popup";
 
 const HomeContainer = styled.div`
   width: 100vw;
@@ -51,13 +52,15 @@ export const Button = styled.button`
 
 export default function HostHomePage(){
     const navigate = useNavigate();
+     const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
   
     return (
       <>
+      <Popup popUpSettings={popup}/>
         <HomeContainer>
           <Content>
             <Heading>Start Your Journey Now!</Heading>
-            <CreateEventModal/>
+            <CreateEventModal setPopup={setPopup}/>
           </Content>
         </HomeContainer>
       </>

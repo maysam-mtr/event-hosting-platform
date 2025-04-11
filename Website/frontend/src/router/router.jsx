@@ -21,6 +21,9 @@ import EventDetailsPage from "../Pages/EventDetailsPage/EventDetailsPage";
 import EventAccessRoute from "../middlewares/EventAccessRoute";
 import EventGameSpace from "../Pages/EventGameSpace/EventGameSpace";
 import ExploreEventsPage from "../Pages/UserPortal/ExploreEventsPage/ExploreEventsPage";
+import InvitationAccessRoute from "../middlewares/InvitationAccessRoute";
+import InvitationPage from "../Pages/InvitationPage/InvitationPage";
+import HostEventDetails from "../Pages/HostPortal/HostEventDetails/HostEventDetails";
 
 export const Router = createBrowserRouter([
     {
@@ -85,9 +88,14 @@ export const Router = createBrowserRouter([
                     {
                         path: 'settings',
                         element: <SettingsHostPage/>
+                    },
+                    {
+                        path: 'eventDetails/:eventId',
+                        element: <HostEventDetails/>
                     }
                 ]
             },
+
         ]
     },  
     { 
@@ -130,6 +138,15 @@ export const Router = createBrowserRouter([
                             {
                                 path: 'space',
                                 element: <EventGameSpace/>
+                            }
+                        ]
+                    },
+                    {
+                        element: <InvitationAccessRoute/>,
+                        children: [
+                            {
+                                path: 'invitation/:eventId',
+                                element: <InvitationPage/>
                             }
                         ]
                     }

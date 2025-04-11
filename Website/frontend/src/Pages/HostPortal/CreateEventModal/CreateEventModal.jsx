@@ -1,12 +1,16 @@
 import { createPortal } from "react-dom";
 import { Button3 } from "../../../components/Navbar/Navbar";
 import Modal from "../../../components/Modal/Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Input from "../../../components/Input/Input";
 import useUserState from "../../../hooks/use-user-state";
 import landing2 from '../../../assets/landing2.png';
 import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage'
+import useSendRequest from "../../../hooks/use-send-request";
+import { FiCheck } from 'react-icons/fi'
+import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
+import Popup from "../../../components/Popup/Popup";
 
 const StepTracker = styled.div`
   display: flex;
@@ -109,43 +113,168 @@ const Footer = styled.div`
   margin-top: 20px;
 `;
 
-export default function CreateEventModal() {
+const InputWrapper = styled.div`
+display: flex;
+flex-direction: row;
+gap: 1rem;
+width: 100%;
+justify-content: space-between;
+  > * {
+    flex: 1;
+  }
+`;
+
+const SubscriptionCard = styled.div`
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 24px;
+  background: var(--background-three);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const SubscriptionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+  }
+
+  span {
+    background: var(--host-bg-base);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+`;
+
+const SubscriptionGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 12px;
+  column-gap: 24px;
+  font-size: 0.9rem;
+  color: #444;
+
+  div {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    span {
+      margin-top: 4px;
+    }
+  }
+`;
+
+const PurchaseButton = styled.button`
+  width: fit-content;
+  min-width: 70px;
+  padding: 8px;
+  background: var(--host-bg-base);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+ 
+
+  &:hover {
+    background: var(--host-bg-base-hover);
+  }
+`;
+
+const SuccessMessage = styled.div`
+font-size: 0.85rem;
+color: var(--green-color);
+`;
+
+const CheckIcon = styled(FiCheck)`
+  color: var(--green-color);
+  font-size: 16px;
+  margin-right: 8px;
+`;
+
+export default function CreateEventModal({setPopup}) {
   const {user} = useUserState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [eventData, setEventData] = useState({
     eventName: "",
-    eventDate: "",
-    eventTime: "",
-    eventType: "private",
-    hostId: user.id
+    startDate: "",
+    endDate: "",
+    startTime: '',
+    endTime: '',
+    eventType: "public",
+    //hostId: user.id,
+    subscriptionId: '',
+    mapTemplateId: ''
   });
   const [selectedMap, setSelectedMap] = useState(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState({});
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+ 
+
+  const [sendRequest] = useSendRequest();
 
   const maps = [
-    { id: 1, name: "Main Hall", capacity: 500, preview: landing2 },
-    { id: 2, name: "Conference Room", capacity: 200, preview: landing2 },
+    { id: 1, name: "Main Hall", capacity: 500, preview: landing2, uuid: "133e4567-e89b-12d3-a456-426614174001" },
+    { id: 2, name: "Conference Room", capacity: 200, preview: landing2, uuid: "123e4567-e89b-12d3-a456-426614174001" },
   ];
 
   const closeModal = () => {
+    setEventData({
+      eventName: "",
+      startDate: "",
+      endDate: "",
+      startTime: '',
+      endTime: '',
+      eventType: "public",
+      //hostId: user.id,
+      subscriptionId: '',
+      mapTemplateId: ''
+    })
     setIsModalOpen(false);
     setStep(1);
   };
   const openModal = () => setIsModalOpen(true);
 
   const onNextClick = () => {
-    if(step == 1 && (!eventData.eventName || !eventData.eventDate || !eventData.eventTime || !eventData.eventType || !eventData.hostId)){
+    if(step == 1 && (!eventData.eventName || !eventData.startDate || !eventData.endDate || !eventData.startTime ||
+      !eventData.endTime || !eventData.eventType)){
         setErrorMsg('Missing Required Fields');
         return;
     }else if(step == 1){
-        const today = new Date();
-        const selectedDateTime = new Date(`${eventData.eventDate}T${eventData.eventTime}`);
+      const now = new Date();
 
-        if (selectedDateTime < today) {
-            setErrorMsg('Event date and time cannot be in the past');
-            return;
-        }
+      const startDateTime = new Date(`${eventData.startDate}T${eventData.startTime}`);
+      const endDateTime = new Date(`${eventData.endDate}T${eventData.endTime}`);
+  
+      if (startDateTime < now) {
+        setErrorMsg("Start date/time can't be in the past");
+        return;
+      }
+  
+      if (endDateTime <= startDateTime) {
+        setErrorMsg("End date/time must be after start date/time");
+        return;
+      }
     }else if(step === 2 && !selectedMap){
         setErrorMsg('Please select a template');
         return;
@@ -160,11 +289,73 @@ export default function CreateEventModal() {
   }
 
   const onSubmitClick = () => {
+    createEvent();
     closeModal();
   }
 
+  async function createEvent(){
+    const URL = '/api/events/create';
+    const INIT = {method: 'POST', body: JSON.stringify({
+      eventName: eventData.eventName,
+      startDate: eventData.startDate,
+      endDate: eventData.endDate,
+      startTime: eventData.startTime,
+      endTime: eventData.endTime,
+      eventType: eventData.eventType,
+      subscriptionId: eventData.subscriptionId,
+      mapTemplateId: selectedMap
+    })}
+    console.log(INIT)
+
+    const {response} = await sendRequest(URL, INIT);
+    console.log(response)
+
+    if(response?.success === true){
+      setPopup({message: 'Event Created Successfuly', type: 'success', isVisible: true});
+    }else{
+      setErrorMsg(response?.error[0]?.message || "Something went wrong. Try Again!");
+    }
+  }
+
+  async function getSubscriptionPlan(){
+    const URL = '/api/subscriptionplan/get';
+
+    const {response} = await sendRequest(URL);
+    //console.log(response)
+
+    if(response?.success === true){
+      const plan = response.data[0];
+      setSubscriptionPlan(plan);
+    }else{
+      setErrorMsg("Something went wrong. Please Try again!");
+    }
+  }
+
+  async function createSubscriptionPlan(){
+    setLoading(true);
+    const URL = '/api/subscriptions/new';
+    const INIT = {method: 'POST', body: JSON.stringify({planId: subscriptionPlan?.id})}
+
+    const {response} = await sendRequest(URL, INIT);
+    //console.log(response)
+
+    if(response?.success === true){
+      const subscription = response.data[0];
+      setEventData((prev) => ({...prev, subscriptionId: subscription?.id}))
+    }else{
+      setErrorMsg("Something went wrong. Please Try again!");
+    }
+
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    getSubscriptionPlan();
+  },[])
+
   return (
     <>
+    
       {createPortal(
         <Modal isOpen={isModalOpen} closeModal={closeModal} title="Create New Event">
           <StepTracker>
@@ -175,8 +366,6 @@ export default function CreateEventModal() {
           {step === 1 && (
             <FormSection>
               <Input label="Event Name" name="eventName" data={eventData} setData={setEventData} placeholder="Enter event name" required role="host"/>
-              <Input label="Event Date" type="date" name="eventDate" data={eventData} setData={setEventData} required role="host"/>
-              <Input label="Event Time" type="time" name="eventTime" data={eventData} setData={setEventData} required role="host"/>
               <Input label="Event Type" 
                     type="dropdown" 
                     name="eventType" 
@@ -186,14 +375,23 @@ export default function CreateEventModal() {
                     required 
                     role="host"
                     options={[{name: "Public", value: 'public'}, {name: "Private", value: 'private'}]}/>
+              <InputWrapper>
+                <Input label="Start Date" type="date" name="startDate" data={eventData} setData={setEventData} required role="host"/>
+                <Input label="End Date" type="date" name="endDate" data={eventData} setData={setEventData} required role="host"/>
+              </InputWrapper>
+
+              <InputWrapper>
+                <Input label="Start Time" type="time" name="startTime" data={eventData} setData={setEventData} required role="host"/>
+                <Input label="End Time" type="time" name="endTime" data={eventData} setData={setEventData} required role="host"/>
+              </InputWrapper>
             </FormSection>
           )}
           {step === 2 && (
             <>
-            <SectionTitle>Select a template</SectionTitle>
+            <SectionTitle>Select a Map Template</SectionTitle>
             <MapGrid>
               {maps.map((map) => (
-                <MapCard key={map.id} selected={selectedMap === map.id} onClick={() => setSelectedMap(map.id)}>
+                <MapCard key={map.id} selected={selectedMap === map.uuid} onClick={() => setSelectedMap(map.uuid)}>
                   <img src={map.preview} alt={map.name} />
                   <div className="info">
                     <div className="category">Event</div>
@@ -205,20 +403,35 @@ export default function CreateEventModal() {
             </MapGrid>
           </>
           )}
-          {step === 3 && (
-            <div>
-              <h3>Review Your Event</h3>
-              <p>Name: {eventData.eventName}</p>
-              <p>Date: {eventData.eventDate}</p>
-              <p>Time: {eventData.eventTime}</p>
-              <p>Type: {eventData.eventType}</p>
-              <p>Map: {maps.find((m) => m.id === selectedMap)?.name || "None"}</p>
-            </div>
+          {step === 3 && subscriptionPlan && (
+            <SubscriptionCard>
+              <SubscriptionHeader>
+                <h3>{subscriptionPlan.planName} Plan</h3>
+                <span>${subscriptionPlan.price}</span>
+              </SubscriptionHeader>
+
+              <SubscriptionGrid>
+                <div>
+                  <label>Max Rooms</label>
+                  <span>{subscriptionPlan.nbOfRooms}</span>
+                </div>
+                <div>
+                  <label>Max Duration</label>
+                  <span>{subscriptionPlan.maxDuration} mins</span>
+                </div>
+              </SubscriptionGrid>
+
+              {eventData.subscriptionId !== '' ? <SuccessMessage><CheckIcon/>Purchased!</SuccessMessage>:
+              <PurchaseButton onClick={createSubscriptionPlan}>
+                Purchase
+              </PurchaseButton>}
+          </SubscriptionCard>
           )}
           <ErrorMessage message={errorMsg} style={{marginTop: "10px"}}/>
           <Footer>
-            {step > 1 && <Button3 onClick={onBackClick}>Back</Button3>}
-            {step < 3 ?(<> <div></div><Button3 onClick={onNextClick}>Next</Button3></>) : <Button3 onClick={onSubmitClick}>Done</Button3>}
+            {step > 1 && <Button3 onClick={onBackClick} style={{backgroundColor: 'var(--host-bg-light)'}}>Back</Button3>}
+            {step < 3 ?(<> <div></div><Button3 onClick={onNextClick} style={{backgroundColor: 'var(--host-bg-light)'}}>Next</Button3></>) : 
+                <Button3 onClick={onSubmitClick} style={{backgroundColor: 'var(--host-bg-light)'}}>{loading ? <LoadingSpinner/> : 'Create!'}</Button3>}
           </Footer>
         </Modal>,
         document.body

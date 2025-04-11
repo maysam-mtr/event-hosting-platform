@@ -24,6 +24,7 @@ export default function ExploreEventsPage(){
       const URL = '/api/events/public';
   
       const {request, response} = await sendRequest(URL);
+      //console.log(response)
   
       if(response?.success === true && response.data.length > 0){
         setEvents(response.data);
@@ -33,22 +34,7 @@ export default function ExploreEventsPage(){
       }
   
     }
-  
-    const eventss = [
-      {
-        "id": "4e3682bd-f6ff-4e2a-829d-8630237ee2fb",
-        "hostId": "fe4f6b2e-afad-467d-9c82-dcdb9b532406",
-        "eventName": "Career Fair",
-        "eventType": "public",
-        "eventDate": "2025-05-15",
-        "eventTime": "12:00:00",
-        "subscriptionId": "2a7d913f-5f56-40d7-b7cb-3ced1c6dceff",
-        "mapTemplateId": "123e4567-e89b-12d3-a456-426614174001",
-        "createdAt": "2025-04-02T19:03:14.000Z",
-        "updatedAt": "2025-04-02T19:03:14.000Z"
-    }
-    ];
-
+    
     return (
         <Section>
             <PageTitle>Explore Public Events</PageTitle>
@@ -58,7 +44,7 @@ export default function ExploreEventsPage(){
                   <PreviewImg src={previewImg} alt={event.eventName} />
                   <EventTitle>{event.eventName}</EventTitle>
                   {/* <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator> */}
-                  <Schedule><strong>Scheduled at:</strong> {event.eventDate} - {event.eventTime}</Schedule>
+                  <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
                   <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
                   <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
                       onClick={()=> {navigate(`/event/details/${event.id}`, {replace: true})}}>View Details</Button3>
