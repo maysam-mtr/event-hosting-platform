@@ -91,17 +91,17 @@ flex-direction: column;
 gap: 10px;
 `;
 
-const TitleWrapper = styled.div`
+export const TitleWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 `;
 
-const Title = styled.h2`
+export const Title = styled.h2`
   margin: 0;
   font-size: 24px;
-  color: #333;
+  color: #000;
 `;
 
 const InfoItem = styled.div`

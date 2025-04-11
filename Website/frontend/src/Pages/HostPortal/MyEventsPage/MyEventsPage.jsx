@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 export const CardsWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 2rem;
   align-items: flex-start;
 
   @media (max-width: 768px) {
@@ -51,7 +51,7 @@ export const EventTitle = styled.h3`
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 5px;
-  text-align: center;
+  text-align: start;
 `;
 
 export const StatusIndicator = styled.span`
@@ -193,7 +193,7 @@ export default function MyEventsPage() {
             <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
             <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
             <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} onClick={()=>viewEventDetails(event.id)}>View Details</Button3>
+            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} onClick={()=>viewEventDetails(event.id)}>{event?.status === 'future' ? 'View or Edit': 'View Details'}</Button3>
           </Card>
         ))}
         {events.length == 0 && 

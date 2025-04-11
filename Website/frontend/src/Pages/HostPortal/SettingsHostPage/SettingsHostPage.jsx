@@ -29,7 +29,7 @@ const EditableDetails = styled.div`
   gap: 15px;
 `;
 
-const UpdateButton = styled.button`
+export const BlueButton = styled.button`
   width: 100%;
   padding: 10px;
   background: var(--host-bg-base);
@@ -113,7 +113,7 @@ export default function SettingsHostPage(){
                       <Text $secondary>{userData.email}</Text>
                   </Info>
                   </ProfileCard>
-                  <UpdateButton onClick={updateHostInformation}>Update</UpdateButton>
+                  <BlueButton onClick={updateHostInformation}>Update</BlueButton>
               </ProfileCardWrapper>
 
               {/* Editable Info Card */}
