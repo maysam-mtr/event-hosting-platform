@@ -30,7 +30,8 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
 
     // check for required resources the map needs
     const jsonFile = files[FileTypes.JsonFile] as UploadedFile
-    const requiredFiles = getRequiredFilesFromJSONFile(jsonFile.data)
+    const jsonFileData = JSON.parse(jsonFile.data.toString())
+    const requiredFiles = getRequiredFilesFromJSONFile(jsonFileData)
     
     const tilesetsUploaded = getUploadedFiles(files[FileTypes.TilesetFiles])
 
@@ -40,10 +41,10 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
       throw new CustomError("Please upload all required map tileset files", 400, missingTilesets)
     }
 
+    await fixTilesetProperties(files[FileTypes.TilesetFiles], jsonFileData)
+    
     // here tilesets required would all be present, now make sure images for those tilesets are uploaded too
-    // but before sanitize images path
-    await fixTilesetImagesFilePath(files[FileTypes.TilesetFiles])
-    const requiredTilesetImages = await getRequiredTilesetImagesAndFilePaths(files[FileTypes.TilesetFiles])
+    const requiredTilesetImages = await getRequiredTilesetImagesAndFilePaths(jsonFileData)
 
     const uploadedTilesetImages = getUploadedFiles(files[FileTypes.ImageFiles])
     
@@ -64,45 +65,11 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     }
 
     // Collect width and height for each template based on its name
-    const templateDimensions: { name: string, width: number, height: number }[] = []
+    const templateDimensions = await getTemplateDimensions(templateFiles)
 
-    for (const template of templateFiles) {
-      const jsonData = await convertXmlBufferToJson(template.data)
-      const width = parseInt(jsonData.template.object[0].$.width, 10)
-      const height = parseInt(jsonData.template.object[0].$.height, 10)
 
-      templateDimensions.push({
-        name: template.name,
-        width,
-        height,
-      })
-    }
-
-    const jsonFileData = JSON.parse(jsonFile.data.toString())
-
-    for (const layer of jsonFileData.layers) {
-      if (layer?.class && toLower(layer.class) === toLower(boothesClassName)) {
-        if (layer.layers) {
-          for (const subLayer of layer.layers) {
-            if (subLayer.objects) {
-              for (const obj of subLayer.objects) {
-                if (obj.template) {
-                  const templateDimension = templateDimensions.find(
-                    (dim) => dim.name === obj.template
-                  )
-                  if (templateDimension) {
-                    obj.width = templateDimension.width
-                    obj.height = templateDimension.height
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    fixTemplateDimensions(jsonFileData, templateDimensions)
     
-
     // Update the JSON file data with the modified structure
     if (Array.isArray(files[FileTypes.JsonFile])) {
       files[FileTypes.JsonFile][0].data = convertJsonToBuffer(jsonFileData)
@@ -186,35 +153,73 @@ const uploadSingleFile = async (file: UploadedFile, folderId: string) => {
   }
 }
 
-const fixTilesetImagesFilePath = async (tilesets: UploadedFile | UploadedFile[]) : Promise<void> => {
+const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jsonFileData : any) : Promise<void> => {
   try {
     tilesets = ensureArray(tilesets)
 
     for (const tileset of tilesets) {
       const jsonData = await convertXmlBufferToJson(tileset.data)
-      const images = ensureArray(jsonData.tileset.image)
-      for (const image of images) {
-        image.$.image = sanitizePath(image.$.source)
+      
+      const { name, tilewidth, tileheight, tilecount, columns } = jsonData.tileset.$
+      const imageAttributes = jsonData.tileset.image[0].$
+      
+      const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source?.split('.')[0] === imageAttributes.source?.split('.')[0])
+      
+      if (indx !== -1) {
+        const firstgid = jsonFileData.tilesets[indx].firstgid
+        
+        jsonFileData.tilesets[indx] = {
+          columns: Number(columns),
+          firstgid,
+          image: sanitizePath(imageAttributes.source),
+          imagewidth: Number(imageAttributes.width),
+          imageheight: Number(imageAttributes.height),
+          margin: 0,
+          name,
+          spacing: 0,
+          tilecount: Number(tilecount),
+          tileheight: Number(tileheight),
+          tilewidth: Number(tilewidth),
+        }
       }
     }
+    
   } catch (err: any) {
-    throw new CustomError("Error fixing tileset image paths", 400)
+    throw new CustomError("Error extracting tileset properties", 400)
   }
 }
 
-const getRequiredTilesetImagesAndFilePaths = async (tilesets: UploadedFile | UploadedFile[]) : Promise<Set<string>> => {
+const fixTemplateDimensions = (jsonData: any, templateDimensions: { name: string, width: number, height: number }[]) => {
+  for (const layer of jsonData.layers) {
+    if (layer?.class && toLower(layer.class) === toLower(boothesClassName)) {
+      if (layer.layers) {
+        for (const subLayer of layer.layers) {
+          if (subLayer.objects) {
+            for (const obj of subLayer.objects) {
+              if (obj.template) {
+                const templateDimension = templateDimensions.find(
+                  (dim) => dim.name === obj.template
+                )
+                if (templateDimension) {
+                  obj.width = templateDimension.width
+                  obj.height = templateDimension.height
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+const getRequiredTilesetImagesAndFilePaths = async (jsonData: any) : Promise<Set<string>> => {
   try {
-    // if not an array convert to one
-    tilesets = ensureArray(tilesets)
 
     const requiredTilesetImages: Set<string> = new Set()
 
-    for (const tileset of tilesets) {
-      const jsonData = await convertXmlBufferToJson(tileset.data)
-      const images = ensureArray(jsonData.tileset.image)
-      for (const image of images) {
-        requiredTilesetImages.add(image.$.source)
-      }
+    for (const tileset of jsonData.tilesets) {
+      requiredTilesetImages.add(tileset.image)
     }
 
     return requiredTilesetImages
@@ -222,6 +227,23 @@ const getRequiredTilesetImagesAndFilePaths = async (tilesets: UploadedFile | Upl
     throw new CustomError("Error gathering required tileset image files", 400)
   }
   
+}
+
+const getTemplateDimensions = async (templateFiles: UploadedFile[]) : Promise<{ name: string, width: number, height: number }[]> => {
+  const templateDimensions = []
+
+    for (const template of templateFiles) {
+      const jsonData = await convertXmlBufferToJson(template.data)
+      const width = parseInt(jsonData.template.object[0].$.width, 10)
+      const height = parseInt(jsonData.template.object[0].$.height, 10)
+
+      templateDimensions.push({
+        name: template.name,
+        width,
+        height,
+      })
+    }
+    return templateDimensions
 }
 
 const getUploadedFiles = (files : UploadedFile | UploadedFile[]) : Set<string> => {

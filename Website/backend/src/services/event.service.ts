@@ -223,30 +223,47 @@ const updateEvent = async (
         const publicEvents = await Event.findAll({
             where: {
                 eventType: 'public', // Only public events
-                [Op.and]: [
-                    { startDate: { [Op.lte]: today } }, // Events that started today or earlier
-                    { endDate: { [Op.gte]: today } }, // Events that end today or later
+                [Op.or]: [
                     {
+                        // Ongoing Events
+                        [Op.and]: [
+                            { startDate: { [Op.lte]: today } }, // Events that started today or earlier
+                            { endDate: { [Op.gte]: today } },   // Events that end today or later
+                            {
+                                [Op.or]: [
+                                    { endDate: { [Op.gt]: today } }, // Events ending tomorrow or later
+                                    {
+                                        [Op.and]: [
+                                            { endDate: today },      // Events ending today
+                                            { endTime: { [Op.gt]: currentTime } }, // Events that haven't ended yet
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        // Future Events
                         [Op.or]: [
-                            { endDate: { [Op.gt]: today } }, // Events ending tomorrow or later
+                            { startDate: { [Op.gt]: today } }, // Events starting after today
                             {
                                 [Op.and]: [
-                                    { endDate: today }, // Events ending today
-                                    { endTime: { [Op.gt]: currentTime } }, // Events that haven't ended yet
+                                    { startDate: today },      // Events starting today
+                                    { startTime: { [Op.gt]: currentTime } }, // Events starting after current time
                                 ],
                             },
                         ],
                     },
                 ],
+            
             },
             order: [['startDate', 'ASC'], ['startTime', 'ASC']], // Order by date and time
         });
-
         // Add the event link to each event
         return publicEvents.map((event) => {
-   const status = isEventOngoing(event.startDate, event.startTime,event.endDate, event.endTime);
+            const {status} = isEventOngoing(event.startDate, event.startTime,event.endDate, event.endTime);
             return {
-                status: status.status,
+                status: status,
             ...event.toJSON(),}
             });
     } catch (error) {
@@ -295,6 +312,7 @@ export const isEventOngoing = (
     endTime: string
 ): { isOngoing: boolean; status: string } => {
     // Get the current UTC date and time
+    console.log("hi",startDate, startTime, endDate, endTime)
     const now = new Date();
 
     // Parse the start and end times

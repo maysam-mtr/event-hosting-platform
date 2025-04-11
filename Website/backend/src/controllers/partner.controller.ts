@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import { updatePartner } from "../services/partner.service";
+import { getPartnerById, updatePartner } from "../services/partner.service";
 import { sendResponse } from "../Utils/responseHelper";
 
 // Update a partner
@@ -43,3 +43,23 @@ export const updatePartnerController = async (req: Request, res: Response): Prom
         });
     }
 };
+  /**
+   * Get a single partner by ID
+   * @param {Request} req - Express request object
+   * @param {Response} res - Express response object
+   */
+  export const getPartnerByIdController = async (req: any, res: any): Promise<void> =>{
+    try {
+      const { id } = req.params; // Extract partner ID from URL params
+      const partner = await getPartnerById(id);
+      res.status(200).json({
+        success: true,
+        data: partner,
+      });
+    } catch (error: any) {
+      res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
