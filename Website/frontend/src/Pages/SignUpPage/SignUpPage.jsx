@@ -25,6 +25,7 @@ const Section = styled.section`
   padding: 2rem;
   min-height: 100vh;
   position: relative;
+  width: 100%;
 `;
 
 export const OrangeShape = styled.div`

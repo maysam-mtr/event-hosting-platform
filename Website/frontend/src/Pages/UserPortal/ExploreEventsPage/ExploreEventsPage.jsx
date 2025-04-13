@@ -1,4 +1,4 @@
-import { Button3 } from "../../../components/Navbar/Navbar";
+import { Button1, Button2, Button3 } from "../../../components/Navbar/Navbar";
 import { Card, EventTitle, PreviewImg, Schedule, StatusIndicator } from "../../HostPortal/MyEventsPage/MyEventsPage";
 import { CardsWrapper, PageTitle, Section } from "../SettingsPage/SettingsPage";
 import previewImg from '../../../assets/landing2.png';
@@ -8,6 +8,7 @@ import useSendRequest from "../../../hooks/use-send-request";
 import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
 import { useNavigate } from "react-router-dom";
+import getEventStatus from "../../../utils/getEventStatus";
 
 export default function ExploreEventsPage(){
   const [events, setEvents] = useState([]);
@@ -27,6 +28,7 @@ export default function ExploreEventsPage(){
       //console.log(response)
   
       if(response?.success === true && response.data.length > 0){
+        console.log(response.data)
         setEvents(response.data);
       }else if(!response?.success){
         setEvents([])
@@ -43,11 +45,12 @@ export default function ExploreEventsPage(){
                 <Card key={event.id}>
                   <PreviewImg src={previewImg} alt={event.eventName} />
                   <EventTitle>{event.eventName}</EventTitle>
-                  {/* <StatusIndicator $status={event.status}>{event.status.toUpperCase()}</StatusIndicator> */}
-                  <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
+                  <StatusIndicator style={{alignSelf: 'center'}} $status={event.status}>{getEventStatus(event.status)}</StatusIndicator>
+                  <Schedule><strong>Host: </strong>{event.hostname}</Schedule>
+                  <Schedule><strong>Scheduled at:</strong>{event.startDate} {event.startTime}</Schedule>
                   <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-                  <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
-                      onClick={()=> {navigate(`/event/details/${event.id}`, {replace: true})}}>View Details</Button3>
+                  <Button1 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
+                      onClick={()=> {navigate(`/event/details/${event.id}`, {replace: true})}}>View Details</Button1>
                 </Card>
               ))}
             </CardsWrapper>

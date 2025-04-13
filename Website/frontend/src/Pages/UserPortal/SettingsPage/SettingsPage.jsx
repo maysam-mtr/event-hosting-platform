@@ -1,6 +1,6 @@
 import profile from '../../../assets/profile.png'
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Input from '../../../components/Input/Input';
 import useUserState from '../../../hooks/use-user-state';
 import Popup from '../../../components/Popup/Popup';
@@ -134,6 +134,10 @@ export default function SettingsPage() {
     linkedin: user.linkedin || "",
     github: user.github || "",
   });
+
+  useEffect(() => {
+    console.log(user)
+  },[])
 
   const [partnerData, setPartnerData] = useState({
     companyName:"techhub",

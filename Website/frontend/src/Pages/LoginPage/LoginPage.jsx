@@ -17,6 +17,7 @@ const Section = styled.section`
   justify-content: center;
   padding: 2rem;
   min-height: 100vh;
+  width: 100%;
 `;
 
 const Container = styled.div`

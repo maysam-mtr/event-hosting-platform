@@ -13,6 +13,7 @@ import Input from "../../components/Input/Input";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
 import { Button } from "../UserPortal/HomePage/HomePage";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
+import getEventStatus from "../../utils/getEventStatus";
 
 const Container = styled.div`
   display: flex;
@@ -106,13 +107,27 @@ export const Title = styled.h2`
 
 const InfoItem = styled.div`
   font-size: 16px;
-  color: #666;
+  color: #333;
 `;
 
 export const ModalContainer = styled.div`
 display: flex;
 flex-direction: column;
 gap: 1rem;
+`;
+
+const DisabledButton = styled.button`
+  background-color: var(--text-secondary);
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: var(--body);
+  border: 0;
+  min-width: 70px;
+  height: fit-content;
+  width: fit-content;
+  color: var(--text-background);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  cursor: not-allowed;
 `;
 
 export default function EventDetailsPage() {
@@ -156,15 +171,20 @@ export default function EventDetailsPage() {
       return;
     }else if(response?.success === true && response?.data){
       const eventData = response.data[0];
+      console.log(eventData)
       setError("");
       setEventDetails({
         eventName: eventData.eventName,
         hostName: eventData.hostName,
         code: eventData.id,
         createdAt: eventData.createdAt && formatDateTime(eventData.createdAt),
-        scheduledTime: "2025-04-01T18:00",
+        updatedAt: eventData.updatedAt && formatDateTime(eventData.updatedAt),
+        startTime: eventData.startTime,
+        endTime: eventData.endTime,
+        startDate: eventData.startDate,
+        endDate: eventData.endDate,
         eventType: eventData.eventType,
-        eventStatus: "live",
+        eventStatus: eventData.isOngoing.status || 'unknown',
         gameMapName: "Desert Storm",
         previewImageUrl: previewImg,
       })
@@ -213,7 +233,7 @@ export default function EventDetailsPage() {
             <TitleWrapper>
               <Title>{eventDetails.eventName}</Title>
               <StatusIndicator $status={eventDetails.eventStatus} style={{ fontSize: "var(--heading-6)" }}>
-                {eventDetails.eventStatus}
+                {getEventStatus(eventDetails.eventStatus)}
               </StatusIndicator>
             </TitleWrapper>
             <InfoItem>
@@ -223,31 +243,39 @@ export default function EventDetailsPage() {
               <strong>Code:</strong> {eventDetails.code}
             </InfoItem>
             <InfoItem>
-              <strong>Created At:</strong> {eventDetails.createdAt}
-            </InfoItem>
-            <InfoItem>
-              <strong>Scheduled Time:</strong>{" "}
-              {new Date(eventDetails.scheduledTime).toLocaleString()}
-            </InfoItem>
-            <InfoItem>
               <strong>Event Type:</strong> {eventDetails.eventType}
+            </InfoItem>
+            <InfoItem>
+              <strong>Start Time:</strong> {eventDetails.startDate} {eventDetails.startTime}
+            </InfoItem>
+            <InfoItem>
+              <strong>End Time:</strong> {eventDetails.endDate} {eventDetails.endTime}
             </InfoItem>
             <InfoItem>
               <strong>Map Name:</strong> {eventDetails.gameMapName}
             </InfoItem>
+            <InfoItem>
+              <strong>Created At:</strong> {eventDetails.createdAt}
+            </InfoItem>
+            <InfoItem>
+              <strong>Updated At:</strong> {eventDetails.updatedAt}
+            </InfoItem>
           </MainInfo>
 
-          {eventDetails.eventStatus === "live" && (
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Event</Button1>
-            </div>
-          )}
+          {eventDetails.eventStatus === "ongoing" ? 
+            (<div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Now!</Button1>
+            </div>) :
+             (<div style={{ display: "flex", justifyContent: "flex-end" }}>
+             <DisabledButton>Join Now!</DisabledButton>
+           </div>)
+          }
         </ContentWrapper>
       </Card>
       <Modal isOpen={isModalOpen} closeModal={closeModal} title="Enter Password">
           <Input
               type="text"
-              placeholder="Enter Event code"
+              placeholder="Enter Event passcode"
               name='passcode'
               data={passcode}
               setData={setPasscode}
