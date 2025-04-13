@@ -11,12 +11,14 @@ import {
   getMapCollisionsService,
   getMapLayersService,
   getspawnLocationService,
+  getRawMapService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
 import { Booth } from "@/interfaces/map-layers.interface"
+import { getFile, listFolderContent } from "@/utils/google-drive"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -45,6 +47,20 @@ const getDetailedMapByIdController = async (req: Request, res: Response, next: N
     const response = await getMapDataByIdService(id)
     
     CustomResponse(res, 200, "Map fetched", response)
+  } catch (err: any) {
+    next(err)
+  }
+}
+
+const getRawMapController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params
+    
+    const response = await getRawMapService(id)
+
+    res.status(200).json(response.rawData)
+    
+    // CustomResponse(res, 200, "Raw Map Data fetched", response)
   } catch (err: any) {
     next(err)
   }
@@ -206,6 +222,42 @@ const getMapBoothsDisplayController = async (req: Request, res: Response, next: 
   }
 }
 
+const loadMapDataForGameEngineController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params
+    
+    const response = await getRawMapService(id)
+
+    const images: { name: string, image: string }[] = []
+
+    const files = await listFolderContent(response.map.folderId)
+    for(const file of files) {
+      const name = file.name
+      if (name) {
+        const lastperiod = name.lastIndexOf('.')
+        if (lastperiod !== -1) {
+          const type = name.substring(lastperiod + 1)
+          if (type === "png") {
+            const { data } = await getFile(file.id as string)
+            
+            // Converting the Buffer to a Base64 string
+            const base64Image = data.toString("base64");
+
+            images.push({ name, image: base64Image })
+          }
+        }
+      }
+    }
+    
+    CustomResponse(res, 200, "Raw Map Data fetched", {
+      images,
+      rawData: response.rawData
+    })
+  } catch (err: any) {
+    next(err)
+  }
+}
+
 export {
   getMapsController,
   getMapByIdController,
@@ -219,5 +271,7 @@ export {
   getMapCollisionsController,
   getMapLayersController,
   getspawnLocationController,
+  getRawMapController,
+  loadMapDataForGameEngineController,
 }
 
