@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { findByUsernameOrEmail } from './user.service';
 import {findHostByEmail} from './host.service';
 import { Response } from 'express';
+import { findPartner } from './partner.service';
 
 
 const loginUser = async ({ usernameOrEmail, password }: { usernameOrEmail: string, password: string }): Promise<any> => {
@@ -18,7 +19,12 @@ const loginUser = async ({ usernameOrEmail, password }: { usernameOrEmail: strin
         }
 
         const { password: _, ...userWithoutPassword } = user.get({ plain: true });
-
+        let partner = await findPartner(user.id);
+        console.log("partner", partner)
+        if(partner){
+            return {...userWithoutPassword, partnerId: partner.id};
+        }
+       
         return userWithoutPassword;
     } catch (err) {
         throw new Error((err as Error).message || ''); 
