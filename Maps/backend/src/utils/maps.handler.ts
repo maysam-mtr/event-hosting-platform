@@ -1,7 +1,7 @@
 import { CustomError } from "./Response & Error Handling/custom-error"
 import { toLower } from "lodash"
 import { sanitizePath } from "./Helpers/helper-functions"
-import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
+import { Booth, Collision, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
 import { boothesClassName, collisionsClassName, layersClassName, spawnLocationClassName } from "@/constants"
 
 export const getRequiredFilesFromJSONFile = (jsonData : any) : { tilesets: Set<string>, templates: Set<string> } => {
@@ -40,13 +40,19 @@ export const getMapComponents = (data: any) : {
     layers: Layer[],
     collisions: Collision[],
     booths: Booth[],
-    spawn: Spawn | null 
+    spawn: Spawn | null,
+    tilesets: Tileset[],
 } => {
 
     let layers: Layer[] = []
     let collisions: Collision[] = []
     let booths: Booth[] = []
     let spawn: Spawn | null = null
+    let tilesets: Tileset[] = []
+
+    data.tilesets.forEach((tileset: Tileset) => tilesets.push(tileset))
+
+    data = data.layers
 
     data.forEach((layer: any) => {
         const layerName = toLower(layer.name)
@@ -75,7 +81,7 @@ export const getMapComponents = (data: any) : {
         console.warn("There is a layer not being tracked!!")
     })
 
-    return { layers, collisions, booths, spawn }
+    return { layers, collisions, booths, spawn, tilesets }
 }
 
 export const getLayers = (data: any) : Layer[] => {
