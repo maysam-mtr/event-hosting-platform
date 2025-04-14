@@ -12,6 +12,7 @@ import {
   getMapLayersService,
   getspawnLocationService,
   getRawMapService,
+  getMapTilesetsService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -227,19 +228,27 @@ const loadMapDataForGameEngineController = async (req: Request, res: Response, n
     const { id } = req.params
     
     const response = await getRawMapService(id)
+    const tilesets = await getMapTilesetsService(id)
 
-    const images: Buffer[] = []
+    const images: { image: string, name: string, data: string }[] = []
 
     const files = await listFolderContent(response.map.folderId)
     for(const file of files) {
-      const name = file.name
-      if (name) {
-        const lastperiod = name.lastIndexOf('.')
-        if (lastperiod !== -1) {
-          const type = name.substring(lastperiod + 1)
-          if (type === "png") {
-            const { data } = await getFile(file.id as string)
-            images.push(data)
+      const image = file.name
+      if (image) {
+        const tileset = tilesets.find(ts => ts.image === image)
+        if (tileset) {
+          const lastperiod = image.lastIndexOf('.')
+          if (lastperiod !== -1) {
+            const type = image.substring(lastperiod + 1)
+            if (type === "png") {
+              const { data } = await getFile(file.id as string)
+              
+              // Converting the Buffer to a Base64 string
+              const base64Image = data.toString("base64");
+              
+              images.push({ image, name: tileset.name , data: base64Image })
+            }
           }
         }
       }

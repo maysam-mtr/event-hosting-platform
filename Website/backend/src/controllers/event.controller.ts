@@ -73,8 +73,16 @@ try {
 
 const getPublicEventsController = async (req: Request, res: Response): Promise<void> => {
     try {
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+        const page=req.query.page? parseInt(req.query.page as string, 10) : undefined;
+        if ( !limit|| !page || limit < 1 || page < 1) {
+            sendResponse(res, false, 400, 'Limit and page are required', [], [
+                { code: 'VALIDATION_ERROR', message: 'Limit and page are required' },
+              ]);
+            return;
+        }
         // Call the service function to fetch public events
-        const publicEvents = await getPublicEvents();
+        const publicEvents = await getPublicEvents(limit, page);
 
         // Return success response
         sendResponse(res, true, 200, 'Public Events retreived successfully', publicEvents);
@@ -139,7 +147,7 @@ const getEventsForHostController = async (req: Request, res: Response): Promise<
 // Filter events for host by status (past, ongoing, future)
 const filterEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { status } = req.body;
+        let { status } = req.body;
         const {hostId} = req.params;
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
@@ -164,7 +172,14 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
 const filterPublicEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { status } = req.params;
-
+       
+       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+        if (!limit || !page || limit < 1 || page < 1) {
+            sendResponse(res, false, 400, "Invalid status. Use 'past', 'ongoing', or 'future'.", [], [
+                { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'past', 'ongoing', or 'future'."},
+              ]);
+            return;}
         if (!status || !["ongoing", "future"].includes(status as string)) {
              sendResponse(res, false, 400, "Invalid status. Use 'ongoing', or 'future'.", [], [
                 { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'ongoing', or 'future'."},
@@ -173,7 +188,7 @@ const filterPublicEventsByStatusController = async (req: Request, res: Response)
         }
 
         // Call the service function to filter events
-        const result = await filterPublicEventsByStatus(status as string);
+        const result = await filterPublicEventsByStatus(status as string,page as number,limit as number);
 
         // Return success response
         sendResponse(res, true, 200, 'Filter events successfully', result);

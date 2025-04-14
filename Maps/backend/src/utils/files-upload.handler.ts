@@ -163,7 +163,7 @@ const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jso
       const { name, tilewidth, tileheight, tilecount, columns } = jsonData.tileset.$
       const imageAttributes = jsonData.tileset.image[0].$
       
-      const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source?.split('.')[0] === imageAttributes.source?.split('.')[0])
+      const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source === tileset.name)
       
       if (indx !== -1) {
         const firstgid = jsonFileData.tilesets[indx].firstgid

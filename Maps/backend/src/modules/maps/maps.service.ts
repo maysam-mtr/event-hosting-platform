@@ -16,7 +16,7 @@ import {
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
 import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
-import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
+import { Booth, Collision, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -56,7 +56,7 @@ const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }
     }
     
     const jsonData = convertBufferToJson(data)
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return {
       ...res,
@@ -290,7 +290,7 @@ const getMapBoothsService = async (mapId : string) : Promise<Booth[]> => {
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.booths
   } catch (err: any) {
@@ -309,7 +309,7 @@ const getMapCollisionsService = async (mapId : string) : Promise<Collision[]> =>
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.collisions
   } catch (err: any) {
@@ -328,12 +328,32 @@ const getMapLayersService = async (mapId : string) : Promise<Layer[]> => {
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.layers
     
   } catch (err: any) {
     throw new CustomError("Error fetching map layers", 400)
+  }
+}
+
+const getMapTilesetsService = async (mapId : string) : Promise<Tileset[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+    
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+    
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData)
+
+    return components.tilesets
+    
+  } catch (err: any) {
+    throw new CustomError("Error fetching map tilesets", 400)
   }
 }
 
@@ -348,7 +368,7 @@ const getspawnLocationService = async (mapId : string) : Promise<Spawn | null> =
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.spawn
   } catch (err: any) {
@@ -370,5 +390,6 @@ export {
   getMapLayersService,
   getspawnLocationService,
   getRawMapService,
+  getMapTilesetsService,
 }
 

@@ -3,7 +3,6 @@ import BoothDetails from '../models/BoothDetails';
 import { getBoothDetailsById, getOrCreateBoothDetails } from './boothDetails.service';
 import { createPartner, findPartner } from './partner.service';
 import { getUser } from './user.service';
-import { Sequelize } from 'sequelize';
 import nodemailer from "nodemailer";
 import { getNumberOfBooths } from './subscription.service';
 import { getEvent } from './event.service';
@@ -67,9 +66,26 @@ export const createInvitation = async ( eventId: string, boothTemplateId: string
         expiresAt.setDate(expiresAt.getDate() + 7); // Add 7 days to the current date
         if (pendingInvitation) {
             pendingInvitation.status = "expired"; // Update the status
-            pendingInvitation.expiresAt = expiresAt;
             await pendingInvitation.save(); // Save the changes to the database
         }
+
+        const existingPendingInvitationInEvent = await Invitation.findOne({
+            include: [
+                {
+                    model: BoothDetails,
+                    where: { eventId }, // Ensure the booth belongs to the same event
+                },
+            ],
+            where: {
+                assignedEmail,
+                status: "pending",
+            },
+        });
+
+        if (existingPendingInvitationInEvent) {
+            existingPendingInvitationInEvent.status = "expired"; // Update the status
+            await existingPendingInvitationInEvent.save(); // Save the changes to the database
+              }
         let invitation = await Invitation.findOne({
             where:{boothDetailsId: boothDetails.id,assignedEmail, status:'expired'},
         })
