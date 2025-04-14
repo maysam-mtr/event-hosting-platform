@@ -1,13 +1,22 @@
-import Preload from './components/Preload';
+import Preload from './components/Preload'
 
 function App() {
+  const gameContainerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    width: '100vw',
+    margin: 0,
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
+      <div className="game-container" style={gameContainerStyle}>
         <Preload />
-      </header>
+      </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
