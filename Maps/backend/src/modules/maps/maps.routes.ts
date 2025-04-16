@@ -30,7 +30,7 @@ mapsRouter.use(
 )
 
 mapsRouter.get("/getMaps", adminAuthMiddleware, getMapsController)
-mapsRouter.get("/getMap/:id", adminAuthMiddleware, getMapByIdController)
+mapsRouter.get("/getMap/:id", adminAndHostAuthMiddleware, getMapByIdController)
 mapsRouter.post("/createMap", adminAuthMiddleware, createMapController)
 mapsRouter.put("/updateMap/:id", adminAuthMiddleware, updateMapController)
 mapsRouter.delete("/deleteMap/:id", adminAuthMiddleware, deleteMapController)
