@@ -4,7 +4,7 @@ import Game from "./Game"
 
 function Preload() {
   const [images, setImages] = useState<{ image: string, name: string }[]>([])
-  const [characterInfo, setCharacterInfo] = useState<{ width: number; height: number; frameCount: number } | null>(null);
+  const [characterInfo, setCharacterInfo] = useState<{ width: number, height: number, frameCount: number } | null>(null)
 
   useEffect(() => {
     const fetchLayerNames = async () => {
@@ -23,8 +23,8 @@ function Preload() {
         width: img.width,
         height: img.height,
         frameCount: 4
-      });
-    };
+      })
+    }
 
     fetchLayerNames()
   }, [])

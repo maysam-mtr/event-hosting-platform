@@ -245,7 +245,7 @@ const loadMapDataForGameEngineController = async (req: Request, res: Response, n
               const { data } = await getFile(file.id as string)
               
               // Converting the Buffer to a Base64 string
-              const base64Image = data.toString("base64");
+              const base64Image = data.toString("base64")
               
               images.push({ image, name: tileset.name , data: base64Image })
             }
