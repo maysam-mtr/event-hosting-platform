@@ -2,7 +2,11 @@ import { getEventDetails, loadMapAPI } from "./utils/apis"
 import fs from "fs/promises"
 import path from "path"
 
-const EVENT_ID = "b1c3d87c-e72f-45e0-9ddd-a172105477ad"
+const EVENT_ID = process.env.EVENT_ID
+
+if (!EVENT_ID) {
+    throw new Error("Missing EVENT_ID environment variable")
+}
 
 export const getMapIdFromEvent = async (eventId: string): Promise<string> => {
     try {
@@ -22,11 +26,9 @@ export const initializeMapData = async () => {
     try {
         const mapId = await getMapIdFromEvent(EVENT_ID)
         
-
         const { images, rawData } = await loadMapAPI(mapId)
 
         const imageNames = images.map(image => ({ image: image.image, name: image.name}))
-        
         const filePath = path.join(__dirname, "mapInfo.json")
 
         // if file doesn't exist -> create
