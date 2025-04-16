@@ -116,11 +116,17 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState("all");
 
+  const [maps, setMaps] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchEvents(status);
   }, [status]);
+
+  useEffect(() => {
+    getMaps();
+  }, []);
 
   async function fetchEvents(status) {
     if(status === 'all'){
@@ -162,7 +168,30 @@ export default function MyEventsPage() {
   const viewEventDetails = (id) => {
     navigate(`/host/eventDetails/${id}`);
   }
-  
+
+  async function getMaps(){
+    const URL = '/api/latestMaps/getLatestMapsDisplay';
+
+    const {response} = await sendRequest(URL, {}, 'maps');
+    //console.log(response)
+
+    if(response?.statusCode === 200){
+      setMaps(response.data)
+    }else{
+      setMaps([])
+      setPopup({message: "Error loading map images. Please Try again!", type: 'fail', isVisible: true});
+    }
+  }
+
+  const getMapPreviewImg = (mapId) => {
+    const map = maps?.find(map => map.id === mapId);
+    if(!map){
+      return previewImg;
+    }
+
+    return `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`;
+          
+  }
 
   return (
     <Section>
@@ -183,7 +212,13 @@ export default function MyEventsPage() {
       <CardsWrapper>
         {events?.map((event) => (
           <Card key={event.id}>
-            <PreviewImg src={previewImg} alt={event.eventName} />
+            <PreviewImg src={getMapPreviewImg(event.mapTemplateId)} 
+              alt={event.eventName} 
+              onError={(e) => {
+                const target = e.target;
+                target.onerror = null; 
+                target.src = previewImg;
+              }}/>
             <EventTitle>{event.eventName}</EventTitle>
             <StatusIndicator style={{alignSelf: 'center'}} $status={event.status || status.toLowerCase()}>
               {event.status ? 
@@ -193,7 +228,9 @@ export default function MyEventsPage() {
             <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
             <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
             <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
-            <Button3 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} onClick={()=>viewEventDetails(event.id)}>{event?.status === 'future' ? 'View or Edit': 'View Details'}</Button3>
+            <Button3 
+              style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
+              onClick={()=>viewEventDetails(event.id)}>{status === 'future' ? 'View or Edit' : event?.status === 'future' ? 'View or Edit': 'View Details'}</Button3>
           </Card>
         ))}
         {events.length == 0 && 

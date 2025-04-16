@@ -16,9 +16,11 @@ export default function ExploreEventsPage(){
     const [sendRequest] = useSendRequest();
     const navigate = useNavigate();
     const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+    const [maps, setMaps] = useState([]);
   
     useEffect(() => {
       getPublicEvents();
+      getMaps();
     }, [user]);
   
     async function getPublicEvents(){
@@ -36,6 +38,30 @@ export default function ExploreEventsPage(){
       }
   
     }
+
+    async function getMaps(){
+        const URL = '/api/latestMaps/getLatestMapsDisplay';
+    
+        const {response} = await sendRequest(URL, {}, 'maps');
+        //console.log(response)
+    
+        if(response?.statusCode === 200){
+          setMaps(response.data)
+        }else{
+          setMaps([])
+          setPopup({message: "Error loading map images. Please Try again!", type: 'fail', isVisible: true});
+        }
+    }
+    
+    const getMapPreviewImg = (mapId) => {
+        const map = maps?.find(map => map.id === mapId);
+        if(!map){
+          return previewImg;
+        }
+    
+        return `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`;
+              
+    }
     
     return (
         <Section>
@@ -43,7 +69,13 @@ export default function ExploreEventsPage(){
             <CardsWrapper>
               {events?.map((event) => (
                 <Card key={event.id}>
-                  <PreviewImg src={previewImg} alt={event.eventName} />
+                  <PreviewImg src={getMapPreviewImg(event.mapTemplateId)} 
+                    alt={event.eventName} 
+                    onError={(e) => {
+                      const target = e.target;
+                      target.onerror = null; 
+                      target.src = previewImg;
+                  }}/>
                   <EventTitle>{event.eventName}</EventTitle>
                   <StatusIndicator style={{alignSelf: 'center'}} $status={event.status}>{getEventStatus(event.status)}</StatusIndicator>
                   <Schedule><strong>Host: </strong>{event.hostname}</Schedule>

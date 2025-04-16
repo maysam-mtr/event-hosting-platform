@@ -124,46 +124,72 @@ export default function SettingsPage() {
 
   const [userData, setUserData] = useState({
     //profilePic: user.profilePic || profile,
-    dateOfBirth: user.dateOfBirth || "",
-    phone: user.phone || "",
-    location: user.country || "",
-    educationLevel: user.educationLevel || "",
-    fieldOfStudy: user.fieldOfStudy || "",
-    preferredEventType: user.preferredEventType || "",
-    yearsOfExperience: user.yearsOfExperience || "",
-    linkedin: user.linkedin || "",
-    github: user.github || "",
+    dateOfBirth: user.dateOfBirth || null,
+    //phone: user.phone || "",
+    location: user.country || null,
+    educationLevel: user.educationLevel || null,
+    fieldOfStudy: user.fieldOfStudy || null,
+    preferredEventType: user.preferredEventType || null,
+    yearsOfExperience: user.yearsOfExperience || null,
+    linkedin: user.linkedin || null,
+    github: user.github || null,
   });
 
   useEffect(() => {
     console.log(user)
+    if(user.isPartner === 1){
+      getPartnerDetails();
+    }
   },[])
 
   const [partnerData, setPartnerData] = useState({
-    companyName:"techhub",
-    companyLogo:"https://cdn.pixabay.com/photo/2025/03/27/10/14/best-photographer-in-bangalore-9496232_960_720.jpg",
-    primaryContactFullName:"Ali a22",
-    primaryContactEmail:"ali@techhub.com"
+    companyName: null,
+    companyLogo: null,
+    primaryContactFullName: null,
+    primaryContactEmail: null,
+    companyIndustry: null,
+    companyWebsite: null,
+    primaryContactJobTitle: null,
+    primaryContactPhoneNumber: null,
+    companyDescription: null,
   });
 
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
 
   async function updateUserInformation (){
-    if(!userData.phoneNumber){
-      setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
-      return;
-    }
+    // if(!userData.phoneNumber){
+    //   setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
+    //   return;
+    // }
 
-    let URL = '/api/host/update';
-    let INIT = {method: 'PUT', body: JSON.stringify(userData)}
+    let URL = '/api/users/update';
+
+    const body = Object.fromEntries(
+      Object.entries(userData).filter(([key, value]) => (value != null && value != "") && key!='id')
+    );
+
+    console.log(body)
+    let INIT = {method: 'PUT', body: JSON.stringify(body)}
 
     let {request, response} = await sendRequest(URL, INIT);
+    console.log(response)
 
     if(response?.success){
       //console.log({...response.data, role: 'user'}, response)
-      const newUserInfo = {...response.data, role: 'user'};
-      setUser(newUserInfo)
-      localStorage.setItem("user", JSON.stringify({...newUserInfo, role: 'user'}));
+      // const newUserInfo = {...response.data, role: 'user'};
+      // setUser(newUserInfo)
+      // localStorage.setItem("user", JSON.stringify({...newUserInfo, role: 'user'}));
+
+      setUser(prev => {
+        const updatedUser = {
+          ...prev,
+          ...response.data,
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        console.log(updatedUser)
+        return updatedUser;
+      });
+
       setPopup({message: 'Info updated!', type: 'success', isVisible: true});
     }else{
       setPopup({message: 'Failed to update! Try again', type: 'fail', isVisible: true});
@@ -172,7 +198,46 @@ export default function SettingsPage() {
   }
 
   async function updatePartnerInformation(){
+    const partnerId = user.partnerId;
 
+    const body = Object.fromEntries(
+      Object.entries(partnerData).filter(([key, value]) => value !== null && key !='userId' && key!='id')
+    );
+
+    console.log(body)
+
+    const URL = `/api/partner/update/${partnerId}`;
+    const INIT = {method: 'PUT', body: JSON.stringify(body)};
+
+    console.log(partnerData)
+
+    const {response} = await sendRequest(URL, INIT);
+    console.log(response)
+
+    if(response?.success === true){
+      setPopup({message: 'Info updated successfully!', isVisible: true, type: 'success'});
+    }else if(response?.success === false && response.error[0].code === 'VALIDATION_ERROR'){
+      setPopup({message: response.error[0].message, isVisible: true, type: 'fail'});  
+    }else{
+      setPopup({message: 'Coudnt update partner data!', isVisible: true, type: 'fail'});  
+    }
+
+  }
+
+  async function getPartnerDetails(){
+    const partnerId = user.partnerId;
+
+    const URL = `/api/partner/${partnerId}`;
+    const {response} = await sendRequest(URL);
+    console.log(response)
+
+    if(response?.success === true){
+      const partnerDetails = response.data;
+
+      setPartnerData(partnerDetails);
+    }else{
+      setPopup({message: 'Coudnt load partner data!', isVisible: true, type: 'fail'});  
+    }
   }
 
   return (
@@ -212,35 +277,75 @@ export default function SettingsPage() {
           {user.isPartner === 1 && (
             <Card>
               <EditableDetails>
-                <Input label={'Company Name'} 
+                <Input label={'Company Name*'} 
                       type='text' 
                       name={'companyName'} 
-                      data={userData} 
-                      setData={setUserData} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
                       placeholder={`Enter company name`}
                 />
 
-                <Input label={'Company Logo'} 
-                      type='file' 
+                <Input label={'Company Logo*'} 
+                      type='text' 
                       name={'companyLogo'} 
-                      data={userData} 
-                      setData={setUserData} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
                 />
 
-                <Input label={'Primary Contact Full Name'} 
+                <Input label={'Company Industry'} 
+                      type='text' 
+                      name={'companyIndustry'} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
+                      placeholder={`enter industry`}
+                />
+
+                <Input label={'Company Website*'} 
+                      type='url' 
+                      name={'companyWebsite'} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
+                      placeholder={`compay.com`}
+                />
+
+                <Input label={'Company description'} 
+                      type='textarea' 
+                      name={'companyDescription'} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
+                      placeholder={`description...`}
+                />
+
+                <Input label={'Primary Contact Full Name*'} 
                       type='text' 
                       name={'primaryContactFullName'} 
-                      data={userData} 
-                      setData={setUserData} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
                       placeholder={`Enter name`}
                 />
 
-                <Input label={'Primary Contact Email'} 
+                <Input label={'Primary Contact Email*'} 
                       type='email' 
                       name={'primaryContactEmail'} 
-                      data={userData} 
-                      setData={setUserData} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
                       placeholder={`name@company.com`}
+                />
+
+                <Input label={'Primary Contact Job Title'} 
+                      type='email' 
+                      name={'primaryContactJobTitle'} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
+                      placeholder={`ex. manager`}
+                />
+
+                <Input label={'Primary Contact Phone Nb'} 
+                      type='text' 
+                      name={'primaryContactPhoneNumber'} 
+                      data={partnerData} 
+                      setData={setPartnerData} 
+                      placeholder={`ex. 09288299`}
                 />
 
                 <UpdateButton onClick={updatePartnerInformation}>Update</UpdateButton>

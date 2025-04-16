@@ -6,7 +6,10 @@ import useUserState from './use-user-state';
 
 // }
 
-export function setApiUrl(url){
+export function setApiUrl(url, backend){
+    if(backend === 'maps'){
+        return import.meta.env.VITE_MAPS_API_URL + url;
+    }
     return import.meta.env.VITE_API_URL + url;
 }
 
@@ -14,7 +17,7 @@ export default function useSendRequest() {
     const {user, isAuthenticated, setUser} = useUserState();
     const navigate = useNavigate();
 
-    const sendRequest = useCallback(async (url, init = {}) => {
+    const sendRequest = useCallback(async (url, init = {}, backend = 'website') => {
         let request, response;
         const defaultInit = {
             method: "GET",
@@ -23,7 +26,7 @@ export default function useSendRequest() {
             ...init,
         };
 
-        const apiUrl = setApiUrl(url);
+        const apiUrl = setApiUrl(url, backend);
         //console.log(apiUrl, init, defaultInit)
 
         try {

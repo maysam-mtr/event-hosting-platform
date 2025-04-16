@@ -11,6 +11,7 @@ import useSendRequest from "../../../hooks/use-send-request";
 import { FiCheck } from 'react-icons/fi'
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 import Popup from "../../../components/Popup/Popup";
+import formatDateTime from "../../../utils/formatDateTime";
 
 const StepTracker = styled.div`
   display: flex;
@@ -229,14 +230,9 @@ export default function CreateEventModal({setPopup}) {
   const [subscriptionPlan, setSubscriptionPlan] = useState({});
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [maps, setMaps] = useState([]);
  
-
   const [sendRequest] = useSendRequest();
-
-  const maps = [
-    { id: 1, name: "Main Hall", capacity: 500, preview: landing2, uuid: "133e4567-e89b-12d3-a456-426614174001" },
-    { id: 2, name: "Conference Room", capacity: 200, preview: landing2, uuid: "123e4567-e89b-12d3-a456-426614174001" },
-  ];
 
   const closeModal = () => {
     setEventData({
@@ -349,8 +345,23 @@ export default function CreateEventModal({setPopup}) {
     setLoading(false);
   }
 
+  async function getMaps(){
+    const URL = '/api/latestMaps/getLatestMapsDisplay';
+
+    const {response} = await sendRequest(URL, {}, 'maps');
+    //console.log(response)
+
+    if(response?.statusCode === 200){
+      setMaps(response.data)
+    }else{
+      setMaps([])
+      setErrorMsg("Something went wrong. Please Try again!");
+    }
+  }
+
   useEffect(() => {
     getSubscriptionPlan();
+    getMaps();
   },[])
 
   return (
@@ -391,12 +402,25 @@ export default function CreateEventModal({setPopup}) {
             <SectionTitle>Select a Map Template</SectionTitle>
             <MapGrid>
               {maps.map((map) => (
-                <MapCard key={map.id} selected={selectedMap === map.uuid} onClick={() => setSelectedMap(map.uuid)}>
-                  <img src={map.preview} alt={map.name} />
+                <MapCard key={map.id} selected={selectedMap === map.id} onClick={() => setSelectedMap(map.id)}>
+                  <img
+                    src={
+                      map.imageId
+                        ? `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`
+                        : `/image-placeholder.jpg`
+                    }
+                    alt={map.name}
+                    onError={(e) => {
+                      const target = e.target;
+                      target.onerror = null; 
+                      target.src = landing2;
+                    }}
+                    />
                   <div className="info">
                     <div className="category">Event</div>
                     <h4>{map.name}</h4>
-                    <p className="capacity">Capacity: {map.capacity}</p>
+                    {/* <p className="capacity">Capacity: {map.capacity}</p> */}
+                    <p className="capacity">Updated at: {formatDateTime(map.updated_at)}</p>
                   </div>
                 </MapCard>
               ))}
