@@ -23,7 +23,7 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
           <img
             src={
               map.imageId
-                ? `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`
+                ? `https://wzpakwamssrcgnkgqkid.supabase.co/storage/v1/object/public/map-thumbnails/${map.imageId}`
                 : `/image-placeholder.jpg`
             }
             alt={map.name}

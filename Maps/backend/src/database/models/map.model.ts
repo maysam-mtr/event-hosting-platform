@@ -72,10 +72,16 @@ export default function (sequelize: Sequelize): typeof MapModel {
     )
 
     MapModel.addHook('beforeCreate', (map: MapModel) => {
+        // assign original map to be the same as the map id  
         if (map.original_map_id === null) {
             map.original_map_id = map.id
         }
-    })
 
+        // fix imageId
+        const extension = map.imageId.split('.').pop()
+        const imageId = `${map.id}.${extension}`
+        map.imageId = imageId
+    })
+    
     return MapModel
 }

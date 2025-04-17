@@ -16,7 +16,8 @@ import {
   loadMapDataForGameEngineController,
 } from "./maps.controller"
 import fileUpload from "express-fileupload"
-import { adminAuthMiddleware, adminAndHostAuthMiddleware } from "@/middlewares/auth.middleware"
+import { roleAuthMiddleware } from "@/middlewares/auth.middleware"
+import { Roles } from "@/middlewares/roles"
 
 const mapsRouter = express.Router()
 
@@ -29,27 +30,31 @@ mapsRouter.use(
   }),
 )
 
-mapsRouter.get("/getMaps", adminAuthMiddleware, getMapsController)
-mapsRouter.get("/getMap/:id", adminAndHostAuthMiddleware, getMapByIdController)
-mapsRouter.post("/createMap", adminAuthMiddleware, createMapController)
-mapsRouter.put("/updateMap/:id", adminAuthMiddleware, updateMapController)
-mapsRouter.delete("/deleteMap/:id", adminAuthMiddleware, deleteMapController)
-mapsRouter.get("/downloadMap/:id", adminAuthMiddleware, downloadMapController)
+
+// Maps -> Admin
+mapsRouter.get("/getMaps", roleAuthMiddleware([]), getMapsController)
+mapsRouter.post("/createMap", roleAuthMiddleware([]), createMapController)
+mapsRouter.put("/updateMap/:id", roleAuthMiddleware([]), updateMapController)
+mapsRouter.delete("/deleteMap/:id", roleAuthMiddleware([]), deleteMapController)
+mapsRouter.get("/downloadMap/:id", roleAuthMiddleware([]), downloadMapController)
+
 
 // Game-engine
-mapsRouter.get("/getDetailedMap/:id", adminAndHostAuthMiddleware, getDetailedMapByIdController)
-mapsRouter.get("/getMapBooths/:id", adminAndHostAuthMiddleware, getMapBoothsController)
-mapsRouter.get("/getMapCollisions/:id", adminAndHostAuthMiddleware, getMapCollisionsController)
-mapsRouter.get("/getMapLayers/:id", adminAndHostAuthMiddleware, getMapLayersController)
-mapsRouter.get("/getSpawnLocation/:id", adminAndHostAuthMiddleware, getspawnLocationController)
-
-
-mapsRouter.get("/getRawMap/:id", getRawMapController)
 mapsRouter.get("/loadMapData/:id", loadMapDataForGameEngineController)
 
 
-// Website
-mapsRouter.get("/getMapBoothsDisplay/:id", adminAndHostAuthMiddleware, getMapBoothsDisplayController)
+// Website -> Host
+mapsRouter.get("/getMap/:id", roleAuthMiddleware([Roles.HOST]), getMapByIdController)
+mapsRouter.get("/getMapBoothsDisplay/:id", roleAuthMiddleware([Roles.HOST]), getMapBoothsDisplayController)
+
+
+// Helper Endpoints
+mapsRouter.get("/getDetailedMap/:id", roleAuthMiddleware([Roles.HOST]), getDetailedMapByIdController)
+mapsRouter.get("/getMapBooths/:id", roleAuthMiddleware([Roles.HOST]), getMapBoothsController)
+mapsRouter.get("/getMapCollisions/:id", roleAuthMiddleware([Roles.HOST]), getMapCollisionsController)
+mapsRouter.get("/getMapLayers/:id", roleAuthMiddleware([Roles.HOST]), getMapLayersController)
+mapsRouter.get("/getSpawnLocation/:id", roleAuthMiddleware([Roles.HOST]), getspawnLocationController)
+mapsRouter.get("/getRawMap/:id", getRawMapController)
 
 export default mapsRouter
 

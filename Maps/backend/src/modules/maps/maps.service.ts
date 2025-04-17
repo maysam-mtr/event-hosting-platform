@@ -17,6 +17,7 @@ import {
 } from "../latest-maps/latest-maps.service"
 import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
 import { Booth, Collision, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
+import { deleteMapThumbnail, downloadMapThumbnail } from "@/utils/supabase"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -135,6 +136,10 @@ const downloadMapService = async (id: string): Promise<Buffer> => {
       }
     }
 
+    // Download the map thumbnail and add it to the archive 
+    const thumbnailData = await downloadMapThumbnail(map.imageId)
+    archive.append(thumbnailData, { name: map.imageId })
+
     // Finalize the archive
     archive.finalize()
 
@@ -151,9 +156,6 @@ const createMapService = async (mapData: Map): Promise<Map> => {
     mapData.original_map_id = null
     
     const createdMap = await repo.createMap(mapData)
-    if (!createdMap) {
-      throw new Error()
-    }
     
     const latestMap = await createLatestMapService({
       original_map_id: createdMap.id!,
@@ -183,10 +185,6 @@ const updateMapService = async (id: string, mapData: Map): Promise<Map> => {
 
     // Create a new map entry (version) instead of updating
     const createdMap = await repo.createMap(mapData)
-    
-    if (!createdMap)  {
-      throw new Error()
-    }
 
     const updateRes = await updateLatestMapByOriginalMapIdService({
       original_map_id: createdMap.original_map_id!,
@@ -244,6 +242,9 @@ const deleteMapService = async (id: string): Promise<number> => {
     
     // Trash the associated folder in Google Drive
     await trashFileOrFolder(map.folderId!)
+
+    // Delete map Thumbnail from Supabase
+    await deleteMapThumbnail(map.imageId)
     
 
     // now delete all old map versions

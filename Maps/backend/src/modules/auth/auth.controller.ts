@@ -8,8 +8,7 @@ import { ADMIN_TOKEN_COOKIE_NAME, JWT_ADMIN_ACCESS_TOKEN_SECRET } from "@/config
 export const adminLoginController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         // In case already logged in and trying to login again
-        const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
-        const token = req.cookies[cookieName]
+        const token = req.cookies[ADMIN_TOKEN_COOKIE_NAME as string]
         if (token) {
             const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
             if (payload) {
@@ -19,7 +18,7 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
         const loginData = req.body
         const response = await adminLoginService(loginData)
 
-        res.cookie('token', response.accessToken, {
+        res.cookie(ADMIN_TOKEN_COOKIE_NAME as string, response.accessToken, {
             httpOnly: true, // prvent client-side access
             sameSite: 'strict', // prevent CSRF attacks
             maxAge: 7200000, // 2 hours,
@@ -35,8 +34,7 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
 export const checkAdminLoggedInController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         // In case already logged in and trying to login again
-        const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
-        const token = req.cookies[cookieName]
+        const token = req.cookies[ADMIN_TOKEN_COOKIE_NAME as string]
         if (token) {
             const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
             if (payload) {
