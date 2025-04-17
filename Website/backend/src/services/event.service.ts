@@ -214,10 +214,12 @@ const updateEvent = async (
 };
 
 // Fetch all public events that are today or in the future
- const getPublicEvents = async (): Promise<any[]> => {
+ const getPublicEvents = async (limit:number,page:number): Promise<any[]> => {
     try {
         const today = getTodayDate();
         const currentTime = getTimeNow();
+         limit = limit ||15;
+        const offset = (page - 1) * limit;
         console.log("Current Time:", currentTime);
         // Query the database for public events
         const publicEvents = await Event.findAll({
@@ -258,14 +260,27 @@ const updateEvent = async (
             
             },
             order: [['startDate', 'ASC'], ['startTime', 'ASC']], // Order by date and time
+            limit,
+            offset,
         });
         // Add the event link to each event
-        return publicEvents.map((event) => {
+         const s = await Promise.all (publicEvents.map( async(event) => {
+            const host = await Host.findByPk(event.hostId, {
+                attributes: ["fullName"], // Only fetch the "fullName" field
+            });
+    
+            if (!host) {
+                throw new Error("Host not found");
+            }
+    
             const {status} = isEventOngoing(event.startDate, event.startTime,event.endDate, event.endTime);
             return {
                 status: status,
+                hostName: host.fullName,
             ...event.toJSON(),}
-            });
+            }));
+
+            return s;
     } catch (error) {
         throw new Error((error as Error).message || 'Failed to fetch public events.');
     }
@@ -407,7 +422,7 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
 
 const filterEventsByStatus = async (
     hostId: string,
-    status: string
+    status: string,
 ): Promise<any> => {
     try {
         const today = getTodayDate();
@@ -509,11 +524,12 @@ const filterEventsByStatus = async (
 };
 
 
-export const filterPublicEventsByStatus = async (status: string): Promise<any> => {
+export const filterPublicEventsByStatus = async (status: string,page:number,limit:number): Promise<any> => {
     try {
         const today = getTodayDate();
         const currentTime = getTimeNow();
-
+        limit = limit ||15;
+        const offset = (page - 1) * limit;
         let whereCondition = {};
 
         switch (status) {
@@ -565,8 +581,23 @@ export const filterPublicEventsByStatus = async (status: string): Promise<any> =
         const events = await Event.findAll({
             where: whereCondition,
             order: [['startDate', 'ASC'], ['startTime', 'ASC']], // Order by date and time
-        });
-
+            limit,
+            offset,});
+            const s = await Promise.all (events.map( async(event) => {
+                const host = await Host.findByPk(event.hostId, {
+                    attributes: ["fullName"], // Only fetch the "fullName" field
+                });
+        
+                if (!host) {
+                    throw new Error("Host not found");
+                }
+        
+                 return {
+                    hostName: host.fullName,
+                ...event.toJSON(),}
+                }));
+    
+                return s;
         return {
             events: events.map((event) => event.toJSON()),
         };

@@ -3,6 +3,7 @@ import { repo as mapRepo } from "../maps/maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import type { LatestMap } from "@/interfaces/latest-map.interface"
 import type { Map } from "@/interfaces/map.interface"
+import { getMapBoothsService } from "../maps/maps.service"
 
 const getLatestMapsService = async (): Promise<LatestMap[]> => {
   try {
@@ -16,18 +17,29 @@ const getLatestMapsService = async (): Promise<LatestMap[]> => {
   }
 }
 
-const getLatestMapsWithDetailsService = async (): Promise<Map[]> => {
+type MapWithBooths = Map & { booths: number }
+
+const getLatestMapsWithDetailsService = async (): Promise<MapWithBooths[]> => {
   try {
     const latestMaps = await repo.getLatestMaps()
 
     if (!latestMaps || latestMaps.length === 0) throw new CustomError("Found maps count: 0", 404)
 
     // Get the actual map details for each latest map
-    const mapDetails: Map[] = []
+    const mapDetails: MapWithBooths[] = []
     for (const latestMap of latestMaps) {
       const map = await mapRepo.getMapById(latestMap.latest_map_id)
       if (map) {
-        mapDetails.push(map)
+        const mapBooths = await getMapBoothsService(map.id as string)
+        const mapWithBooths: MapWithBooths = {
+          id: map.id,
+          name: map.name,
+          imageId: map.imageId,
+          updated_at: map.updated_at,
+          folderId: map.folderId,
+          booths: mapBooths.length 
+        }
+        mapDetails.push(mapWithBooths)
       }
     }
 

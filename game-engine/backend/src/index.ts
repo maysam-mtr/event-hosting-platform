@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from "express"
 import dotenv from "dotenv"
 import path from "path"
+import fs from "fs/promises"
 import cors from "cors"
 import { initializeMapData } from "./initialization"
 
@@ -15,12 +16,24 @@ const app: Express = express()
 app.use(
   cors({
     origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3004"],
-    credentials: true, 
+    credentials: true,
   })
-);
+)
 
 app.use("/assets", express.static(path.join(__dirname, "assets")))
 
+
+app.use("/getTilesetImages", async (req: Request, res: Response) => {
+  try {
+    const filePath = path.join(__dirname, "mapInfo.json")
+    const fileContent = await fs.readFile(filePath, "utf-8")
+    const data = JSON.parse(fileContent)
+    
+    res.status(200).json({ data })
+  } catch (err) {
+    res.status(500).json({ error: "Failed to read layer names" })
+  }
+})
 
 initializeMapData()
   .then(() => {

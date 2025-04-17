@@ -17,23 +17,15 @@ const getLatestMapsController = async (req: Request, res: Response, next: NextFu
   }
 }
 
-const getLatestMapsWithDetailsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const response = await getLatestMapsWithDetailsService()
-    
-    CustomResponse(res, 200, "Latest maps with details fetched:", response)
-  } catch (err: any) {
-    next(err)
-  }
-}
 const getLatestMapsDisplayController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const fullResponse = await getLatestMapsWithDetailsService()
-    const response = fullResponse.map((map: Map) => ({
+    const response = fullResponse.map(map => ({
       id: map.id,
       name: map.name,
       imageId: map.imageId,
       updated_at: map.updated_at,
+      booths: map.booths
     }))
     
     CustomResponse(res, 200, "Latest maps with details fetched:", response)
@@ -55,7 +47,6 @@ const getLatestMapByIdController = async (req: Request, res: Response, next: Nex
 
 export {
   getLatestMapsController,
-  getLatestMapsWithDetailsController,
   getLatestMapByIdController,
   getLatestMapsDisplayController,
 }

@@ -2,7 +2,11 @@ import { getEventDetails, loadMapAPI } from "./utils/apis"
 import fs from "fs/promises"
 import path from "path"
 
-const EVENT_ID = "b1c3d87c-e72f-45e0-9ddd-a172105477ad"
+const EVENT_ID = process.env.EVENT_ID
+
+if (!EVENT_ID) {
+    throw new Error("Missing EVENT_ID environment variable")
+}
 
 export const getMapIdFromEvent = async (eventId: string): Promise<string> => {
     try {
@@ -22,29 +26,49 @@ export const initializeMapData = async () => {
     try {
         const mapId = await getMapIdFromEvent(EVENT_ID)
         
-
         const { images, rawData } = await loadMapAPI(mapId)
 
-        // // Ensuring the assets directory exists
-        // const assetsDir = path.join(__dirname, "assets")
-        // try {
-        //     await fs.access(assetsDir)
-        // } catch {
-        //     await fs.mkdir(assetsDir, { recursive: true })
-        // }
+        const imageNames = images.map(image => ({ image: image.image, name: image.name}))
+        const filePath = path.join(__dirname, "mapInfo.json")
 
-        // const mapJsonPath = path.join(assetsDir, "map.json")
-        // await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
+        // if file doesn't exist -> create
+        try {
+            await fs.access(filePath)
+        } catch (err: any) {
+            await fs.writeFile(path.join(__dirname, "mapInfo.json"), JSON.stringify({ images: imageNames }))   
+        }
+        
+
+        // Ensuring the assets directory exists
+        const assetsDir = path.join(__dirname, "assets")
+        try {
+            await fs.access(assetsDir)
+        } catch (err: any) {
+            await fs.mkdir(assetsDir, { recursive: true })
+        }
+
+        const mapJsonPath = path.join(assetsDir, "map.json")
+        // if file doesn't exsit -> create 
+        try {
+            await fs.access(mapJsonPath)
+        } catch (err: any) {
+            await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
+        }
 
       
-        // for(const image of images) {
-        //     const filePath = path.join(assetsDir, image.name)
+        for(const image of images) {
+            const filePath = path.join(assetsDir, image.image)
 
-        //     // Decode the Base64 string into a Buffer
-        //     const imageData = Buffer.from(image.image, "base64")
+            // Decode the Base64 string into a Buffer
+            const imageData = Buffer.from(image.data, "base64")
             
-        //     await fs.writeFile(filePath, imageData)
-        // }
+            // if file doesn't exist -> create
+            try {
+                await fs.access(filePath)
+            } catch (err: any) {
+                await fs.writeFile(filePath, imageData)
+            }
+        }
 
     } catch (err: any) {
         console.error("Error initializing map data:", err.message)

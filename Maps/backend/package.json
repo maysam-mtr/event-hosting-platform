@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
     "@types/express-fileupload": "^1.5.1",
     "archiver": "^7.0.1",
     "axios": "^1.8.2",
@@ -29,6 +30,7 @@
     "mysql2": "^3.13.0",
     "sequelize": "^6.37.6",
     "sequelize-typescript": "^2.1.6",
+    "sharp": "^0.34.1",
     "tsconfig-paths": "^4.2.0",
     "xml2js": "^0.6.2"
   },

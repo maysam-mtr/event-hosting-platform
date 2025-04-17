@@ -9,8 +9,8 @@ export interface Map {
 }
 
 export interface CustomResponse<T = any> {
-  statusCode: number;
-  messages: string | string[];
-  data: T | null;
-  errors: any | null;
+  statusCode: number
+  messages: string | string[]
+  data: T | null
+  errors: any | null
 }

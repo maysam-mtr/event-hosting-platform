@@ -12,6 +12,7 @@ import {
   getMapLayersService,
   getspawnLocationService,
   getRawMapService,
+  getMapTilesetsService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -19,6 +20,7 @@ import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
 import { Booth } from "@/interfaces/map-layers.interface"
 import { getFile, listFolderContent } from "@/utils/google-drive"
+import { updateMapThumbnailFileName } from "@/utils/supabase"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -103,6 +105,8 @@ const createMapController = async (req: Request, res: Response, next: NextFuncti
 
     const response = await createMapService(mapData)
 
+    updateMapThumbnailFileName(imageId as string, response.imageId as string)
+
     CustomResponse(res, 200, "Map created", response)
   } catch (err: any) {
     next(err)
@@ -136,6 +140,8 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
     }
 
     const response = await updateMapService(id, mapData)
+
+    updateMapThumbnailFileName(imageId as string, response.imageId as string)
 
     CustomResponse(res, 200, "Map updated", response)
   } catch (err: any) {
@@ -227,23 +233,27 @@ const loadMapDataForGameEngineController = async (req: Request, res: Response, n
     const { id } = req.params
     
     const response = await getRawMapService(id)
+    const tilesets = await getMapTilesetsService(id)
 
-    const images: { name: string, image: string }[] = []
+    const images: { image: string, name: string, data: string }[] = []
 
     const files = await listFolderContent(response.map.folderId)
     for(const file of files) {
-      const name = file.name
-      if (name) {
-        const lastperiod = name.lastIndexOf('.')
-        if (lastperiod !== -1) {
-          const type = name.substring(lastperiod + 1)
-          if (type === "png") {
-            const { data } = await getFile(file.id as string)
-            
-            // Converting the Buffer to a Base64 string
-            const base64Image = data.toString("base64");
-
-            images.push({ name, image: base64Image })
+      const image = file.name
+      if (image) {
+        const tileset = tilesets.find(ts => ts.image === image)
+        if (tileset) {
+          const lastperiod = image.lastIndexOf('.')
+          if (lastperiod !== -1) {
+            const type = image.substring(lastperiod + 1)
+            if (type === "png") {
+              const { data } = await getFile(file.id as string)
+              
+              // Converting the Buffer to a Base64 string
+              const base64Image = data.toString("base64")
+              
+              images.push({ image, name: tileset.name , data: base64Image })
+            }
           }
         }
       }

@@ -1,6 +1,7 @@
 export interface Image {
-    name: string
     image: string
+    name: string
+    data: string
 }
 
 export interface MapResponse {

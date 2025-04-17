@@ -4,9 +4,10 @@ import { Readable } from "stream"
 import type { FileArray, UploadedFile } from "express-fileupload"
 import { GOOGLE_MAPS_FOLDER_ID } from "@/config"
 import { toLower } from "lodash"
-import { convertJsonToBuffer, convertXmlBufferToJson, ensureArray, sanitizePath } from "./Helpers/helper-functions"
+import { convertImageToPng, convertJsonToBuffer, convertXmlBufferToJson, ensureArray, sanitizePath } from "./Helpers/helper-functions"
 import { boothesClassName, fileTypes, FileTypes, thumbnailFileType } from "@/constants"
 import { getRequiredFilesFromJSONFile } from "./maps.handler"
+import { uploadMapThumbnail } from "./supabase"
 
 interface UploadResult {
   folderId: string
@@ -45,7 +46,7 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     
     // here tilesets required would all be present, now make sure images for those tilesets are uploaded too
     const requiredTilesetImages = await getRequiredTilesetImagesAndFilePaths(jsonFileData)
-
+    
     const uploadedTilesetImages = getUploadedFiles(files[FileTypes.ImageFiles])
     
     const missingTilesetImages = checkMissingFiles(requiredTilesetImages, uploadedTilesetImages)
@@ -94,13 +95,19 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     // Handle thumbnail first
     if (files.thumbnailFile) {
       const thumbnailFile = Array.isArray(files.thumbnailFile) ? files.thumbnailFile[0] : files.thumbnailFile
+      
+      thumbnailFile.data = await convertImageToPng(thumbnailFile.data)
+      thumbnailFile.mimetype = "image/png"
+      
+      const nameWithoutExt = thumbnailFile.name.replace(/\.[^/.]+$/, "")
+      thumbnailFile.name = `${nameWithoutExt}.png`
 
-      const uploadedThumbnail = await uploadSingleFile(thumbnailFile, folderId)
-      imageId = uploadedThumbnail.id as string
+      const uploadedThumbnail = await uploadMapThumbnail(thumbnailFile)
+      imageId = uploadedThumbnail!.path
 
       uploadedFiles.push({
         name: thumbnailFile.name,
-        id: uploadedThumbnail.id as string,
+        id: imageId,
         type: thumbnailFileType,
       })
     }
@@ -163,7 +170,7 @@ const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jso
       const { name, tilewidth, tileheight, tilecount, columns } = jsonData.tileset.$
       const imageAttributes = jsonData.tileset.image[0].$
       
-      const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source?.split('.')[0] === imageAttributes.source?.split('.')[0])
+      const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source === tileset.name)
       
       if (indx !== -1) {
         const firstgid = jsonFileData.tilesets[indx].firstgid

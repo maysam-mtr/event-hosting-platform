@@ -77,7 +77,7 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
           id="thumbnailFile"
           name="thumbnailFile"
           label="Map Thumbnail"
-          accept=".png,.jpg,.jpeg"
+          accept=".png,.jpg,.jpeg,.webp,.tiff,.gif,.svg,.avif,.heif,.raw"
           required={!initialData}
           helpText="Upload an image to use as the map thumbnail"
         />

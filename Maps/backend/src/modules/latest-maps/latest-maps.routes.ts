@@ -2,19 +2,20 @@ import express from "express"
 import {
   getLatestMapByIdController,
   getLatestMapsController,
-  getLatestMapsWithDetailsController,
   getLatestMapsDisplayController,
 } from "./latest-maps.controller"
-import { adminAuthMiddleware, adminAndHostAuthMiddleware } from "@/middlewares/auth.middleware"
+import { roleAuthMiddleware } from "@/middlewares/auth.middleware"
+import { Roles } from "@/middlewares/roles"
 
 const latestMapsRouter = express.Router()
 
-latestMapsRouter.get("/getLatestMaps", adminAuthMiddleware, getLatestMapsController)
-latestMapsRouter.get("/getLatestMap/:id", adminAuthMiddleware, getLatestMapByIdController)
-latestMapsRouter.get("/getLatestMapsWithDetails", adminAuthMiddleware, getLatestMapsWithDetailsController)
+// Maps -> Admin
+latestMapsRouter.get("/getLatestMaps", roleAuthMiddleware([]), getLatestMapsController)
+latestMapsRouter.get("/getLatestMap/:id", roleAuthMiddleware([]), getLatestMapByIdController)
 
-// Website
-latestMapsRouter.get("/getLatestMapsDisplay", adminAndHostAuthMiddleware, getLatestMapsDisplayController)
+
+// Website -> Host
+latestMapsRouter.get("/getLatestMapsDisplay", roleAuthMiddleware([Roles.HOST]), getLatestMapsDisplayController)
 
 export default latestMapsRouter
 

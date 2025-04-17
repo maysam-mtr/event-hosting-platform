@@ -10,23 +10,79 @@ const createEventController = async (req: Request, res: Response): Promise<void>
     const eventData = req.body;
     const hostUser = (req as any).hostUser;
 
-// Check for validation errors
-const errors = validationResult(req);
-if (!errors.isEmpty()) {
-   sendResponse(res, false, 400, 'Validation failed', [], [
-        { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
-      ]);
-    return;
-}
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        sendResponse(res, false, 400, 'Validation failed', [], [
+            { code: 'VALIDATION_ERROR', message: errors.array()[0].msg },
+        ]);
+        return;
+    }
 
-        try {
-            const event = await createEvent(eventData, hostUser.id);
-            sendResponse(res, true, 201, 'Event created successfully', [event]);
-        } catch (err) {
-            sendResponse(res, false, 500, 'Failed to create event', [], [
-                { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
-            ]);
+    try {
+        const event = await createEvent(eventData, hostUser.id);
+
+        const getDateAndTime = (combinedDateAndTime: string) : Date | null => {
+            const localDate = new Date(combinedDateAndTime);
+            const scheduleStartTime = new Date(Date.UTC(
+                localDate.getUTCFullYear(),
+                localDate.getUTCMonth(),
+                localDate.getUTCDate(),
+                localDate.getUTCHours(),
+                localDate.getUTCMinutes(),
+                localDate.getUTCSeconds()
+            ));
+            
+            if (isNaN(scheduleStartTime.getTime())) {
+                return null;
+            }
+            
+            return scheduleStartTime
         }
+        const scheduleStartTime = getDateAndTime(`${event.event.startDate}T${event.event.startTime}`)
+        const scheduleEndTime = getDateAndTime(`${event.event.endDate}T${event.event.endTime}`)
+        if (!scheduleStartTime || !scheduleEndTime) {
+            sendResponse(res, false, 400, "Failed to convert event start/end date and time");
+            return;
+        }
+
+        const BASE_URL = process.env.BASE_URL || "http://localhost";
+        const SCHEDULER_PORT = process.env.SCHEDULER_PORT || 3333;
+
+        const requestBody = {
+            data: {
+                eventId: event.event.id
+            },
+            startTime: scheduleStartTime.toISOString(),
+            endTime: scheduleEndTime.toISOString(),
+        };
+
+        const cookieHeader = req.headers.cookie
+
+        const endpoint = `${BASE_URL}:${SCHEDULER_PORT}/schedule`;
+
+        const scheduleEventRes = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(cookieHeader ? { "Cookie": cookieHeader} : {}),
+            },
+            body: JSON.stringify(requestBody),
+            credentials: 'include'
+        });
+
+        if (!scheduleEventRes.ok) {
+            const errorDetails = await scheduleEventRes.json();
+            sendResponse(res, false, 400, `Failed to schedule event: ${errorDetails.message || scheduleEventRes.statusText}`);
+            return;
+        }
+
+        sendResponse(res, true, 201, 'Event created successfully', [event]);
+    } catch (err) {
+        sendResponse(res, false, 500, 'Failed to create event', [], [
+            { code: 'EVENT_CREATION_ERROR', message: (err as Error).message },
+        ]);
+    }
 };
 
 const updateEventController = async (req: Request, res: Response): Promise<void> => {
@@ -73,8 +129,16 @@ try {
 
 const getPublicEventsController = async (req: Request, res: Response): Promise<void> => {
     try {
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+        const page=req.query.page? parseInt(req.query.page as string, 10) : undefined;
+        if ( !limit|| !page || limit < 1 || page < 1) {
+            sendResponse(res, false, 400, 'Limit and page are required', [], [
+                { code: 'VALIDATION_ERROR', message: 'Limit and page are required' },
+              ]);
+            return;
+        }
         // Call the service function to fetch public events
-        const publicEvents = await getPublicEvents();
+        const publicEvents = await getPublicEvents(limit, page);
 
         // Return success response
         sendResponse(res, true, 200, 'Public Events retreived successfully', publicEvents);
@@ -139,7 +203,7 @@ const getEventsForHostController = async (req: Request, res: Response): Promise<
 // Filter events for host by status (past, ongoing, future)
 const filterEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { status } = req.body;
+        let { status } = req.body;
         const {hostId} = req.params;
 
         if (!status || !["past", "ongoing", "future"].includes(status as string)) {
@@ -164,7 +228,14 @@ const filterEventsByStatusController = async (req: Request, res: Response): Prom
 const filterPublicEventsByStatusController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { status } = req.params;
-
+       
+       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+        if (!limit || !page || limit < 1 || page < 1) {
+            sendResponse(res, false, 400, "Invalid status. Use 'past', 'ongoing', or 'future'.", [], [
+                { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'past', 'ongoing', or 'future'."},
+              ]);
+            return;}
         if (!status || !["ongoing", "future"].includes(status as string)) {
              sendResponse(res, false, 400, "Invalid status. Use 'ongoing', or 'future'.", [], [
                 { code: 'VALIDATION_ERROR', message: "Invalid status. Use 'ongoing', or 'future'."},
@@ -173,7 +244,7 @@ const filterPublicEventsByStatusController = async (req: Request, res: Response)
         }
 
         // Call the service function to filter events
-        const result = await filterPublicEventsByStatus(status as string);
+        const result = await filterPublicEventsByStatus(status as string,page as number,limit as number);
 
         // Return success response
         sendResponse(res, true, 200, 'Filter events successfully', result);

@@ -1,18 +1,16 @@
 import { config } from 'dotenv'
 
-const envFile = `.env.${process.env.NODE_ENV || 'development'}`
+const envFile = `.env.${process.env.NODE_ENV}`
 config({ path: envFile })
 
+// Backend server
 export const {
     PORT,
     NODE_ENV,
     BASE_URL,
-    ADMIN_TOKEN_COOKIE_NAME,
-    JWT_ADMIN_ACCESS_TOKEN_SECRET,
-    HOST_TOKEN_COOKIE_NAME,
-    JWT_HOST_ACCESS_TOKEN_SECRET,
 } = process.env
 
+// Database
 export const {
     DB_PORT,
     DB_USERNAME,
@@ -22,6 +20,27 @@ export const {
     DB_DIALECT,
 } = process.env
 
+// Admin
+export const {
+    ADMIN_USERNAME,
+    ADMIN_PASSWORD,
+    ADMIN_TOKEN_COOKIE_NAME,
+    JWT_ADMIN_ACCESS_TOKEN_SECRET,
+} = process.env
+
+// HOST
+export const {
+    HOST_TOKEN_COOKIE_NAME,
+    JWT_HOST_ACCESS_TOKEN_SECRET,
+} = process.env
+
+// USER
+export const {
+    USER_TOKEN_COOKIE_NAME,
+    JWT_USER_ACCESS_TOKEN_SECRET,
+} = process.env
+
+// Google Drive
 export const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -31,7 +50,15 @@ export const {
     GOOGLE_MAPS_FOLDER_ID,
 } = process.env
 
+// Supabase
 export const {
-    ADMIN_USERNAME,
-    ADMIN_PASSWORD,
+    BUCKET_NAME,
+    SUPABASE_URL,
+    SUPABASE_KEY,
+} = process.env
+
+// CORS
+export const {
+    MAP_FRONTEND_PROT,
+    GAME_ENGINE_PORT,
 } = process.env

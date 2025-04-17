@@ -16,7 +16,8 @@ import {
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
 import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
-import { Booth, Collision, Layer, Spawn } from "@/interfaces/map-layers.interface"
+import { Booth, Collision, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
+import { deleteMapThumbnail, downloadMapThumbnail } from "@/utils/supabase"
 
 const getMapsService = async (): Promise<Map[]> => {
   try {
@@ -56,7 +57,7 @@ const getMapDataByIdService = async (id: string): Promise<Map & { data: Object }
     }
     
     const jsonData = convertBufferToJson(data)
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return {
       ...res,
@@ -135,6 +136,10 @@ const downloadMapService = async (id: string): Promise<Buffer> => {
       }
     }
 
+    // Download the map thumbnail and add it to the archive 
+    const thumbnailData = await downloadMapThumbnail(map.imageId)
+    archive.append(thumbnailData, { name: map.imageId })
+
     // Finalize the archive
     archive.finalize()
 
@@ -151,9 +156,6 @@ const createMapService = async (mapData: Map): Promise<Map> => {
     mapData.original_map_id = null
     
     const createdMap = await repo.createMap(mapData)
-    if (!createdMap) {
-      throw new Error()
-    }
     
     const latestMap = await createLatestMapService({
       original_map_id: createdMap.id!,
@@ -183,10 +185,6 @@ const updateMapService = async (id: string, mapData: Map): Promise<Map> => {
 
     // Create a new map entry (version) instead of updating
     const createdMap = await repo.createMap(mapData)
-    
-    if (!createdMap)  {
-      throw new Error()
-    }
 
     const updateRes = await updateLatestMapByOriginalMapIdService({
       original_map_id: createdMap.original_map_id!,
@@ -244,6 +242,9 @@ const deleteMapService = async (id: string): Promise<number> => {
     
     // Trash the associated folder in Google Drive
     await trashFileOrFolder(map.folderId!)
+
+    // Delete map Thumbnail from Supabase
+    await deleteMapThumbnail(map.imageId)
     
 
     // now delete all old map versions
@@ -290,7 +291,7 @@ const getMapBoothsService = async (mapId : string) : Promise<Booth[]> => {
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.booths
   } catch (err: any) {
@@ -309,7 +310,7 @@ const getMapCollisionsService = async (mapId : string) : Promise<Collision[]> =>
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.collisions
   } catch (err: any) {
@@ -328,12 +329,32 @@ const getMapLayersService = async (mapId : string) : Promise<Layer[]> => {
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.layers
     
   } catch (err: any) {
     throw new CustomError("Error fetching map layers", 400)
+  }
+}
+
+const getMapTilesetsService = async (mapId : string) : Promise<Tileset[]> => {
+  try {
+    const map = await repo.getMapById(mapId)
+    
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+    
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+    const components = getMapComponents(jsonData)
+
+    return components.tilesets
+    
+  } catch (err: any) {
+    throw new CustomError("Error fetching map tilesets", 400)
   }
 }
 
@@ -348,7 +369,7 @@ const getspawnLocationService = async (mapId : string) : Promise<Spawn | null> =
     const res = await getFileByTypeFromFolder(map.folderId, "json")
     
     const jsonData = JSON.parse(res.data.toString())
-    const components = getMapComponents(jsonData.layers)
+    const components = getMapComponents(jsonData)
 
     return components.spawn
   } catch (err: any) {
@@ -370,5 +391,6 @@ export {
   getMapLayersService,
   getspawnLocationService,
   getRawMapService,
+  getMapTilesetsService,
 }
 

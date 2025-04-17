@@ -1,7 +1,9 @@
 import { parseStringPromise } from "xml2js"
 import { CustomError } from "../Response & Error Handling/custom-error"
+import sharp from "sharp"
 
-export const allowedExtensions: Set<string> = new Set(['.tmx', '.json', '.png', '.jpg', '.jpeg', '.tsx', '.ts'])
+export const allowedImageExtensions = ['.png', '.jpeg', '.jpg', '.webp', '.tiff', '.gif', '.svg', '.avif', '.heif', '.raw']
+export const allowedExtensions: Set<string> = new Set(['.tmx', '.json', '.tsx', '.ts'].concat(allowedImageExtensions))
 
 export const sanitizePath = (path: string): string => {
   // remove everything before the last '/'
@@ -59,4 +61,10 @@ export const convertJsonToBuffer = (jsonObject: any): Buffer => {
     } catch (err: any) {
         throw new CustomError("Error converting JSON to buffer", 400)
     }
+}
+
+export const convertImageToPng = async (inputBuffer: Buffer): Promise<Buffer> => {
+  return await sharp(inputBuffer)
+    .png()
+    .toBuffer()
 }

@@ -1,3 +1,4 @@
+import { ADMIN_TOKEN_COOKIE_NAME } from '@/config'
 import { Response } from 'express'
 import jwt from 'jsonwebtoken'
 
@@ -29,7 +30,7 @@ export const verifyJWT = async (
 
 export const clearToken = (res: Response) => {
     try {
-        res.clearCookie('token', {
+        res.clearCookie(ADMIN_TOKEN_COOKIE_NAME as string, {
             httpOnly: true,
             sameSite: 'strict'
         })
