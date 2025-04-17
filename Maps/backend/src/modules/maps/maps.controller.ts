@@ -20,6 +20,7 @@ import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
 import { Booth } from "@/interfaces/map-layers.interface"
 import { getFile, listFolderContent } from "@/utils/google-drive"
+import { updateMapThumbnailFileName } from "@/utils/supabase"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -104,6 +105,8 @@ const createMapController = async (req: Request, res: Response, next: NextFuncti
 
     const response = await createMapService(mapData)
 
+    updateMapThumbnailFileName(imageId as string, response.imageId as string)
+
     CustomResponse(res, 200, "Map created", response)
   } catch (err: any) {
     next(err)
@@ -137,6 +140,8 @@ const updateMapController = async (req: Request, res: Response, next: NextFuncti
     }
 
     const response = await updateMapService(id, mapData)
+
+    updateMapThumbnailFileName(imageId as string, response.imageId as string)
 
     CustomResponse(res, 200, "Map updated", response)
   } catch (err: any) {

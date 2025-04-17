@@ -2,90 +2,91 @@
 
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { verifyJWT } from "./jwt.service"
-import { JWT_ADMIN_ACCESS_TOKEN_SECRET, JWT_HOST_ACCESS_TOKEN_SECRET, HOST_TOKEN_COOKIE_NAME, ADMIN_TOKEN_COOKIE_NAME } from "@config/index"
+import { JWT_ADMIN_ACCESS_TOKEN_SECRET, JWT_HOST_ACCESS_TOKEN_SECRET, HOST_TOKEN_COOKIE_NAME, ADMIN_TOKEN_COOKIE_NAME, JWT_USER_ACCESS_TOKEN_SECRET, USER_TOKEN_COOKIE_NAME } from "@config/index"
 import { NextFunction, Request, Response } from "express"
+import { Roles } from "./roles"
 
-const verifyAdminToken = async (token: string) => {
-    const payload = await verifyJWT(token, JWT_ADMIN_ACCESS_TOKEN_SECRET as string)
 
-    return { ...payload, isAdmin: true }
+/**
+ * Helper function: verifies a token with a given secret and attaches the role.
+ */
+const verifyTokenForRole = async (
+  token: string,
+  secret: string,
+  role: Roles
+): Promise<{ [key: string]: any, role: Roles }> => {
+  const payload = await verifyJWT(token, secret)
+  return { ...payload, role }
 }
 
-const verifyHostToken = async (token: string) => {
-    const payload = await verifyJWT(token, JWT_HOST_ACCESS_TOKEN_SECRET as string)
 
-    return { ...payload, isHost: true }
-}
-  
-export const adminAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Middleware that always allows admins, and if not an admin,
+ * then only allows access if the token belongs to one of the allowedRoles.
+ *
+ * @param allowedRoles - array of roles (besides admin) that are permitted (e.g., [Roles.HOST, Roles.USER])
+ */
+export const roleAuthMiddleware = (allowedRoles: Roles[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
-      const token = req.cookies[cookieName]
       
-      if (!token) {
-        throw new CustomError("Unautherized access", 401)
-      }
-
-      req.context = await verifyAdminToken(token)
-
-      if (!req.context.isAdmin) {
-      throw new CustomError("Admin access required", 403)
-      }
-
-      next()
-    } catch (error) {
-        next(error)
-    }
-}
-
-export const hostAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const cookieName = HOST_TOKEN_COOKIE_NAME ?? "hostToken"
-      const token = req.cookies[cookieName]
-
-      if (!token) {
-        throw new CustomError("Unautherized access", 401)
-      }
-
-      req.context = await verifyHostToken(token)
-  
-      if (!req.context.isHost) {
-        throw new CustomError("Valid external token required", 403)
-      }
-  
-      next()
-    } catch (error) {
-      next(error)
-    }
-}
-
-export const adminAndHostAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Check if admin first
-      try {
-        const cookieName = ADMIN_TOKEN_COOKIE_NAME ?? "token"
-        const token = req.cookies[cookieName]
-        if (!token) {
-          throw new CustomError("Unautherized access", 401)
-        }
-        req.context = await verifyAdminToken(token)
-      } catch (err: any) {
-        // Now check if it's a host
+      // Try admin token first
+      const adminToken = req.cookies[ADMIN_TOKEN_COOKIE_NAME as string]
+      if (adminToken) {
+        
         try {
-          const cookieName = HOST_TOKEN_COOKIE_NAME ?? "hostToken"
-          const hostToken = req.cookies[cookieName]
-          if (!hostToken) {
-            throw new CustomError("Unautherized access", 401)
-          }
-          
-          req.context = await verifyHostToken(hostToken)
-        } catch (err2: any) {
-          throw new CustomError("Invalid token", 401)
+          const adminPayload = await verifyTokenForRole(
+            adminToken,
+            JWT_ADMIN_ACCESS_TOKEN_SECRET as string,
+            Roles.ADMIN
+          )
+          req.context = adminPayload
+          return next()
+        } catch (error) {
+          // If the admin token is present but invalid, we continue checking others.
         }
       }
 
-      next()
+      // For host
+      if (allowedRoles.includes(Roles.HOST)) {
+        const hostToken = req.cookies[HOST_TOKEN_COOKIE_NAME as string]
+        if (hostToken) {
+          try {
+            const hostPayload = await verifyTokenForRole(
+              hostToken,
+              JWT_HOST_ACCESS_TOKEN_SECRET as string,
+              Roles.HOST
+            )
+            req.context = hostPayload
+            return next()
+          } catch (error) {
+            // Continue checking if host token validation fails.
+          }
+        }
+      }
+
+      // For user
+      if (allowedRoles.includes(Roles.USER)) {
+        const userToken = req.cookies[USER_TOKEN_COOKIE_NAME as string]
+        if (userToken) {
+          try {
+            const userPayload = await verifyTokenForRole(
+              userToken,
+              JWT_USER_ACCESS_TOKEN_SECRET as string,
+              Roles.USER
+            )
+            req.context = userPayload
+            return next()
+          } catch (error) {
+            // Continue if user token validation fails.
+          }
+        }
+      }
+
+      //  Deny access if none of the checks passed.
+      throw new CustomError("Unauthorized access", 401)
     } catch (error) {
       next(error)
     }
+  }
 }
