@@ -9,7 +9,6 @@ import useSendRequest from "../../../hooks/use-send-request";
 
 const Container = styled.div`
   max-width: 100%;
-  margin: 40px auto;
   padding: 20px;
 `;
 

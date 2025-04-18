@@ -127,6 +127,28 @@ const InviteTable = styled.table`
   }
 `;
 
+const EnterButton = styled.button`
+  padding: 12px 16px;
+  background-color: var(--host-bg-base);
+  color: white;
+  border: none;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: var(--host-bg-dark);
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+
 export default function HostEventDetails() {
   const { eventId } = useParams();
   const {user} = useUserState();
@@ -292,7 +314,7 @@ export default function HostEventDetails() {
         if(response?.success === true){
             setEmails([...emails, assignedEmail]);
             setEmailInput("");
-            setBoothCounter((prev) => prev--);
+            setBoothCounter((prev) => prev--);//get all invitations filter to get accepted ones get booth ids taken use the ones not taken yet
         }else{
             setPopup({message: 'Something went wrong. Try again!', isVisible: true, type: 'fail'});
         }
@@ -334,7 +356,7 @@ export default function HostEventDetails() {
             </TitleWrapper>
             <div><strong>Code:</strong> {eventDetails.code}</div>
             <div><strong>Event Type:</strong> {eventDetails.eventType}</div>
-            {eventDetails.eventPassword !== '' && <div><strong>Event Passcode:</strong> {eventDetails.eventPassword}</div>}
+            {eventDetails.eventType === 'private' && <div><strong>Event Passcode:</strong> {eventDetails.eventPassword}</div>}
             <div><strong>Date:</strong> {eventDetails.startDate} {eventDetails.startDate == eventDetails.endDate ? null: ` - ${eventDetails.endDate}`}</div>
             <div><strong>Time:</strong> {eventDetails.startTime} - {eventDetails.endTime}</div>
             <div><strong>Map Name:</strong> Central Park</div>
@@ -347,13 +369,19 @@ export default function HostEventDetails() {
         {eventDetails.status === 'future' && 
         <Section style={{maxWidth: '600px'}}>
           <Title style={{marginBottom: '20px'}}>Invite Partners</Title>
-          <EmailInput
-            type="email"
-            placeholder="Enter email and press Enter"
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <EmailInput
+              type="email"
+              placeholder="Enter email and press Enter"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+            />
+            <EnterButton onClick={addEmail} disabled={!emailInput.trim()}>
+              Enter
+            </EnterButton>
+          </div>
+
           <TagInputWrapper>
             {invitations?.map((email, index) => (
               <EmailTag key={index}>
@@ -362,7 +390,7 @@ export default function HostEventDetails() {
               </EmailTag>
             ))}
           </TagInputWrapper>
-          <BlueButton>{loading ? <div><LoadingSpinner role="host"/></div> : 'Submit'}</BlueButton>
+          {/* <BlueButton>{loading ? <div><LoadingSpinner role="host"/></div> : 'Submit'}</BlueButton> */}
         </Section>}
 
         {/* Invitation Status Table */}
@@ -375,7 +403,6 @@ export default function HostEventDetails() {
                   <th>Email</th>
                   <th>Booth id</th>
                   <th>Status</th>
-                  <th>Expires at</th>
                 </tr>
               </thead>
               <tbody>
@@ -384,7 +411,6 @@ export default function HostEventDetails() {
                     <td>{invite.assignedEmail}</td>
                     <td>{invite.BoothDetail?.boothTemplateId || '-'}</td>
                     <td>{invite.status}</td>
-                    <td>{invite.expiresAt}</td>
                   </tr>
                 ))}
               </tbody>
