@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 
-const envFile = `.env.${process.env.NODE_ENV}`
+const envFile = ".env.development"
 config({ path: envFile })
 
 // Backend server
