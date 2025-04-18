@@ -318,6 +318,46 @@ const getEventDetails = async (eventId: string): Promise<any> => {
         throw new Error((error as Error).message || 'Failed to fetch event details.');
     }
 };
+import BoothDetails from "../models/BoothDetails"; // Adjust the import path as needed
+import Partner from "../models/Partner"; // Adjust the import path as needed
+import User from '../models/User';
+
+
+ export const getEventDetailsForHost =async (eventId: string): Promise<any>=> {
+    try {
+        const boothDetails = await BoothDetails.findAll({
+            where: {
+              eventId: eventId, // Filter by the specific event ID
+              partnerId: {
+                [Op.ne]: "2", // Exclude partner ID equal to 2
+              },
+            },
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "partnerId"], // Exclude createdAt, updatedAt, and partnerId
+            },
+            include: [
+              {
+                model: Partner, // Include the associated Partner model
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"], // Exclude createdAt and updatedAt from Partner
+                },
+                  include: [
+                    {
+                      model: User, // Include the associated User model
+                      attributes: ["email"], // Only include the email field from the User model
+                    },
+                  ],
+               
+              },
+            ],
+          });
+    
+          return {Partners: boothDetails};
+        } catch (error) {
+          console.error("Error fetching booth details:", error);
+          throw new Error("Failed to fetch booth details");
+        }
+      }
 
 // Helper function to check if an event is ongoing
 export const isEventOngoing = (
@@ -419,6 +459,8 @@ const getEventsForHost = async (hostId: string): Promise<any> => {
         throw new Error((error as Error).message || "Failed to retrieve events.");
     }
 };
+
+
 
 const filterEventsByStatus = async (
     hostId: string,

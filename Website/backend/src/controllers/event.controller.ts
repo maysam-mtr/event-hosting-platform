@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { createEvent , updateEvent , getPublicEvents ,getEventDetails,joinEvent,
     getEventsForHost, filterEventsByStatus,
-    filterPublicEventsByStatus
+    filterPublicEventsByStatus,
+    getEventDetailsForHost,
+    getEvent
 } from '../services/event.service';
 import { sendResponse} from '../Utils/responseHelper';
 
@@ -165,7 +167,47 @@ const getEventDetailsController = async (req: Request, res: Response): Promise<v
           ]);}
 };
 
+   export const getBoothDetailsForEventController= async(req: Request, res: Response): Promise<void>=> {
+    try {
+      // Extract the eventId from the request parameters
+      const { eventId } = req.params;
 
+      if (!eventId) {
+        res.status(400).json({ error: "Event ID is required" });
+        return;
+      }
+
+      // Call the service to fetch booth details
+      const boothDetails = await getEventDetailsForHost(eventId);
+      const event = await getEvent(eventId);
+
+      // Return the result as JSON
+      sendResponse(res, true, 200,  'Host event details returned successfully', [boothDetails,event] );
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'GET_EVENT_DETAILS_ERROR', message: (err as Error).message },
+          ]);}
+}
+
+export const getBoothPartnersForEventController= async(req: Request, res: Response): Promise<void>=> {
+    try {
+      // Extract the eventId from the request parameters
+      const { eventId } = req.params;
+
+      if (!eventId) {
+        res.status(400).json({ error: "Event ID is required" });
+        return;
+      }
+
+      // Call the service to fetch booth details
+      const boothDetails = await getEventDetailsForHost(eventId);
+      // Return the result as JSON
+      sendResponse(res, true, 200,  'Partners for host event returned successfully', boothDetails );
+    } catch (err) {
+        sendResponse(res, false, 500, 'Internal Server Error', [], [
+            { code: 'GET_EVENT_DETAILS_ERROR', message: (err as Error).message },
+          ]);}
+}
 const joinEventController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { eventId } = req.params; // Extract event ID from URL parameters

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { createEventController,updateEventController ,getPublicEventsController ,getEventDetailsController, joinEventController,
     getEventsForHostController, filterEventsByStatusController,
-    filterPublicEventsByStatusController
+    filterPublicEventsByStatusController,getBoothDetailsForEventController,getBoothPartnersForEventController
 } from '../controllers/event.controller';
 import { authenticateHost } from '../middleware/authentication';
 import { createEventValidation, updateEventValidation } from '../validation/event.validator';
@@ -12,6 +12,8 @@ router.post('/create', authenticateHost,createEventValidation(), createEventCont
 router.put('/update/:eventId', authenticateHost,updateEventValidation(), updateEventController);
 router.get('/public', getPublicEventsController);
 router.get('/details/:eventId', getEventDetailsController);
+router.get("/booth-details/:eventId",authenticateHost, getBoothDetailsForEventController);
+router.get("/booth-partner/:eventId",authenticateHost, getBoothPartnersForEventController);
 router.post('/:eventId/join',joinEventController);
 
 // Get all events for a specific host
