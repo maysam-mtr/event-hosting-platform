@@ -64,7 +64,7 @@ export async function deleteMap(id: string): Promise<CustomResponse<null>> {
 
 // Get latest maps
 export async function getLatestMaps(): Promise<CustomResponse<Map[]>> {
-  const response = await fetch(`${API_BASE_URL}/latestMaps/getLatestMapsWithDetails`, defaultFetchOptions)
+  const response = await fetch(`${API_BASE_URL}/latestMaps/getLatestMapsDisplay`, defaultFetchOptions)
   return handleResponse<Map[]>(response)
 }
 

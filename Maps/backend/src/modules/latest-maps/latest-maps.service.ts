@@ -23,8 +23,6 @@ const getLatestMapsWithDetailsService = async (): Promise<MapWithBooths[]> => {
   try {
     const latestMaps = await repo.getLatestMaps()
 
-    if (!latestMaps || latestMaps.length === 0) throw new CustomError("Found maps count: 0", 404)
-
     // Get the actual map details for each latest map
     const mapDetails: MapWithBooths[] = []
     for (const latestMap of latestMaps) {
@@ -32,12 +30,8 @@ const getLatestMapsWithDetailsService = async (): Promise<MapWithBooths[]> => {
       if (map) {
         const mapBooths = await getMapBoothsService(map.id as string)
         const mapWithBooths: MapWithBooths = {
-          id: map.id,
-          name: map.name,
-          imageId: map.imageId,
-          updated_at: map.updated_at,
-          folderId: map.folderId,
-          booths: mapBooths.length 
+          ...map,
+          booths: mapBooths.length
         }
         mapDetails.push(mapWithBooths)
       }

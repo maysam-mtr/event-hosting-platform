@@ -6,7 +6,7 @@ export const repo = {
         return await DB.Maps.findAll()
     },
     getMapById: async (id: string): Promise<Map | null> => {
-        return await DB.Maps.findByPk(id)
+        return await DB.Maps.findByPk(id, { raw: true })
     },
     getMapIdsByOriginalMapId: async (oid: string): Promise<Map[]> => {
         return await DB.Maps.findAll({

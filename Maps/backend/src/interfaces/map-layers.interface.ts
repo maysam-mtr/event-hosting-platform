@@ -45,3 +45,10 @@ export interface Tileset {
     tileheight: number,
     tilewidth: number
 }
+
+export interface Dimensions {
+    width: number, 
+    height: number,
+    tilewidth: number,
+    tileheight: number
+}

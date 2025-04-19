@@ -60,6 +60,6 @@ export const {
 // CORS
 export const {
     MAP_FRONTEND_PROT,
-    GAME_ENGINE_PORT,
+    GAME_ENGINE_BACKEND_PORT,
     WEBSITE_FRONTEND_PORT
 } = process.env
