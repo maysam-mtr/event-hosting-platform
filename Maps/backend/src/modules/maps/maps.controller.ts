@@ -13,6 +13,7 @@ import {
   getspawnLocationService,
   getRawMapService,
   getMapTilesetsService,
+  getMapDimensionsService,
 } from "./maps.service"
 import { uploadFilesToDrive } from "../../utils/files-upload.handler"
 import { getLatestMapByOriginalMapIdService } from "../latest-maps/latest-maps.service"
@@ -20,7 +21,8 @@ import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
 import { Booth } from "@/interfaces/map-layers.interface"
 import { getFile, listFolderContent } from "@/utils/google-drive"
-import { updateMapThumbnailFileName } from "@/utils/supabase"
+import { downloadMapThumbnail, updateMapThumbnailFileName } from "@/utils/supabase"
+import sharp from "sharp"
 
 const getMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -214,7 +216,18 @@ const getMapBoothsDisplayController = async (req: Request, res: Response, next: 
 
     const fullResponse = await getMapBoothsService(id)
 
-    const response = fullResponse.map((booth: Booth) => ({
+    const mapDimensions = await getMapDimensionsService(id)
+
+    const buffer = await downloadMapThumbnail(`${id}.png`)
+    
+    const image = sharp(buffer)
+    const metadata = await image.metadata()
+
+    if (!metadata.width || !metadata.height) {
+      throw new CustomError("Error extracting image dimensions", 400)
+    }
+
+    const booths = fullResponse.map((booth: Booth) => ({
       id: booth.id,
       x: booth.x,
       y: booth.y,
@@ -222,7 +235,16 @@ const getMapBoothsDisplayController = async (req: Request, res: Response, next: 
       height: booth.height,
     }))
 
-    CustomResponse(res, 200, "Map booths successfully retrieved", response)
+    CustomResponse(res, 200, "Map booths successfully retrieved", {
+      image: {
+        width: metadata.width,
+        height: metadata.height
+      },
+      map: {
+        ...mapDimensions
+      },
+      booths
+    })
   } catch (err: any) {
     next(err)
   }

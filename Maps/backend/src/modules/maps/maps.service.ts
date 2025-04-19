@@ -16,7 +16,7 @@ import {
   updateLatestMapByOriginalMapIdService,
 } from "../latest-maps/latest-maps.service"
 import { convertBufferToJson } from "@/utils/Helpers/helper-functions"
-import { Booth, Collision, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
+import { Booth, Collision, Dimensions, Layer, Spawn, Tileset } from "@/interfaces/map-layers.interface"
 import { deleteMapThumbnail, downloadMapThumbnail } from "@/utils/supabase"
 
 const getMapsService = async (): Promise<Map[]> => {
@@ -377,6 +377,29 @@ const getspawnLocationService = async (mapId : string) : Promise<Spawn | null> =
   }
 }
 
+const getMapDimensionsService = async (mapId: string): Promise<Dimensions> => {
+  try {
+    const map = await repo.getMapById(mapId)
+
+    if (!map) {
+      throw new CustomError("Map not found", 400)
+    }
+
+    const res = await getFileByTypeFromFolder(map.folderId, "json")
+    
+    const jsonData = JSON.parse(res.data.toString())
+
+    return {
+      width: jsonData.width,
+      height: jsonData.height,
+      tilewidth: jsonData.tilewidth,
+      tileheight: jsonData.tileheight
+    }
+  } catch (err: any) {
+    throw new CustomError("Error extracting map dimensions", 400)
+  }
+}
+
 export {
   getMapsService,
   getMapByIdService,
@@ -392,5 +415,6 @@ export {
   getspawnLocationService,
   getRawMapService,
   getMapTilesetsService,
+  getMapDimensionsService,
 }
 

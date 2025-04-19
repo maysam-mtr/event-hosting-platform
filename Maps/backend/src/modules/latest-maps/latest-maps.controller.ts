@@ -5,7 +5,6 @@ import {
   getLatestMapsWithDetailsService,
 } from "./latest-maps.service"
 import { CustomResponse } from "@/utils/Response & Error Handling/custom-response"
-import { Map } from "@/interfaces/map.interface"
 
 const getLatestMapsController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -24,6 +23,7 @@ const getLatestMapsDisplayController = async (req: Request, res: Response, next:
       id: map.id,
       name: map.name,
       imageId: map.imageId,
+      created_at: map.created_at,
       updated_at: map.updated_at,
       booths: map.booths
     }))
