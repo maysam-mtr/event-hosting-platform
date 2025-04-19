@@ -10,6 +10,8 @@ const Spinner = styled.div`
   height: 50%;
   max-width: 100px;
   max-height: 100px;
+  min-width: 20px;
+  min-height: 20px;
   border: 5px solid #fff;
   border-top: 5px solid ${({$role}) => $role === 'host' ? 'var(--host-bg-light)' : 'var(--general-bg-light)'};
   border-radius: 50%;

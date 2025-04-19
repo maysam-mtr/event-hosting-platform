@@ -134,6 +134,7 @@ export default function MyEventsPage() {
       const URL = `/api/events/hosts/${user.id}`;
 
       const {request, response} = await sendRequest(URL);
+      console.log(response)
   
       if(response?.success === true && response.data?.length > 0){
         const eventsList = response.data;
@@ -173,7 +174,7 @@ export default function MyEventsPage() {
     const URL = '/api/latestMaps/getLatestMapsDisplay';
 
     const {response} = await sendRequest(URL, {}, 'maps');
-    //console.log(response)
+    console.log(response)
 
     if(response?.statusCode === 200){
       setMaps(response.data)
@@ -183,15 +184,13 @@ export default function MyEventsPage() {
     }
   }
 
-  const getMapPreviewImg = (mapId) => {
-    const map = maps?.find(map => map.id === mapId);
-    if(!map){
-      return previewImg;
+    const getMapPreviewImg = (mapId) => {
+        if(!mapId){
+          return previewImg;
+        }
+    
+        return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId + '.png';          
     }
-
-    return `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`;
-          
-  }
 
   return (
     <Section>
@@ -226,7 +225,7 @@ export default function MyEventsPage() {
                 getEventStatus(status) : 'Unknown'}
             </StatusIndicator>
             <Schedule><strong>Type:</strong> {event.eventType}</Schedule>
-            <Schedule><strong>Scheduled at:</strong> {event.startDate} - {event.startTime}</Schedule>
+            <Schedule><strong>Scheduled at:</strong> {formatDateTime(`${event.startDate}T${event.startTime}`)}</Schedule>
             <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
             <Button3 
               style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 

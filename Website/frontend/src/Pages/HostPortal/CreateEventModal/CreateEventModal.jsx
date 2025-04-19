@@ -349,7 +349,7 @@ export default function CreateEventModal({setPopup}) {
     const URL = '/api/latestMaps/getLatestMapsDisplay';
 
     const {response} = await sendRequest(URL, {}, 'maps');
-    //console.log(response)
+    console.log(response)
 
     if(response?.statusCode === 200){
       setMaps(response.data)
@@ -357,6 +357,15 @@ export default function CreateEventModal({setPopup}) {
       setMaps([])
       setErrorMsg("Something went wrong. Please Try again!");
     }
+  }
+
+  const getMapPreviewImg = (mapId) => {
+    if(!mapId){
+      return landing2;
+    }
+      
+   return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId;
+                
   }
 
   useEffect(() => {
@@ -405,9 +414,7 @@ export default function CreateEventModal({setPopup}) {
                 <MapCard key={map.id} selected={selectedMap === map.id} onClick={() => setSelectedMap(map.id)}>
                   <img
                     src={
-                      map.imageId
-                        ? `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`
-                        : `/image-placeholder.jpg`
+                     getMapPreviewImg(map.imageId)
                     }
                     alt={map.name}
                     onError={(e) => {
@@ -419,8 +426,8 @@ export default function CreateEventModal({setPopup}) {
                   <div className="info">
                     <div className="category">Event</div>
                     <h4>{map.name}</h4>
-                    {/* <p className="capacity">Capacity: {map.capacity}</p> */}
-                    <p className="capacity">Updated at: {formatDateTime(map.updated_at)}</p>
+                    <p style={{fontSize: 'var(--body)', color: 'var(--background-four)'}}><strong>Number of booths:</strong> {map.booths}</p>
+                    {/* <p className="capacity"><strong>Updated at: </strong>{formatDateTime(map.updated_at)}</p> */}
                   </div>
                 </MapCard>
               ))}

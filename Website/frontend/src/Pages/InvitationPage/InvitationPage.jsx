@@ -210,7 +210,7 @@ export default function InvitationPage(){
             // submit payload to backend/db
       
         } catch (err) {
-            setPopup({message:`Image upload failed: ${err.message}`, type: fail, isVisible: true});
+            setPopup({message:`Image upload failed: ${err.message}`, type: 'fail', isVisible: true});
         }
     }
 

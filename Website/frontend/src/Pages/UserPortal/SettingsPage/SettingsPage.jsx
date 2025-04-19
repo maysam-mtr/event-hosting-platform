@@ -5,6 +5,8 @@ import Input from '../../../components/Input/Input';
 import useUserState from '../../../hooks/use-user-state';
 import Popup from '../../../components/Popup/Popup';
 import useSendRequest from '../../../hooks/use-send-request';
+import ImageInput from '../../../components/ImageInput/ImageInput';
+import { uploadImage } from '../../../Supabase/uploadImage';
 
 const Container = styled.div`
   max-width: 100%;
@@ -121,6 +123,7 @@ flex-direction: column;
 export default function SettingsPage() {
   const { user, setUser } = useUserState();
   const [sendRequest] = useSendRequest();
+  const [imageFile, setImageFile] = useState(null);
 
   const [userData, setUserData] = useState({
     //profilePic: user.profilePic || profile,
@@ -156,7 +159,38 @@ export default function SettingsPage() {
 
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
 
+  async function onUpdateClick(e){
+    e.preventDefault();
+    try {
+      let imageUrl = "";
+      let payload = {
+          ...partnerData,
+      };
+
+
+      //if (!imageFile) {
+        imageUrl = await uploadImage(imageFile);
+        console.log(imageUrl)
+
+        payload = {
+          ...partnerData,
+          companyLogo: imageUrl,
+        };
+
+        setPartnerData(payload)
+      //}
+      
+      console.log("Final payload for DB:", payload);
+      updatePartnerInformation(payload)
+      // submit payload to backend/db
+      
+    } catch (err) {
+            setPopup({message:`Image upload failed: ${err.message}`, type: 'fail', isVisible: true});
+    }
+  }
+
   async function updateUserInformation (){
+    
     // if(!userData.phoneNumber){
     //   setPopup({message: 'Phone Number is required', type: 'fail', isVisible: true});
     //   return;
@@ -197,11 +231,11 @@ export default function SettingsPage() {
     }
   }
 
-  async function updatePartnerInformation(){
+  async function updatePartnerInformation(payload){
     const partnerId = user.partnerId;
 
     const body = Object.fromEntries(
-      Object.entries(partnerData).filter(([key, value]) => value !== null && key !='userId' && key!='id')
+      Object.entries(payload).filter(([key, value]) => value !== null && key !='userId' && key!='id')
     );
 
     console.log(body)
@@ -216,6 +250,7 @@ export default function SettingsPage() {
 
     if(response?.success === true){
       setPopup({message: 'Info updated successfully!', isVisible: true, type: 'success'});
+      getPartnerDetails();
     }else if(response?.success === false && response.error[0].code === 'VALIDATION_ERROR'){
       setPopup({message: response.error[0].message, isVisible: true, type: 'fail'});  
     }else{
@@ -285,12 +320,25 @@ export default function SettingsPage() {
                       placeholder={`Enter company name`}
                 />
 
-                <Input label={'Company Logo*'} 
+                {/* <Input label={'Company Logo*'} 
                       type='text' 
                       name={'companyLogo'} 
                       data={partnerData} 
                       setData={setPartnerData} 
-                />
+                /> */}
+                <ImageInput 
+                  label="Company Logo*"
+                  name={'companyLogo'}
+                  required={true}
+                  setFile={setImageFile}/>
+
+                {partnerData.companyLogo &&
+                 (<div style={{display: 'flex', gap: '10px'}}>
+                  <div style={{fontSize: '12px'}}>Current Logo: </div>
+                  <img src={partnerData.companyLogo} 
+                    alt='Preview img' 
+                    style={{height: '50px', width: 'auto', border: '1px solid var(--border-color)', borderRadius: '10px'}}/>
+                </div>)}
 
                 <Input label={'Company Industry'} 
                       type='text' 
@@ -348,7 +396,7 @@ export default function SettingsPage() {
                       placeholder={`ex. 09288299`}
                 />
 
-                <UpdateButton onClick={updatePartnerInformation}>Update</UpdateButton>
+                <UpdateButton onClick={onUpdateClick}>Update</UpdateButton>
               </EditableDetails>
             </Card>
           )}

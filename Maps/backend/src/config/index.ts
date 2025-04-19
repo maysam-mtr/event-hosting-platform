@@ -61,4 +61,5 @@ export const {
 export const {
     MAP_FRONTEND_PROT,
     GAME_ENGINE_PORT,
+    WEBSITE_FRONTEND_PORT
 } = process.env

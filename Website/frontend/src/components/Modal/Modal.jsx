@@ -16,9 +16,10 @@ const ModalOverlay = styled.div`
 const ModalContainer = styled.div`
   background-color: white;
   border-radius: 10px;
-  max-width: 600px;
   max-height: 85vh;
-  width: 100%;
+  width: auto; /*600px*/
+  min-width: 600px;
+  max-width: 1000px;
   overflow-y: auto;
 `;
 

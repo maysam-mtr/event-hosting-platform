@@ -16,6 +16,7 @@ import getEventStatus from "../../../utils/getEventStatus";
 import Popup from "../../../components/Popup/Popup";
 import { BlueButton } from "../SettingsHostPage/SettingsHostPage";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
+import BoothMap from "./BoothMap";
 
 const Container = styled.div`
   padding: 40px 20px;
@@ -38,9 +39,13 @@ const TopSection = styled.div`
 `;
 
 const PreviewImage = styled.img`
-  width: 500px;
+  /*width: 500px;
   max-width: 100%;
-  max-height: 400px;
+  max-height: 400px;*/
+
+  height: 350px;
+  width: auto;
+
   object-fit: cover;
   border-radius: 12px;
 `;
@@ -177,36 +182,28 @@ export default function HostEventDetails() {
   const [emailInput, setEmailInput] = useState("");
   const [emails, setEmails] = useState([]);
   const [inviteStatus, setInviteStatus] = useState([]);
+  const [accptedPartners, setAcceptedPartners] = useState([]);
+  const [mapDetails, setMapDetails] = useState({});
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
-  const [boothCounter, setBoothCounter] = useState(5);
-  const [booths, setBooths] = useState([
-    {
-        id: 1,
-    },
-    {
-        id: 2
-    },
-    {
-        id: 3
-    },
-    {
-        id: 4
-    },
-    {
-        id: 5
-    }
-  ]);
+  const [boothCounter, setBoothCounter] = useState(0);
+  const [booths, setBooths] = useState([]);
   const [invitations, setInvitations] = useState([]);
+  const [freeBooths, setFreeBooths] = useState([]);
 
   const addEmail = () => {
     const trimmed = emailInput.trim();
     if (!trimmed || emails.includes(trimmed)) {
         return;
+    }  
+    
+    console.log('1', freeBooths, boothCounter)
+
+    if(freeBooths[boothCounter-1] && boothCounter > 0){
+      console.log('2')
+        onInvitePartnerClick(freeBooths[boothCounter-1].id, trimmed);
+        setBoothCounter((prev) => prev-1);
     }
 
-    if(boothCounter > 0){
-        onInvitePartnerClick(booths[boothCounter-1]?.id, trimmed);
-    }
     //setInviteStatus([...inviteStatus, { email: trimmed, status: "Pending" }]);
   };
 
@@ -224,7 +221,12 @@ export default function HostEventDetails() {
 
   useEffect(() => {
     getEventDetails();
+    //getMapDetails();
   }, [])
+  
+  // useEffect(() => {
+  //   getMapDetails();
+  // }, [eventDetails])
 
     async function getEventDetails(){
       const URL = `/api/events/details/${eventId}`;
@@ -255,6 +257,9 @@ export default function HostEventDetails() {
           previewImageUrl: previewImg,
         })
 
+        getMapDetails(eventData.mapTemplateId);
+        getMapBoothsIds(eventData.mapTemplateId);
+
         if(eventData.eventType === 'private'){
             getEventCredentials();
         }
@@ -277,30 +282,44 @@ export default function HostEventDetails() {
 
     }
 
-    async function getMapBoothsIds(){
-        setBoothCounter(5);
-        return [
-            {
-                id: 1,
-            },
-            {
-                id: 2
-            },
-            {
-                id: 3
-            },
-            {
-                id: 4
-            },
-            {
-                id: 5
+    async function getMapBoothsIds(mapId){
+        if(!mapId){
+          return;
+        }
+  
+        const URL = `/api/maps/getMapBoothsDisplay/${mapId}`;
+  
+        const {response} = await sendRequest(URL, {} , 'maps');
+        console.log(response)
+  
+        if(response?.statusCode === 200){
+            const booths = response.data;
+            console.log(booths)
+            setBooths(booths);
+
+            const takenBooths = accptedPartners.map(partner => Number(partner.boothTemplateId)) || [];
+            let unregisteredBooths = [];
+
+            if(takenBooths?.length > 0){
+              unregisteredBooths = booths.filter(booth => !takenBooths?.includes(booth.id));
+            }else{
+              unregisteredBooths =[...booths];
             }
-        ]
+
+            setFreeBooths(unregisteredBooths)
+            setBoothCounter(unregisteredBooths.length)
+        }else if(response?.statusCode === 404){
+          setPopup({message: 'No booths found', type: 'fail', isVisible: true});
+        }
+        else{
+            setPopup({message: 'Error loading map booths', type: 'fail', isVisible: true});
+        }
     }
 
     async function onInvitePartnerClick(boothId, assignedEmail){
         setLoading(true);
         console.log(boothId)
+        console.log('3')
         const URL = `/api/invitations/invite/${eventDetails.code}`;
         const INIT = {method: 'POST', body: JSON.stringify({
             boothTemplateId: boothId,
@@ -310,11 +329,11 @@ export default function HostEventDetails() {
 
         const {response} = await sendRequest(URL, INIT);
         console.log(response, URL, INIT)
+        console.log('4')
 
         if(response?.success === true){
             setEmails([...emails, assignedEmail]);
             setEmailInput("");
-            setBoothCounter((prev) => prev--);//get all invitations filter to get accepted ones get booth ids taken use the ones not taken yet
         }else{
             setPopup({message: 'Something went wrong. Try again!', isVisible: true, type: 'fail'});
         }
@@ -325,20 +344,67 @@ export default function HostEventDetails() {
         const URL = `/api/invitations/events/${eventId}/getAll`;
 
         const {response} = await sendRequest(URL);
-        console.log(response)
+        console.log(response, response.error[0]?.message)
 
         if(response?.success === true){
             const invites = response.data[0]?.invitations;
             setInvitations(invites);
         }else if(response?.success === false && response.error[0]?.message === 'No invitations found for this event'){
-        
+          return;
         }else{
             setPopup({message: 'Error loading invitations', type: 'fail', isVisible: true});
         }
     }
 
+    async function getAcceptedPartners(){
+      const URL = `/api/events/booth-partner/${eventId}`;
+
+      const {response} = await sendRequest(URL);
+      console.log(response)
+
+      if(response?.success === true){
+          const partnersList = response.data[0]?.Partners;
+          setAcceptedPartners(partnersList);
+      }else{
+          setPopup({message: 'Error loading partners', type: 'fail', isVisible: true});
+      }
+    }
+
+    async function getMapDetails(mapId){
+      if(!mapId){
+        return;
+      }
+
+      console.log(mapId)
+
+      const URL = `/api/maps/getMap/${mapId}`;
+
+      const {response} = await sendRequest(URL, {} , 'maps');
+      console.log(response)
+
+      if(response?.statusCode === 200){
+          const map = response.data;
+          setMapDetails(map);
+      }else if(response?.statusCode === 404){
+        setPopup({message: 'No such map found', type: 'fail', isVisible: true});
+      }
+      else{
+          setPopup({message: 'Error loading map details', type: 'fail', isVisible: true});
+      }
+    }
+
+    const getMapPreviewImg = (mapId) => {
+        if(!mapId){
+          return previewImg;
+        }
+          
+       return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId;
+                    
+    }
+
     useEffect(() => {
         getInvitations();
+        getAcceptedPartners();
     }, [emails])
 
   return (
@@ -346,7 +412,7 @@ export default function HostEventDetails() {
     <Popup popUpSettings={popup}/>
       <FullWidthContent>
         <TopSection>
-          <PreviewImage src={eventDetails.previewImageUrl} alt="Event Preview" />
+          <PreviewImage src={getMapPreviewImg(mapDetails.imageId)} alt="Event Preview" />
           <InfoBlock>
             <TitleWrapper>
             <Title>{eventDetails.eventName}</Title>
@@ -357,9 +423,10 @@ export default function HostEventDetails() {
             <div><strong>Code:</strong> {eventDetails.code}</div>
             <div><strong>Event Type:</strong> {eventDetails.eventType}</div>
             {eventDetails.eventType === 'private' && <div><strong>Event Passcode:</strong> {eventDetails.eventPassword}</div>}
-            <div><strong>Date:</strong> {eventDetails.startDate} {eventDetails.startDate == eventDetails.endDate ? null: ` - ${eventDetails.endDate}`}</div>
-            <div><strong>Time:</strong> {eventDetails.startTime} - {eventDetails.endTime}</div>
-            <div><strong>Map Name:</strong> Central Park</div>
+            <div><strong>Starts at:</strong> {formatDateTime(`${eventDetails.startDate}T${eventDetails.startTime}`)}</div>
+            <div><strong>Ends at:</strong> {formatDateTime(`${eventDetails.endDate}T${eventDetails.endTime}`)}</div>
+            <div><strong>Map Name:</strong> {mapDetails.name}</div>
+            <div><strong>Nb of Booths:</strong> {booths?.length}</div>
             <div><strong>Created At:</strong> {eventDetails.createdAt}</div>
             <div><strong>Updated At:</strong> {eventDetails.updatedAt}</div>
           </InfoBlock>
@@ -378,7 +445,7 @@ export default function HostEventDetails() {
               onKeyDown={handleKeyPress}
             />
             <EnterButton onClick={addEmail} disabled={!emailInput.trim()}>
-              Enter
+              {loading ? <LoadingSpinner role="host"/> : 'Enter'}
             </EnterButton>
           </div>
 
@@ -392,6 +459,32 @@ export default function HostEventDetails() {
           </TagInputWrapper>
           {/* <BlueButton>{loading ? <div><LoadingSpinner role="host"/></div> : 'Submit'}</BlueButton> */}
         </Section>}
+
+        <Section>
+          <Title >Registered Partners</Title>
+          <TableWrapper>
+            <InviteTable>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Booth id</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accptedPartners?.map((partner, idx) => (
+                  <tr key={idx}>
+                    <td>{partner.Partner.companyName}</td>
+                    <td>{partner.Partner.primaryContactFullName}</td>
+                    <td>{partner.Partner.User?.email}</td>
+                    <td>{partner.boothTemplateId || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </InviteTable>
+          </TableWrapper>
+        </Section>
 
         {/* Invitation Status Table */}
         <Section>
@@ -417,6 +510,11 @@ export default function HostEventDetails() {
             </InviteTable>
           </TableWrapper>
         </Section>
+
+        {/* <Section>
+          <Title>Map Preview</Title>
+          <BoothMap mapUrl={getMapPreviewImg(mapDetails.imageId)} booths={booths} mapWidth={'500px'}/>
+        </Section> */}
       </FullWidthContent>
     </Container>
   );

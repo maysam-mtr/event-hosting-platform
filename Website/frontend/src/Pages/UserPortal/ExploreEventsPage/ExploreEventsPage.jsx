@@ -9,6 +9,44 @@ import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
 import { useNavigate } from "react-router-dom";
 import getEventStatus from "../../../utils/getEventStatus";
+import styled from "styled-components";
+
+const PagingWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem 0 0;
+  flex-wrap: wrap;
+`;
+
+const PageButton = styled.button`
+  background-color: ${({ $active }) => ($active ? 'var(--general-bg-base)' : 'transparent')};
+  border: 1px solid var(--border-color);
+  color: ${({ $active }) => ($active ? '#fff' : 'var(--primary-color)')};
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--general-bg-base);
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
+const Dots = styled.span`
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  user-select: none;
+`;
 
 export default function ExploreEventsPage(){
   const [events, setEvents] = useState([]);
@@ -17,33 +55,41 @@ export default function ExploreEventsPage(){
     const navigate = useNavigate();
     const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
     const [maps, setMaps] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
   
     useEffect(() => {
-      getPublicEvents();
-      getMaps();
-    }, [user]);
+      getPublicEvents(currentPage);
+    }, [currentPage]);
+
+    // useEffect(() => {
+    //   getMaps();
+    // }, []);
   
-    async function getPublicEvents(){
-      const URL = '/api/events/public';
-  
-      const {request, response} = await sendRequest(URL);
+    async function getPublicEvents(page = 1){
+      const limit = 10;
+      const URL = `/api/events/public?page=${page}&limit=${limit}`;
+    
+      const { request, response } = await sendRequest(URL);
       //console.log(response)
-  
-      if(response?.success === true && response.data.length > 0){
-        console.log(response.data)
-        setEvents(response.data);
-      }else if(!response?.success){
-        setEvents([])
-        setPopup({message: 'Failed to retrieve events', type: 'fail', isVisible: true});
+    
+      if (response?.success === true) {
+        const eventList = response.data;
+    
+        setEvents(eventList);
+        setHasMore(eventList.length === limit); // if less than limit, no more pages
+      } else {
+        setEvents([]);
+        setHasMore(false);
+        setPopup({ message: 'Failed to retrieve events', type: 'fail', isVisible: true });
       }
-  
     }
 
     async function getMaps(){
         const URL = '/api/latestMaps/getLatestMapsDisplay';
     
-        const {response} = await sendRequest(URL, {}, 'maps');
-        //console.log(response)
+        const {request, response} = await sendRequest(URL, {}, 'maps');
+        console.log(request, response)
     
         if(response?.statusCode === 200){
           setMaps(response.data)
@@ -54,14 +100,25 @@ export default function ExploreEventsPage(){
     }
     
     const getMapPreviewImg = (mapId) => {
-        const map = maps?.find(map => map.id === mapId);
-        if(!map){
+        if(!mapId){
           return previewImg;
         }
     
-        return `https://drive.google.com/thumbnail?id=${map.imageId}&sz=w320-h160`;
+        return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId + '.png';
               
     }
+
+    const getPageNumbers = (currentPage, hasMore) => {
+      const pages = [];
+    
+      // Always show current page
+      if (currentPage > 1) pages.push(currentPage - 1);
+      pages.push(currentPage);
+      if (hasMore) pages.push(currentPage + 1);
+    
+      return pages;
+    };
+    
     
     return (
         <Section>
@@ -78,14 +135,49 @@ export default function ExploreEventsPage(){
                   }}/>
                   <EventTitle>{event.eventName}</EventTitle>
                   <StatusIndicator style={{alignSelf: 'center'}} $status={event.status}>{getEventStatus(event.status)}</StatusIndicator>
-                  <Schedule><strong>Host: </strong>{event.hostname}</Schedule>
-                  <Schedule><strong>Scheduled at:</strong>{event.startDate} {event.startTime}</Schedule>
+                  <Schedule><strong>Host: </strong>{event.hostName}</Schedule>
+                  <Schedule><strong>Scheduled at:</strong>{formatDateTime(`${event.startDate}T${event.startTime}`)}</Schedule>
                   <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
                   <Button1 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 
                       onClick={()=> {navigate(`/event/details/${event.id}`, {replace: true})}}>View Details</Button1>
                 </Card>
               ))}
             </CardsWrapper>
+            <PagingWrapper>
+              <PageButton onClick={() => setCurrentPage(prev => prev - 1)} disabled={currentPage === 1}>
+                ◀ Prev
+              </PageButton>
+
+              {currentPage > 2 && (
+                <>
+                  <PageButton onClick={() => setCurrentPage(1)}>1</PageButton>
+                  <Dots>...</Dots>
+                </>
+              )}
+
+              {getPageNumbers(currentPage, hasMore).map((page) => (
+                <PageButton
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  $active={page === currentPage}
+                >
+                  {page}
+                </PageButton>
+              ))}
+
+              {hasMore && (
+                <>
+                  <Dots>...</Dots>
+                  <PageButton onClick={() => setCurrentPage(prev => prev + 1)}>
+                    {currentPage + 2}
+                  </PageButton>
+                </>
+              )}
+
+              <PageButton onClick={() => setCurrentPage(prev => prev + 1)} disabled={!hasMore}>
+                Next ▶
+              </PageButton>
+            </PagingWrapper>
         </Section>
     )
 }

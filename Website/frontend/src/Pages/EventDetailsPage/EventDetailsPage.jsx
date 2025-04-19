@@ -147,6 +147,7 @@ export default function EventDetailsPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mapDetails, setMapDetails] = useState({});
   const [passcode, setPasscode] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -187,7 +188,10 @@ export default function EventDetailsPage() {
         eventStatus: eventData.isOngoing.status || 'unknown',
         gameMapName: "Desert Storm",
         previewImageUrl: previewImg,
+        mapTemplateId: eventData.mapTemplateId
       })
+
+      //getMapDetails(eventData.mapTemplateId);
     }
   }
 
@@ -217,6 +221,38 @@ export default function EventDetailsPage() {
     setLoading(false);
   }
 
+  async function getMapDetails(mapId){
+    if(!mapId){
+      return;
+    }
+
+    console.log(mapId)
+
+    const URL = `/api/maps/getMap/${mapId}`;
+
+    const {response} = await sendRequest(URL, {} , 'maps');
+    console.log(response)
+
+    if(response?.statusCode === 200){
+        const map = response.data;
+        setMapDetails(map);
+    }else if(response?.statusCode === 200){
+      setPopup({message: 'No such map found', type: 'fail', isVisible: true});
+    }
+    else{
+        setPopup({message: 'Error loading map details', type: 'fail', isVisible: true});
+    }
+  }
+
+  const getMapPreviewImg = (mapId) => {
+    if(!mapId){
+      return previewImg;
+    }
+            
+    return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId + '.png';
+                      
+  }
+
   return (
     <Container>
       <OverlayShape />
@@ -227,7 +263,7 @@ export default function EventDetailsPage() {
       </BackButton>
       <Card>
         {/* Preview Image */}
-        <PreviewImage src={eventDetails.previewImageUrl} alt="Game Preview" />
+        <PreviewImage src={getMapPreviewImg(eventDetails.mapTemplateId)} alt="Game Preview" />
         <ContentWrapper>
           <MainInfo>
             <TitleWrapper>
@@ -246,14 +282,14 @@ export default function EventDetailsPage() {
               <strong>Event Type:</strong> {eventDetails.eventType}
             </InfoItem>
             <InfoItem>
-              <strong>Start Time:</strong> {eventDetails.startDate} {eventDetails.startTime}
+              <strong>Starts at:</strong> {eventDetails.startDate} {eventDetails.startTime}
             </InfoItem>
             <InfoItem>
-              <strong>End Time:</strong> {eventDetails.endDate} {eventDetails.endTime}
+              <strong>Ends at:</strong> {eventDetails.endDate} {eventDetails.endTime}
             </InfoItem>
-            <InfoItem>
-              <strong>Map Name:</strong> {eventDetails.gameMapName}
-            </InfoItem>
+            {/* <InfoItem>
+              <strong>Map Name:</strong> {mapDetails.name}
+            </InfoItem> */}
             <InfoItem>
               <strong>Created At:</strong> {eventDetails.createdAt}
             </InfoItem>
