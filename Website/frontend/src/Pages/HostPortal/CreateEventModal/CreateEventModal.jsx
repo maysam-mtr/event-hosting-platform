@@ -286,7 +286,6 @@ export default function CreateEventModal({setPopup}) {
 
   const onSubmitClick = () => {
     createEvent();
-    closeModal();
   }
 
   async function createEvent(){
@@ -308,6 +307,7 @@ export default function CreateEventModal({setPopup}) {
 
     if(response?.success === true){
       setPopup({message: 'Event Created Successfuly', type: 'success', isVisible: true});
+      closeModal();
     }else{
       setErrorMsg(response?.error[0]?.message || "Something went wrong. Try Again!");
     }
@@ -321,6 +321,7 @@ export default function CreateEventModal({setPopup}) {
 
     if(response?.success === true){
       const plan = response.data[0];
+      console.log(plan)
       setSubscriptionPlan(plan);
     }else{
       setErrorMsg("Something went wrong. Please Try again!");

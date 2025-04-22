@@ -293,7 +293,7 @@ export default function HostEventDetails() {
         console.log(response)
   
         if(response?.statusCode === 200){
-            const booths = response.data;
+            const booths = response.data?.booths || [];
             console.log(booths)
             setBooths(booths);
 
