@@ -3,8 +3,6 @@ import { CustomError } from './Response & Error Handling/custom-error'
 
 export const downloadPartnerCompanyLogo = async (fileName: string): Promise<Buffer> => {
   try {
-    console.log("fileName:", fileName);
-    
     const { data, error } = await supabase
     .storage
     .from(process.env.SUPABASE_PARTNERS_BUCKET_NAME || "eventure-imgs")

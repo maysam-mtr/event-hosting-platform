@@ -137,7 +137,7 @@ export const Router = createBrowserRouter([
                         element: <InvitationPage/>
                     },
                     {
-                        element: <EventAccessRoute/>,
+                        // element: <EventAccessRoute/>,
                         children: [
                             {
                                 path: 'space',

@@ -15,7 +15,7 @@ const app: Express = express()
 // Enable CORS
 app.use(
   cors({
-    origin: ["http://localhost:5000", "https://localhost:5757", "http://localhost:3333"],
+    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3333"],
     credentials: true,
   })
 )

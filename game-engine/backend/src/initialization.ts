@@ -3,8 +3,7 @@ import fs from "fs/promises"
 import path from "path"
 import { downloadPartnerCompanyLogo } from "./utils/supabase"
 
-// const EVENT_ID = process.env.EVENT_ID
-const EVENT_ID = "653c979c-793f-4e8c-b9a9-788082b80054"
+const EVENT_ID = process.env.EVENT_ID
 
 if (!EVENT_ID) {
     throw new Error("Missing EVENT_ID environment variable")
@@ -19,12 +18,7 @@ export const getEventInformation = async (eventId: string): Promise<{
         if (!res) {
             throw new Error("Event Details returnig null")
         }
-        console.log("res:", res);
-        
-        // return {
-        //     mapId: res.mapTemplateId,
-        //     partners: [{boothId: "sdf", userId: "sdfa", companyLogo: "lskdf"}]
-        // }
+
         const partners: { boothId: string, userId: string, companyLogo: string }[] = res[0].Partners.map((partner: any) => ({
             boothId: partner.boothTemplateId,
             userId: partner.Partner.userId,
@@ -99,10 +93,10 @@ export const initializeMapData = async () => {
         }
 
         for(const partner of partners) {
-            const filePath = path.join(partnersDir, partner.companyLogo.split('/').pop() as string)
-            const logo = partner.companyLogo as string
+            const logo = partner.companyLogo.split('/').pop()!
+            const filePath = path.join(partnersDir, logo)
 
-            const imageData = await downloadPartnerCompanyLogo(logo.split('/').pop()!)
+            const imageData = await downloadPartnerCompanyLogo(logo)
 
             // if file doesn't exist -> create
             try {

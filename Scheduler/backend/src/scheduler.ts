@@ -7,7 +7,6 @@ interface TaskEntry {
   startTask?: ScheduledTask
   endTask: ScheduledTask
   childProcess?: ChildProcessWithoutNullStreams
-  frontendProcess?: ChildProcessWithoutNullStreams
 }
 
 export const scheduledTasks: Record<string, TaskEntry> = {}
@@ -68,7 +67,6 @@ export const scheduleCronJob = (
 
 const startGameEngine = (eventId: string): void => {
   const backendPath = path.resolve(__dirname, '../../../Game-engine/backend')
-  const frontendPath = path.resolve(__dirname, '../../../Game-engine/frontend')
 
   const backend = spawn('npm', ['run', 'dev'], {
     cwd: backendPath,
@@ -80,15 +78,7 @@ const startGameEngine = (eventId: string): void => {
   })
   backend.unref()
 
-  const frontend = spawn('npm', ['run', 'dev'], {
-    cwd: frontendPath,
-    shell: true,
-    detached: true,
-  })
-  frontend.unref()
-
   console.log(`[${eventId}] Spawned BACKEND pid=${backend.pid}`)
-  console.log(`[${eventId}] Spawned FRONTEND pid=${frontend.pid}`)
 
   backend.stdout.on('data', (data) =>
     console.log(`[Backend ${eventId}] ${data.toString().trim()}`)
@@ -97,17 +87,9 @@ const startGameEngine = (eventId: string): void => {
     console.error(`[Backend ${eventId} Error] ${data.toString().trim()}`)
   )
 
-  frontend.stdout.on('data', (data) =>
-    console.log(`[Frontend ${eventId}] ${data.toString().trim()}`)
-  )
-  frontend.stderr.on('data', (data) =>
-    console.error(`[Frontend ${eventId} Error] ${data.toString().trim()}`)
-  )
-
   const entry = scheduledTasks[eventId]
   if (entry) {
     entry.childProcess = backend
-    entry.frontendProcess = frontend
   } else {
     console.warn(`⚠️ [${eventId}] No TaskEntry to attach processes`)
   }
@@ -136,7 +118,6 @@ function stopGameEngine(eventId: string): void {
   }
 
   killProc(entry?.childProcess, 'Backend')
-  killProc(entry?.frontendProcess, 'Frontend')
 
   entry?.startTask?.stop()
   entry?.endTask.stop()
