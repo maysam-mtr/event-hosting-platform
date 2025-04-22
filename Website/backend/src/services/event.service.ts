@@ -36,9 +36,9 @@ console.log(startDateObj=== (endDateObj))
                 throw new Error("End time must be later than start time.");
             }
 
-            if (endTimeInMinutes - startTimeInMinutes < 30) {
-                throw new Error("The event duration must be at least 30 minutes.");
-            }
+            // if (endTimeInMinutes - startTimeInMinutes < 30) {
+            //     throw new Error("The event duration must be at least 30 minutes.");
+            // }
         }
 
         // Step 3: Validate maximum duration based on subscription plan

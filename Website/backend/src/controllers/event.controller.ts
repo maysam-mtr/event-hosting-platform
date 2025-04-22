@@ -73,11 +73,11 @@ const createEventController = async (req: Request, res: Response): Promise<void>
             credentials: 'include'
         });
 
-        if (!scheduleEventRes.ok) {
-            const errorDetails = await scheduleEventRes.json();
-            sendResponse(res, false, 400, `Failed to schedule event: ${errorDetails.message || scheduleEventRes.statusText}`);
-            return;
-        }
+        // if (!scheduleEventRes.ok) {
+        //     const errorDetails = await scheduleEventRes.json();
+        //     sendResponse(res, false, 400, `Failed to schedule event: ${errorDetails.message || scheduleEventRes.statusText}`);
+        //     return;
+        // }
 
         sendResponse(res, true, 201, 'Event created successfully', [event]);
     } catch (err) {

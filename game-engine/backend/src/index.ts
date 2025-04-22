@@ -15,7 +15,7 @@ const app: Express = express()
 // Enable CORS
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3004"],
+    origin: ["http://localhost:5000", "https://localhost:5757", "http://localhost:3333"],
     credentials: true,
   })
 )
@@ -28,6 +28,7 @@ app.use("/getTilesetImages", async (req: Request, res: Response) => {
     const filePath = path.join(__dirname, "mapInfo.json")
     const fileContent = await fs.readFile(filePath, "utf-8")
     const data = JSON.parse(fileContent)
+    
     
     res.status(200).json({ data })
   } catch (err) {
