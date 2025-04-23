@@ -14,6 +14,8 @@ import Popup from "../../components/Popup/Popup";
 import ImageInput from "../../components/ImageInput/ImageInput";
 import { uploadImage } from "../../Supabase/uploadImage";
 import StatusPopup from "../../components/StatusPopup/StatusPopup";
+import { FaArrowLeft } from "react-icons/fa";
+import { BackButton } from "../EventDetailsPage/EventDetailsPage";
 
 const Container = styled.div`
   display: flex;
@@ -123,7 +125,7 @@ export default function InvitationPage(){
         }else if(response?.success === true && response?.data){
             const eventData = response.data[0];
             console.log(eventData)
-            setError(null);
+            //setError(null);
 
             if(eventData.isOngoing.status !== 'future'){
                 navigate('/errors', {state: {
@@ -152,31 +154,21 @@ export default function InvitationPage(){
     }
 
     async function getEventInvitations(){
-        const URL = `/api/invitations/events/${eventId}/getAll`;
+        const URL = `/api/invitations/events/${eventId}`;
 
         const {response} = await sendRequest(URL);
         console.log(response)
 
         if(response?.success === true){
-            const invites = response.data[0]?.invitations;
-
-            const userInvite = invites.find(invite => invite.assignedEmail === user.email);
-
-            if(!userInvite){
-                setError('Oops! You are not invited...');
-                return;
-            }else{
-                setInvitation(userInvite);
-                //console.log(userInvite)
-                setLoading(false);
-            }
+            setInvitation(response.data[0].invitation);
             
-        }else if(response?.success === false && response.error[0]?.message === 'No invitations found for this event'){
+        }else if(response?.success === false && response.error[0]?.message === 'No pending invitation found for this event and user.'){
             setError('Oops! You are not invited...');
-            return;
         }else{
             setError('Error loading invitations');
         }
+
+        setLoading(false);
     }
 
     const onSubmitPartnerInfo = async(e) => {
@@ -226,7 +218,7 @@ export default function InvitationPage(){
             setInvitationStatus('accepted');
         }else{
             console.log(response)
-            setPopup({message: 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
+            setPopup({message: response.error[0].message || 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
             return;
         }
     }
@@ -267,14 +259,26 @@ export default function InvitationPage(){
 
     if(error){
         return(
-            <ErrorPopup message={error} />
+            <>
+               <BackButton onClick={() => navigate("/", {replace: true})}>
+                    <FaArrowLeft />
+                    Back To Home
+                </BackButton>
+                <ErrorPopup message={error} />
+            </>
         );
     }
 
     if(invitationStatus !== ''){
         return(
-            <StatusPopup message={invitationStatus === 'accepted' ? "Invitation accepted. See you then!" :
-                 "Invitation rejected: Hope to see you another time!"} type={invitationStatus === 'accepted' ? 'success' : 'neutral'}/>
+            <>
+                <BackButton onClick={() => navigate("/", {replace: true})}>
+                    <FaArrowLeft />
+                    Back To Home
+                </BackButton>
+                <StatusPopup message={invitationStatus === 'accepted' ? "Invitation accepted. See you then!" :
+                    "Invitation rejected: Hope to see you another time!"} type={invitationStatus === 'accepted' ? 'success' : 'neutral'}/>
+            </>
         );
     }
 
@@ -287,6 +291,10 @@ export default function InvitationPage(){
     return (
         <Container>
             <Popup popUpSettings={popup}/>
+            <BackButton onClick={() => navigate("/", {replace: true})}>
+                    <FaArrowLeft />
+                    Back To Home
+                </BackButton>
             <Card>
                 <CardTitle>Invitation Card</CardTitle>
                 <PreviewImage src={eventDetails.previewImageUrl} alt="Preview" />
@@ -295,8 +303,8 @@ export default function InvitationPage(){
                 <InfoItem><strong>Hosted by:</strong> {eventDetails.hostName}</InfoItem>
                 <InfoItem><strong>Event Type:</strong> {eventDetails.eventType}</InfoItem>
                 <InfoItem><strong>Event Code:</strong> {eventDetails.code}</InfoItem>
-                <InfoItem><strong>Date:</strong> {eventDetails.startDate} {eventDetails.startDate == eventDetails.endDate ? null: ` - ${eventDetails.endDate}`}</InfoItem>
-                <InfoItem><strong>Time:</strong> {eventDetails.startTime} - {eventDetails.endTime}</InfoItem>
+                <InfoItem><strong> Start Date:</strong> {formatDateTime(`${eventDetails.startDate}T${eventDetails.startTime}`)}</InfoItem>
+                <InfoItem><strong>End Date:</strong> {formatDateTime(`${eventDetails.endDate}T${eventDetails.endTime}`)}</InfoItem>
                 <InfoItem><strong>Created At:</strong> {eventDetails.createdAt}</InfoItem>
 
                 <Title style={{ marginTop: "2rem" }}>Respond to Invitation</Title>

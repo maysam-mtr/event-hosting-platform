@@ -221,29 +221,6 @@ export default function EventDetailsPage() {
     setLoading(false);
   }
 
-  async function getMapDetails(mapId){
-    if(!mapId){
-      return;
-    }
-
-    console.log(mapId)
-
-    const URL = `/api/maps/getMap/${mapId}`;
-
-    const {response} = await sendRequest(URL, {} , 'maps');
-    console.log(response)
-
-    if(response?.statusCode === 200){
-        const map = response.data;
-        setMapDetails(map);
-    }else if(response?.statusCode === 200){
-      setPopup({message: 'No such map found', type: 'fail', isVisible: true});
-    }
-    else{
-        setPopup({message: 'Error loading map details', type: 'fail', isVisible: true});
-    }
-  }
-
   const getMapPreviewImg = (mapId) => {
     if(!mapId){
       return previewImg;

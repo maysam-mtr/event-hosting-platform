@@ -118,6 +118,7 @@ padding: 30px;
 display: flex;
 gap: 20px;
 flex-direction: column;
+width: 100%;
 `;
 
 export default function SettingsPage() {

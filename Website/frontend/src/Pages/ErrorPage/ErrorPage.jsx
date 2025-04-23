@@ -11,6 +11,7 @@ const ErrorContainer = styled.div`
   gap: 1.5rem;
   position: relative;
   padding: 0 2rem;
+  width: 100%;
 `;
 
 const BackgroundShape = styled.div`

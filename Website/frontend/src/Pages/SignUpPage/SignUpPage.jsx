@@ -285,8 +285,8 @@ export default function SignUpPage() {
               <Input label="Username*" name="username" data={formData} setData={setFormData} placeholder={'Enter username'} required={true}/>
               <Input label="Full Name*" name="fullName" data={formData} setData={setFormData} placeholder={'Enter full name'} required={true}/>
               <Input label="Email*" type="email" name="email" data={formData} setData={setFormData} placeholder={'Enter email'} required={true}/>
-              <Input label="Password*" type="password" name="password" data={formData} setData={setFormData} placeholder={'Enter Password'} required={true}/>
-              <Input label="Date of Birth" type="date" name="dateOfBirth" data={formData} setData={setFormData}/>
+              <Input label="Password*" type="text" name="password" data={formData} setData={setFormData} placeholder={'Enter Password'} required={true}/>
+              <Input label="Date of Birth*" type="date" name="dateOfBirth" data={formData} setData={setFormData}/>
               {/* <Input label="Profile Picture" type="file" name="profilePic" onChange={handleFileChange} /> */}
               <Input label="Education Level" name="educationLevel" data={formData} setData={setFormData} placeholder={'Enter education level'}/>
               <Input label="Country" name="country" data={formData} setData={setFormData} placeholder={'Enter country'}/>

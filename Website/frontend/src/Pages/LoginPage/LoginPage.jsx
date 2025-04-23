@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Input from "../../components/Input/Input";
-import { Link, replace, useNavigate } from "react-router-dom";
+import { Link, replace, useLocation, useNavigate } from "react-router-dom";
 import useSendRequest from "../../hooks/use-send-request";
 import useUserState from "../../hooks/use-user-state";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
 import { OrangeShape, OverlayShape, RoleButton, RoleContainer } from "../SignUpPage/SignUpPage";
 import { BackButton } from "../EventDetailsPage/EventDetailsPage";
 import { FaArrowLeft } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Section = styled.section`
   background-color: var(--background-three);
@@ -95,6 +96,11 @@ export default function LoginPage(){
     const [sendRequest] = useSendRequest();
     const {user, setUser} = useUserState();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [showPassword, setShowPassword] = useState(false);
+
+    const { fromInvitation = false, invitationLink, from } = location.state || {};
+    console.log(fromInvitation, invitationLink, from)
 
     const [loginForm, setLoginForm] = useState({
         usernameOrEmail: '',
@@ -142,17 +148,13 @@ export default function LoginPage(){
         }
       }
 
-      //console.log(response?.error[0].message)
+      if(fromInvitation === true && invitationLink){
 
-      //navigate('/', {replace: true});
+        window.location.href = invitationLink;
+        return;
+      }
+
       window.location.href = '/';
-      console.log(request, response)
-
-      // if(response.user.role.name == 'user'){
-      //   navigate('/user', {replace: true});
-      // }else if(response.user.role.name == 'host'){
-      //   navigate('/host', {replace: true});
-      // }
     }
 
       if (!selectedRole) {
@@ -194,7 +196,38 @@ export default function LoginPage(){
             <Title>Login to your account</Title>
             <Form>
               <Input label={selectedRole == 'host' ? "Email" : "Email or username"} type="text" name={"usernameOrEmail"} data={loginForm} setData={setLoginForm} placeholder={"name@company.com..."} reqiured={true}/>
-              <Input label={"Password"} type="password" name={"password"} data={loginForm} setData={setLoginForm} placeholder={"••••••••"} reqiured={true}/>
+              {/* <Input label={"Password"} 
+                      type="password" 
+                      name={"password"} 
+                      data={loginForm} 
+                      setData={setLoginForm} 
+                      placeholder={"••••••••"} 
+                      reqiured={true}/> */}
+              <div style={{ position: 'relative' }}>
+                <Input
+                  label={"Password"}
+                  type={showPassword ? "text" : "password"}
+                  name={"password"}
+                  data={loginForm}
+                  setData={setLoginForm}
+                  placeholder={"••••••••"}
+                  reqiured={true}
+                />
+                <span
+                  onClick={() => setShowPassword(prev => !prev)}
+                  style={{
+                    position: "absolute",
+                    top: "60%",
+                    right: "5%",
+                    cursor: "pointer",
+                    display: "flex",
+                  }}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ?  <FaEye />:<FaEyeSlash />}
+                </span>
+              </div>
+
               {/* <CheckboxContainer>
                 <label>
                   <input type="checkbox" /> Remember me

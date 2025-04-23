@@ -133,10 +133,6 @@ export const Router = createBrowserRouter([
                         element: <EventDetailsPage/>
                     },
                     {
-                        path: 'invitation/:eventId',
-                        element: <InvitationPage/>
-                    },
-                    {
                         element: <EventAccessRoute/>,
                         children: [
                             {
@@ -145,15 +141,21 @@ export const Router = createBrowserRouter([
                             }
                         ]
                     },
-                    // {
-                    //     element: <InvitationAccessRoute/>,
-                    //     children: [
-                    //         {
-                    //             path: 'invitation/:eventId',
-                    //             element: <InvitationPage/>
-                    //         }
-                    //     ]
-                    // }
+                ]
+            }
+        ]
+    },
+    {
+        path: '/invitation',
+        element: <InvitationAccessRoute/>,
+        children: [
+            {
+                element: <LayoutSimplified/>,
+                children: [
+                    {
+                        path: 'event/:eventId',
+                        element: <InvitationPage/>
+                    }
                 ]
             }
         ]
