@@ -23,14 +23,18 @@ app.use(
 app.use("/assets", express.static(path.join(__dirname, "assets")))
 
 
-app.use("/getTilesetImages", async (req: Request, res: Response) => {
+app.use("/getMapInformation", async (req: Request, res: Response) => {
   try {
-    const filePath = path.join(__dirname, "mapInfo.json")
-    const fileContent = await fs.readFile(filePath, "utf-8")
-    const data = JSON.parse(fileContent)
+    const mapFilePath = path.join(__dirname, "mapInfo.json")
+    const mapInfo = await fs.readFile(mapFilePath, "utf-8")
+    const mapData = JSON.parse(mapInfo)
+    
+    const partnersFilePath = path.join(__dirname, "partners.json")
+    const partnersInfo = await fs.readFile(partnersFilePath, "utf-8")
+    const partnersData = JSON.parse(partnersInfo)
     
     
-    res.status(200).json({ data })
+    res.status(200).json({ mapImages: mapData, partners: partnersData })
   } catch (err) {
     res.status(500).json({ error: "Failed to read layer names" })
   }

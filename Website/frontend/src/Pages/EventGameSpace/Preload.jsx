@@ -4,15 +4,17 @@ import useSendRequest from '../../hooks/use-send-request';
 
 function Preload() {
   const [images, setImages] = useState([])
+  const [partners, setPartners] = useState([])
   const [characterInfo, setCharacterInfo] = useState(null)
   const [sendRequest] = useSendRequest()
 
 
   useEffect(() => {
-    const fetchLayerNames = async () => {
+    const fetchMapInfo = async () => {
       try {
-        const { response } = await sendRequest("/getTilesetImages", {}, "game-engine")
-        setImages(response.data.images)
+        const { response } = await sendRequest("/getMapInformation", {}, "game-engine")
+        setImages(response.mapImages)
+        setPartners(response.partners)
         
       } catch (err) {
         console.error("Failed to fetch layer names:", err)
@@ -28,10 +30,10 @@ function Preload() {
         frameCount: 4
       })
     }
-    fetchLayerNames()
+    fetchMapInfo()
   }, [])
 
-  return images.length > 0 ? (<Game mapInfo={{ images }} characterInfo={ characterInfo } />) : (<div>Loading...</div>)
+  return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<div>Loading...</div>)
 }
 
 export default Preload

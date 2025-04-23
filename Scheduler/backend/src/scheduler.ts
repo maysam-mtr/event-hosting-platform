@@ -2,6 +2,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import cron, { ScheduledTask } from 'node-cron'
 import path from 'path'
 import kill from 'tree-kill'
+import net from 'net'
 
 interface TaskEntry {
   startTask?: ScheduledTask
@@ -65,20 +66,42 @@ export const scheduleCronJob = (
   entry.endTask = endTask
 }
 
-const startGameEngine = (eventId: string): void => {
+const isPortInUse = (port: number): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(true))
+      .once('listening', () => {
+        tester
+          .once('close', () => resolve(false))
+          .close()
+      })
+      .listen(port)
+  })
+}
+
+const startGameEngine = async (eventId: string): Promise<void> => {
   const backendPath = path.resolve(__dirname, '../../../Game-engine/backend')
+  const targetPort = process.env.GAME_ENEGINE_BACKEND_PORT ?? 3004
+
+  const portBusy = await isPortInUse(targetPort as number)
+  if (portBusy) {
+    console.warn(`⚠️ [${eventId}] Cannot start backend. Port ${targetPort} is already in use.`)
+    return
+  }
 
   const backend = spawn('npm', ['run', 'dev'], {
     cwd: backendPath,
     shell: true,
     detached: true,
     env: {
+      ...process.env,
       EVENT_ID: eventId,
+      PORT: targetPort.toString()
     }
   })
   backend.unref()
 
-  console.log(`[${eventId}] Spawned BACKEND pid=${backend.pid}`)
+  console.log(`[${eventId}] ✅ Spawned BACKEND pid=${backend.pid} on port ${targetPort}`)
 
   backend.stdout.on('data', (data) =>
     console.log(`[Backend ${eventId}] ${data.toString().trim()}`)

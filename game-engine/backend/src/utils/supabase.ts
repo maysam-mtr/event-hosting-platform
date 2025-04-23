@@ -20,3 +20,9 @@ export const downloadPartnerCompanyLogo = async (fileName: string): Promise<Buff
     throw new CustomError("Error downloading map thumbnail", 400, err)
   }
 }
+
+export const extractSupabaseFilePath = (url: string): string | null => {
+  const regex = /\/storage\/v1\/object\/public\/[^/]+\/(.+)$/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}

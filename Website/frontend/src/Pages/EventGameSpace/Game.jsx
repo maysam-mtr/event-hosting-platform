@@ -7,8 +7,23 @@ const Game = ({ mapInfo, characterInfo }) => {
 
   const GAME_ENGINE_BASE_URL = import.meta.env.VITE_GAME_ENGINE_API_URL
 
+  // recurse nested layers
+  function findObjectById(layers, targetId) {
+    for (const layer of layers) {
+      if (layer.type === 'objectgroup') {
+        const found = layer.objects.find(o => o.id === targetId)
+        if (found) return found
+      }
+      if (layer.type === 'group') {
+        const found = findObjectById(layer.layers, targetId)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   useEffect(() => {
-    if (!characterInfo || !mapInfo || gameInstance.current) return;
+    if (!characterInfo || !mapInfo || !mapInfo.images || !mapInfo.partners || gameInstance.current) return;
 
     const config = {
       type: Phaser.AUTO,
@@ -17,18 +32,29 @@ const Game = ({ mapInfo, characterInfo }) => {
       parent: gameRef.current,
       scene: {
         preload() {
+          this.load.json('mapdata', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+
           mapInfo.images.forEach(image => {
             this.load.image(image.name, `${GAME_ENGINE_BASE_URL}/assets/${image.image}`)
           })
+
           this.load.tilemapTiledJSON('map', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+
           this.load.spritesheet('character', '/character.png', {
             frameWidth: characterInfo.width / characterInfo.frameCount,
             frameHeight: characterInfo.height / characterInfo.frameCount
           })
+
+          mapInfo.partners.forEach(partner => {
+            this.load.image(
+              partner.boothId,
+              `${GAME_ENGINE_BASE_URL}/assets/partners/${partner.companyLogo}`
+            )
+          })
         },
         create() {
           const map = this.make.tilemap({ key: 'map' })
-          const tileSets = mapInfo.images.map(image => 
+          const tileSets = mapInfo.images.map(image =>
             map.addTilesetImage(image.name, image.name)
           )
           let collisionLayer = null
@@ -92,6 +118,34 @@ const Game = ({ mapInfo, characterInfo }) => {
           this.cameras.main.zoom = 2
 
           this.cursors = this.input.keyboard.createCursorKeys()
+
+          // Display company logos
+          const raw = this.cache.json.get('mapdata')
+          if (!raw) {
+            console.error('Raw mapdata missing!')
+          } else {
+            mapInfo.partners.forEach(partner => {
+              const idNum = Number(partner.boothId)
+              const booth = findObjectById(raw.layers, idNum)
+              if (!booth) {
+                console.warn(`Booth ${partner.boothId} not found`)
+                return
+              }
+          
+              // Center of booth
+              const cx = booth.x + booth.width / 2
+              const cy = booth.y + booth.height / 2
+          
+              const logo = this.add.image(cx, cy, partner.boothId)
+          
+              // Stretch image to booth dimensions
+              logo.setDisplaySize(booth.width, booth.height)
+            })
+          
+            // Place player above booth images
+            this.player.setDepth(1)
+          }
+          
         },
         update() {
           const speed = 100
