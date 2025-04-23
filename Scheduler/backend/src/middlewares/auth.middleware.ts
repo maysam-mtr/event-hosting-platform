@@ -2,7 +2,7 @@
 
 import { verifyJWT } from "./jwt.service"
 import { JWT_HOST_ACCESS_TOKEN_SECRET, HOST_TOKEN_COOKIE_NAME } from "@/config/index"
-import { CustomError } from "@/utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-error"
+import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { NextFunction, Request, Response } from "express"
 
 const verifyHostToken = async (token: string) => {

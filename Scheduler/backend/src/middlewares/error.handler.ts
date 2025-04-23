@@ -1,4 +1,4 @@
-import { CustomError } from "@/utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-error"
+import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { Request, Response, NextFunction } from "express"
 
 export const errorHandler = (

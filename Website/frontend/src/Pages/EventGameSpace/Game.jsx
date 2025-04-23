@@ -1,11 +1,9 @@
 import { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
 
-const Game = ({ mapInfo, characterInfo }) => {
+const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
   const gameRef = useRef(null)
   const gameInstance = useRef(null)
-
-  const GAME_ENGINE_BASE_URL = import.meta.env.VITE_GAME_ENGINE_API_URL
 
   // recurse nested layers
   function findObjectById(layers, targetId) {
@@ -32,13 +30,13 @@ const Game = ({ mapInfo, characterInfo }) => {
       parent: gameRef.current,
       scene: {
         preload() {
-          this.load.json('mapdata', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+          this.load.json('mapdata', `${gameEngineUrl}/assets/map.json`)
 
           mapInfo.images.forEach(image => {
-            this.load.image(image.name, `${GAME_ENGINE_BASE_URL}/assets/${image.image}`)
+            this.load.image(image.name, `${gameEngineUrl}/assets/${image.image}`)
           })
 
-          this.load.tilemapTiledJSON('map', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+          this.load.tilemapTiledJSON('map', `${gameEngineUrl}/assets/map.json`)
 
           this.load.spritesheet('character', '/character.png', {
             frameWidth: characterInfo.width / characterInfo.frameCount,
@@ -48,7 +46,7 @@ const Game = ({ mapInfo, characterInfo }) => {
           mapInfo.partners.forEach(partner => {
             this.load.image(
               partner.boothId,
-              `${GAME_ENGINE_BASE_URL}/assets/partners/${partner.companyLogo}`
+              `${gameEngineUrl}/assets/partners/${partner.companyLogo}`
             )
           })
         },
@@ -186,7 +184,7 @@ const Game = ({ mapInfo, characterInfo }) => {
       gameInstance.current?.destroy(true)
       gameInstance.current = null
     }
-  }, [ characterInfo, mapInfo ])
+  }, [ characterInfo, mapInfo, gameEngineUrl ])
 
   return <div ref={gameRef} id="game-container" />
 }

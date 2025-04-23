@@ -15,7 +15,7 @@ const app: Express = express()
 // Enable CORS
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3333"],
+    origin: ["http://localhost:5173", "http://localhost:3333"],
     credentials: true,
   })
 )
@@ -43,7 +43,7 @@ app.use("/getMapInformation", async (req: Request, res: Response) => {
 initializeMapData()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server is running at http://localhost:${PORT}`)
+      console.log(`Server is running at http://host.docker.internal:${PORT}`)
     })
   })
   .catch(err => {

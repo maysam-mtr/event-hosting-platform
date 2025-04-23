@@ -196,6 +196,7 @@ export default function EventDetailsPage() {
   }
 
   async function OnJoinEvent(){
+    navigate("/event/space", { state: { eventId } })
     //open  game
   }
 
@@ -298,14 +299,15 @@ export default function EventDetailsPage() {
             </InfoItem>
           </MainInfo>
 
-          {eventDetails.eventStatus === "ongoing" ? 
-            (<div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Now!</Button1>
-            </div>) :
+          {/* {eventDetails.eventStatus === "ongoing" ? 
+            (<div style={{ display: "flex", justifyContent: "flex-end" }}> */}
+              {/* <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Now!</Button1> */}
+              <Button1 onClick={OnJoinEvent}>Join Now!</Button1>
+            {/* </div>) :
              (<div style={{ display: "flex", justifyContent: "flex-end" }}>
              <DisabledButton>Join Now!</DisabledButton>
            </div>)
-          }
+          } */}
         </ContentWrapper>
       </Card>
       <Modal isOpen={isModalOpen} closeModal={closeModal} title="Enter Password">
