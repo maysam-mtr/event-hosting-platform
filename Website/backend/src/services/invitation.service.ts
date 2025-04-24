@@ -272,15 +272,16 @@ export const handleAcceptedInvitation = async (userId: string, invitationId: str
     }
  ): Promise<any> => {
     try {
-        // Update the invitation status to "accepted"
-        const updatedInvitation = await updateInvitationStatus(userId,invitationId, 'accepted');
-
+       const invitation = await getInvitationById(invitationId);
         // Assign the partner to the booth
         const boothDetails = await assignPartnerToBooth(
-            updatedInvitation.invitation.boothDetailsId,
+            invitation.boothDetailsId,
             userId,
             partnerDetails
         );
+         
+        // Update the invitation status to "accepted"
+          const updatedInvitation = await updateInvitationStatus(userId,invitationId, 'accepted');
 
         return {
              invitation: updatedInvitation.invitation,
@@ -412,7 +413,21 @@ export const deleteInvitationById = async (invitationId: string): Promise<any> =
         throw new Error((error as Error).message || "Failed to delete invitation.");
     }
 };
+export const getInvitationById = async (invitationId: string): Promise<any> => {
+    try {
+        // Find the invitation by ID
+        const invitation = await Invitation.findByPk(invitationId);
 
+        if (!invitation) {
+            throw new Error("Invitation not found");
+        }
+
+        return invitation.toJSON();
+    } catch (error) {
+        console.error("Error in deleteInvitationById:", error);
+        throw new Error((error as Error).message || "Failed to delete invitation.");
+    }
+};
 // Function to expire invitations
 const expireInvitations = async (): Promise<void> => {
     try {
