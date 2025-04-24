@@ -214,8 +214,7 @@ export default function HostEventDetails() {
   };
 
   const removeEmail = (index) => {
-    //setEmails((prev) => prev.filter((_, i) => i !== index));
-    //setInviteStatus((prev) => prev.filter((_, i) => i !== index));
+
   };
 
   const handleKeyPress = (e) => {
@@ -228,14 +227,6 @@ export default function HostEventDetails() {
   useEffect(() => {
     getEventDetails();
     getAcceptedPartners();
-    //getMapDetails();
-    // const loadAllData = async () => {
-      
-    //     await getEventDetails();
-      
-      
-    // };
-    // loadAllData();
   }, [])
 
     async function getEventDetails(){
@@ -247,7 +238,7 @@ export default function HostEventDetails() {
         return;
       }else if(response?.success === true && response?.data){
         const eventData = response.data[0];
-        //console.log(eventData)
+
         setError("");
         setEventDetails({
           eventName: eventData.eventName,
@@ -279,7 +270,6 @@ export default function HostEventDetails() {
     async function getEventCredentials(){
         const URL = `/api/event/private/credentials/${eventId}`;
         const {response} = await sendRequest(URL);
-        //console.log(response)
 
         if(response?.success === true && response.data){
             setEventDetails((prev) => ({...prev, eventPassword: response.data.passcode}))
@@ -296,17 +286,17 @@ export default function HostEventDetails() {
         const URL = `/api/maps/getMapBoothsDisplay/${mapId}`;
   
         const {response} = await sendRequest(URL, {} , 'maps');
-        console.log(response)
   
         if(response?.statusCode === 200){
             const boothsList = response.data?.booths || [];
-            console.log(boothsList)
+
             setBooths(boothsList);
             setMapImage(response.data?.image)
             setPageLoad(false);
             const mappedBooths = boothsList.map((booth, index) => ({boothId: booth.id, boothDisplayId: index}))
-            console.log(mappedBooths)
+
             setBoothsMapping(mappedBooths)
+            setAssignedEmail((prev) => ({...prev, boothId: boothsList[0].id}))
         }else if(response?.statusCode === 404){
           setPopup({message: 'No booths found', type: 'fail', isVisible: true});
           setPageLoad(false);
@@ -320,21 +310,21 @@ export default function HostEventDetails() {
 
     async function onInvitePartnerClick(boothId, assignedEmail){
         setLoading(true);
+        console.log(boothId, assignedEmail)
         const URL = `/api/invitations/invite/${eventDetails.code}`;
         const INIT = {method: 'POST', body: JSON.stringify({
             boothTemplateId: boothId,
             assignedEmail: assignedEmail,
-            invitationLink: `http://localhost:5173/event/invitation/${eventId}`
+            invitationLink: `http://localhost:5173/invitation/event/${eventId}`
         })}
 
         const {response} = await sendRequest(URL, INIT);
-        console.log(response, URL, INIT)
 
         if(response?.success === true){
             setAssignedEmail((prev) => ({...prev, assignedEmail: ""}));
             setEmails((prev) => [...prev, assignedEmail])
         }else{
-            setPopup({message: 'Something went wrong. Try again!', isVisible: true, type: 'fail'});
+            setPopup({message: response?.error[0]?.message || 'Something went wrong. Try again!', isVisible: true, type: 'fail'});
         }
         setLoading(false);
     }
@@ -343,7 +333,6 @@ export default function HostEventDetails() {
         const URL = `/api/invitations/events/${eventId}/getAll`;
 
         const {response} = await sendRequest(URL);
-        console.log(response, response.error[0]?.message)
 
         if(response?.success === true){
             const invites = response.data[0]?.invitations;
@@ -359,7 +348,6 @@ export default function HostEventDetails() {
       const URL = `/api/events/booth-partner/${eventId}`;
 
       const {response} = await sendRequest(URL);
-      console.log(response)
 
       if(response?.success === true){
           const partnersList = response.data[0]?.Partners;
@@ -374,12 +362,9 @@ export default function HostEventDetails() {
         return;
       }
 
-      console.log(mapId)
-
       const URL = `/api/maps/getMap/${mapId}`;
 
       const {response} = await sendRequest(URL, {} , 'maps');
-      console.log(response)
 
       if(response?.statusCode === 200){
           const map = response.data;
@@ -468,7 +453,6 @@ export default function HostEventDetails() {
                     name="boothId" 
                     data={assignedEmail} 
                     setData={setAssignedEmail} 
-                    placeholder="Enter booth id" 
                     required 
                     role="host"
                     style={{width: '150px', marginBottom: '10px'}}
@@ -520,7 +504,7 @@ export default function HostEventDetails() {
                     <td>{partner.Partner.companyName}</td>
                     <td>{partner.Partner.primaryContactFullName}</td>
                     <td>{partner.Partner.User?.email}</td>
-                    <td>{partner.boothTemplateId || '-'}</td>
+                    <td>{`${partner.boothTemplateId}` || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -544,7 +528,7 @@ export default function HostEventDetails() {
                 {invitations?.map((invite, idx) => (
                   <tr key={idx}>
                     <td>{invite.assignedEmail}</td>
-                    <td>{getMappedBoothId(invite.BoothDetail?.boothTemplateId) || '-'}</td>
+                    <td>{`${getMappedBoothId(invite.BoothDetail?.boothTemplateId)}` || '-'}</td>
                     <td>{invite.status}</td>
                   </tr>
                 ))}

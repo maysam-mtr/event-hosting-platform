@@ -218,7 +218,7 @@ export default function InvitationPage(){
             setInvitationStatus('accepted');
         }else{
             console.log(response)
-            setPopup({message: response.error[0].message || 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
+            setPopup({message: response?.error[0].message || 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
             return;
         }
     }
@@ -234,7 +234,7 @@ export default function InvitationPage(){
             setInvitationStatus('rejected');
         }else{
             console.log(response)
-            setPopup({message: 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
+            setPopup({message: response?.error[0]?.message || 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
             return;
         }
     }
@@ -252,7 +252,7 @@ export default function InvitationPage(){
             //change user isPartner to 1
         }else{
             console.log(response)
-            setPopup({message: 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
+            setPopup({message: response?.error[0]?.message || 'Something went wrong. Try Again!', type: 'fail', isVisible: true});
             return;
         }
     }
