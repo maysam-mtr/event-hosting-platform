@@ -8,6 +8,7 @@ import useUserState from "../../../hooks/use-user-state";
 import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage'
 import useSendRequest from "../../../hooks/use-send-request";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
+import { FiEdit } from "react-icons/fi";
 
 const FormSection = styled.div`
   display: flex;
@@ -32,7 +33,7 @@ justify-content: space-between;
   }
 `;
 
-const EnterButton = styled.button`
+export const EnterButton = styled.button`
   padding: 12px 16px;
   background-color: var(--host-bg-base);
   color: white;
@@ -53,8 +54,12 @@ const EnterButton = styled.button`
   }
 `;
 
+const EditIcon = styled(FiEdit)`
+color: #fff;
+height: 10px;
+`
+
 export default function EditEventModal({setPopup, event, updatEventDetails}) {
-  const {user} = useUserState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventData, setEventData] = useState({
     eventName: event.eventName,
@@ -64,7 +69,6 @@ export default function EditEventModal({setPopup, event, updatEventDetails}) {
     endTime: event.endTime,
     eventType: event.eventType,
   });
-  console.log(eventData)
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
  
@@ -140,7 +144,7 @@ export default function EditEventModal({setPopup, event, updatEventDetails}) {
         </Modal>,
         document.body
       )}
-      <EnterButton onClick={openModal}>Edit Event</EnterButton> 
+      <EnterButton onClick={openModal}><EditIcon/> Edit</EnterButton> 
     </>
   );
 }

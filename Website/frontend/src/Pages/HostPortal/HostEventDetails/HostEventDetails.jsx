@@ -18,6 +18,7 @@ import { BlueButton } from "../SettingsHostPage/SettingsHostPage";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 import BoothMap from "./BoothMap";
 import EditEventModal from "./EditEventModal";
+import ShareEventModal from "./ShareEventModal";
 
 const Container = styled.div`
   padding: 40px 20px;
@@ -285,7 +286,8 @@ export default function HostEventDetails() {
   
         const URL = `/api/maps/getMapBoothsDisplay/${mapId}`;
   
-        const {response} = await sendRequest(URL, {} , 'maps');
+        const {request, response} = await sendRequest(URL, {} , 'maps');
+        console.log(request, response,mapId)
   
         if(response?.statusCode === 200){
             const boothsList = response.data?.booths || [];
@@ -315,7 +317,7 @@ export default function HostEventDetails() {
         const INIT = {method: 'POST', body: JSON.stringify({
             boothTemplateId: boothId,
             assignedEmail: assignedEmail,
-            invitationLink: `http://localhost:5173/invitation/event/${eventId}`
+            invitationLink: `${import.meta.env.VITE_FRONTEND_URL}/invitation/event/${eventId}`
         })}
 
         const {response} = await sendRequest(URL, INIT);
@@ -419,19 +421,19 @@ export default function HostEventDetails() {
                 {getEventStatus(eventDetails.status)}
               </StatusIndicator>
             </TitleWrapper>
-            <div><strong>Code:</strong> {eventDetails.code}</div>
+            {/* <div><strong>Code:</strong> {eventDetails.code}</div> */}
             <div><strong>Nb of Booths:</strong> {booths?.length}</div>
-            {eventDetails.eventType === 'private' && (
+            {/*eventDetails.eventType === 'private' && (
               <div><strong>Event Passcode:</strong> {eventDetails.eventPassword}</div>
-            )}
-            <div><strong>Starts at:</strong> {formatDateTime(`${eventDetails.startDate}T${eventDetails.startTime}`)}</div>
-            <div><strong>Map Name:</strong> {mapDetails.name}</div>
-            <div><strong>Ends at:</strong> {formatDateTime(`${eventDetails.endDate}T${eventDetails.endTime}`)}</div>
-            <div><strong>Created At:</strong> {eventDetails.createdAt}</div>
+            )*/}
+              <div><strong>Map Name:</strong> {mapDetails.name}</div>
             <div><strong>Event Type:</strong> {eventDetails.eventType}</div>
+            <div><strong>Created At:</strong> {eventDetails.createdAt}</div>
+            <div><strong>Starts at:</strong> {formatDateTime(`${eventDetails.startDate}T${eventDetails.startTime}`)}</div>
             <div><strong>Updated At:</strong> {eventDetails.updatedAt}</div>
-            {eventDetails.eventType === 'public' && <div></div>}
+            <div><strong>Ends at:</strong> {formatDateTime(`${eventDetails.endDate}T${eventDetails.endTime}`)}</div>
             <div style={{marginTop: '20px', display: 'flex', justifyContent: "end"}}>
+              <ShareEventModal eventDetails={{eventCode: eventDetails.code, eventPasscode: eventDetails.eventPassword, eventType: eventDetails.eventType}}/>
               {eventDetails.status === 'future' && <EditEventModal setPopup={setPopup} event={eventDetails} updatEventDetails={getEventDetails}/> }
               <EnterButton disabled={eventDetails.status !== 'ongoing'} onClick={joinEvent}>Join</EnterButton>
             </div>
@@ -528,7 +530,7 @@ export default function HostEventDetails() {
                 {invitations?.map((invite, idx) => (
                   <tr key={idx}>
                     <td>{invite.assignedEmail}</td>
-                    <td>{`${getMappedBoothId(invite.BoothDetail?.boothTemplateId)}` || '-'}</td>
+                    <td>{`${getMappedBoothId(invite.BoothDetail?.boothTemplateId) || invite.BoothDetail?.boothTemplateId}` || '-'}</td>
                     <td>{invite.status}</td>
                   </tr>
                 ))}
