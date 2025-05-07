@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getBoothsForPartner, filterBoothsByStatus } from "../services/boothDetails.service";
+import { getBoothsForPartner, filterBoothsByStatus,getBoothTemplateIdForPartnerAndEvent } from "../services/boothDetails.service";
 import { sendResponse } from "../Utils/responseHelper";
 // Get all booths for a specific partner
 export const getBoothsForPartnerController = async (req: Request, res: Response): Promise<void> => {
@@ -41,4 +41,29 @@ export const filterBoothsByStatusController = async (req: Request, res: Response
             { code: 'BOOTH_FILTER_ERROR', message: (err as Error).message },
           ]);
     }
+};
+
+
+
+
+export const getBoothTemplateIdForPartnerAndEventController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { partnerId, eventId } = req.params;
+
+    // Call service to get booth template ID
+    const boothTemplateId = await getBoothTemplateIdForPartnerAndEvent(partnerId, eventId);
+
+    // Return success response
+    sendResponse(res, true, 200, 'Booth template ID retrieved successfully', 
+      [boothTemplateId]
+    );
+  } catch (err) {
+    // Handle error and return failure response
+    sendResponse(res, false, 400, 'Failed to retrieve booth template ID', [], [
+      { code: 'BOOTH_TEMPLATE_RETRIEVAL_ERROR', message: (err as Error).message }
+    ]);
+  }
 };

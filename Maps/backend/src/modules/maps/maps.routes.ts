@@ -45,7 +45,7 @@ mapsRouter.get("/loadMapData/:id", loadMapDataForGameEngineController)
 
 // Website -> Host
 mapsRouter.get("/getMap/:id", roleAuthMiddleware([Roles.HOST]), getMapByIdController)
-mapsRouter.get("/getMapBoothsDisplay/:id", roleAuthMiddleware([Roles.HOST]), getMapBoothsDisplayController)
+mapsRouter.get("/getMapBoothsDisplay/:id" , getMapBoothsDisplayController) //roleAuthMiddleware([Roles.HOST]) for the load in game engine
 
 
 // Helper Endpoints

@@ -231,3 +231,26 @@ export const filterBoothsByStatus = async (partnerId: string, status: string): P
         throw new Error((error as Error).message || "Failed to filter booths.");
     }
 };
+
+export const getBoothTemplateIdForPartnerAndEvent = async (
+  partnerId: string,
+  eventId: string
+): Promise<string | null> => {
+  try {
+    const booth = await BoothDetails.findOne({
+      where: {
+        partnerId,
+        eventId
+      }
+    });
+
+    if (!booth) {
+        return null;
+    }
+
+    return booth.boothTemplateId;
+  } catch (error) {
+    console.error("Error fetching booth template ID:", error);
+    throw error;
+  }
+};
