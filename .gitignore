@@ -29,10 +29,14 @@ out/
 build/
 
 # # Environment variables
-.env
+*.env
 .env.*
 
 # Cache files
 .cache/
 coverage/
 *.cache
+
+# SSL dev certs
+localhost.pem
+localhost-key.pem
