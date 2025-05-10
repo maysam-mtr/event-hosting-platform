@@ -114,7 +114,7 @@ const PORT = process.env.PORT || 3004
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173"],
+    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3333"],
     credentials: true,
   })
 )
@@ -127,12 +127,18 @@ app.get("/", (req, res) => {
   res.send("Virtual Event Platform - Game Engine")
 })
 
-app.get("/getTilesetImages", async (req, res) => {
+app.use("/getMapInformation", async (req, res) => {
   try {
-    const filePath = path.join(__dirname, "mapInfo.json")
-    const fileContent = await fs.readFile(filePath, "utf8")
-    const data = JSON.parse(fileContent)
-    res.status(200).json({ data })
+    const mapFilePath = path.join(__dirname, "mapInfo.json")
+    const mapInfo = await fs.readFile(mapFilePath, "utf-8")
+    const mapData = JSON.parse(mapInfo)
+    
+    const partnersFilePath = path.join(__dirname, "partners.json")
+    const partnersInfo = await fs.readFile(partnersFilePath, "utf-8")
+    const partnersData = JSON.parse(partnersInfo)
+    
+    
+    res.status(200).json({ mapImages: mapData, partners: partnersData })
   } catch (err) {
     console.error("Failed to load tileset images:", err)
     res.status(500).json({ error: "Failed to read layer names" })
