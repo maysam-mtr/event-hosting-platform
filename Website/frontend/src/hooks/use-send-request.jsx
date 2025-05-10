@@ -9,6 +9,8 @@ import useUserState from './use-user-state';
 export function setApiUrl(url, backend){
     if(backend === 'maps'){
         return import.meta.env.VITE_MAPS_API_URL + url;
+    } else if (backend == 'game-engine') {
+        return import.meta.env.VITE_GAME_ENGINE_API_URL + url
     }
     return import.meta.env.VITE_API_URL + url;
 }

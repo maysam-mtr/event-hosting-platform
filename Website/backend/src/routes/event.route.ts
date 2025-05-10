@@ -12,7 +12,8 @@ router.post('/create', authenticateHost,createEventValidation(), createEventCont
 router.put('/update/:eventId', authenticateHost,updateEventValidation(), updateEventController);
 router.get('/public', getPublicEventsController);
 router.get('/details/:eventId', getEventDetailsController);
-router.get("/booth-details/:eventId",authenticateHost, getBoothDetailsForEventController);
+// router.get("/booth-details/:eventId",authenticateHost, getBoothDetailsForEventController);
+router.get("/booth-details/:eventId", getBoothDetailsForEventController);
 router.get("/booth-partner/:eventId",authenticateHost, getBoothPartnersForEventController);
 router.post('/:eventId/join',joinEventController);
 
