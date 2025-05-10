@@ -126,13 +126,14 @@ console.log(" Booth data saved to assets/booths.json")
             const logoFileName = partner.companyLogo.split('/').pop()!
             const localFileNameWithoutExt = path.parse(logoFileName).base
             
+            const filePath = path.join(partnersDir, logoFileName)
             const imageData = await downloadPartnerCompanyLogo(logo)
 
             // if file doesn't exist -> create
             try {
-                await fs.access(logoFileName)
+                await fs.access(filePath)
             } catch (err: any) {
-                await fs.writeFile(logoFileName, imageData)
+                await fs.writeFile(filePath, imageData)
             }
             
             

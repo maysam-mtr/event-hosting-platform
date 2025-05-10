@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import { io } from 'socket.io-client'
+import useUserState from '../../hooks/use-user-state';
 
 const domain = "allocated-wed-cliff-johns.trycloudflare.com ";
 // Connect to backend
@@ -9,22 +10,9 @@ const socket = io('http://localhost:3004')
 const Game = ({ mapInfo, characterInfo }) => {
   const gameRef = useRef(null)
   const gameInstance = useRef(null)
+  const { user, setUser } = useUserState();
 
-  // Simulate two test users
-  const TEST_USERS = [
-    {
-      id: 'user1',
-      name: 'Alice',
-      avatar: '/character.png',
-      partnerId: '77a2ee7e-ce44-46d4-b8e4-6cd151a7187b' // Added partnerId property
-    },
-    {
-      id: 'user2',
-      name: 'Bob',
-      avatar: '/character.png',
-      partnerId: '45454545' // Added partnerId property
-    }
-  ]
+  console.log("user:", user);
 
   const GAME_ENGINE_BASE_URL = import.meta.env.VITE_GAME_ENGINE_API_URL
 
@@ -43,8 +31,6 @@ const Game = ({ mapInfo, characterInfo }) => {
     return null
   }
 
-  const USER_INDEX = parseInt(new URLSearchParams(window.location.search).get('user') || '0', 10)
-  const currentUser = TEST_USERS[USER_INDEX % TEST_USERS.length]
   const [jitsiApi, setJitsiApi] = useState(null);
   const [isMicMuted, setIsMicMuted] = useState(true);
   const [isCamMuted, setIsCamMuted] = useState(true);
@@ -222,10 +208,10 @@ const Game = ({ mapInfo, characterInfo }) => {
 
           // Emit initial join event
           socket.emit('joinGame', {
-            id: currentUser.id,
-            name: currentUser.name,
-            avatar: currentUser.avatar || '/character.png',
-            partnerId: currentUser.partnerId,
+            id: user.id,
+            name: user.fullName,
+            avatar: '/character.png',
+            partnerId: user.partnerId,
             x:spawnPoint.x,
             y:spawnPoint.y
           })
@@ -236,9 +222,9 @@ const Game = ({ mapInfo, characterInfo }) => {
             loop: true,
             callback: () => {
               socket.emit("playerMove", {
-                name: currentUser.name,
-                avatar: currentUser.avatar,
-                id: currentUser.id,
+                name: user.fullName,
+                avatar: user.avatar,
+                id: user.id,
                 x: this.player.x,
                 y: this.player.y
               })
@@ -247,7 +233,7 @@ const Game = ({ mapInfo, characterInfo }) => {
 
           // Handle incoming moves
           socket.on("playerMoved", (data) => {
-            if (data.userId === currentUser.id) return
+            if (data.userId === user.id) return
 
             let remotePlayer = this.remotePlayers.getChildren().find(
               (p) => p.getData("userId") === data.userId
@@ -256,8 +242,9 @@ const Game = ({ mapInfo, characterInfo }) => {
             if (!remotePlayer) {
               remotePlayer = this.physics.add.sprite(data.x, data.y, 'character')
                 .setData("userId", data.userId)
+                .setData("prevX", data.x)
+                .setData("prevY", data.y)
 
-              // Add name label
               const nameLabel = this.add.text(
                 data.x,
                 data.y - 20,
@@ -270,14 +257,39 @@ const Game = ({ mapInfo, characterInfo }) => {
                 }
               ).setOrigin(0.5)
 
-              this.add.existing(nameLabel)
               remotePlayer.setData("label", nameLabel)
               this.remotePlayers.add(remotePlayer)
             }
 
-            // Update sprite & label
+            const prevX = remotePlayer.getData("prevX")
+            const prevY = remotePlayer.getData("prevY")
+
             remotePlayer.setPosition(data.x, data.y)
             remotePlayer.getData("label").setPosition(data.x, data.y - 20)
+
+            const dx = data.x - prevX
+            const dy = data.y - prevY
+
+            const moveThreshold = 0.1
+
+            let direction = 'down'
+
+            if (Math.abs(dx) > moveThreshold) {
+              direction = dx > 0 ? 'right' : 'left'
+            } else if (Math.abs(dy) > moveThreshold) {
+              direction = dy > 0 ? 'down' : 'up'
+            }
+
+            if (Math.abs(dx) > moveThreshold || Math.abs(dy) > moveThreshold) {
+              if (!remotePlayer.anims.isPlaying || remotePlayer.anims.currentAnim?.key !== direction) {
+                remotePlayer.play(direction, true)
+              }
+            } else {
+              remotePlayer.anims.stop()
+            }
+
+            remotePlayer.setData("prevX", data.x)
+            remotePlayer.setData("prevY", data.y)
           })
           socket.on("userKicked", () => {
             console.warn("You were kicked — reloading...")
@@ -295,7 +307,7 @@ const Game = ({ mapInfo, characterInfo }) => {
             const isPartner = data.isPartner;
             setIsPartner(isPartner);
             console.log("isPartner",isPartner)
-          // console.log(`You [${currentUser.id}] entered booth ${boothId}`)
+          // console.log(`You [${user.id}] entered booth ${boothId}`)
           // const jitsiFrame = document.getElementById("jitsi-frame") as HTMLIFrameElement
           // jitsiFrame.src = meetingUrl
           // console.log(meetingUrl)
@@ -319,7 +331,7 @@ const Game = ({ mapInfo, characterInfo }) => {
               height: 300,
               parentNode: document.getElementById("jitsi-meet"),
               userInfo:{
-                displayName: currentUser.name,
+                displayName: user.fullName,
                 role: 'guest'
               },
               configOverwrite: {
@@ -351,7 +363,7 @@ const Game = ({ mapInfo, characterInfo }) => {
           }
           socket.on("exitedBooth", (data) => {
             const { boothId } = data
-            console.log(`You [${currentUser.id}] exited booth ${boothId}`)
+            console.log(`You [${user.id}] exited booth ${boothId}`)
             if (jitsiApi) {
               jitsiApi.executeCommand("hangup"); // Ends call gracefully
             }
