@@ -133,7 +133,7 @@ export const Router = createBrowserRouter([
                         element: <EventDetailsPage/>
                     },
                     {
-                        element: <EventAccessRoute/>,
+                        // element: <EventAccessRoute/>,
                         children: [
                             {
                                 path: 'space',

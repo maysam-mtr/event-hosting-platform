@@ -1,3 +1,10 @@
+export interface ApiResponse<T = any> {
+  statusCode: number
+  messages: string[]
+  data: T | null
+  errors: any | null
+}
+
 export interface Image {
     image: string
     name: string
@@ -27,4 +34,15 @@ export interface WebsiteApiResponse {
   message: string
   data: []
   error: []
+}
+
+export interface Partner {
+  boothId: string, 
+  userId: string, 
+  companyLogo: string
+}
+
+export interface EventDetails {
+  mapId: string,
+  partners: Partner[]
 }
