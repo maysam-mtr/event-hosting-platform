@@ -50,7 +50,7 @@ export const scheduleCronJob = (
 
   const endExpr = [
     endTime.getMinutes(),
-    endTime.getHours(),
+    endTime.getUTCHours(),
     endTime.getDate(),
     endTime.getMonth() + 1,
     '*',
