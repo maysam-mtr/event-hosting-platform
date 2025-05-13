@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import Game from "./Game"
 import useSendRequest from '../../hooks/use-send-request';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 
 function Preload() {
   const [images, setImages] = useState([])
@@ -34,7 +35,8 @@ function Preload() {
     fetchMapInfo()
   }, [])
 
-  return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<div>Loading...</div>)
+  //return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<div>Loading...</div>)
+  return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<LoadingSpinner padding={true}/>)
 }
 
 export default Preload

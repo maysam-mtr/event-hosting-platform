@@ -1,5 +1,5 @@
 import { Button1, Button2, Button3 } from "../../../components/Navbar/Navbar";
-import { Card, EventTitle, PreviewImg, Schedule, StatusIndicator } from "../../HostPortal/MyEventsPage/MyEventsPage";
+import { Card, EventTitle, NotFoundMessage, PreviewImg, Schedule, StatusIndicator } from "../../HostPortal/MyEventsPage/MyEventsPage";
 import { CardsWrapper, PageTitle, Section } from "../SettingsPage/SettingsPage";
 import previewImg from '../../../assets/landing2.png';
 import { useEffect, useState } from "react";
@@ -143,7 +143,7 @@ export default function ExploreEventsPage(){
                 </Card>
               ))}
             </CardsWrapper>
-            <PagingWrapper>
+            {events?.length > 0 ? <PagingWrapper>
               <PageButton onClick={() => setCurrentPage(prev => prev - 1)} disabled={currentPage === 1}>
                 ◀ Prev
               </PageButton>
@@ -177,7 +177,8 @@ export default function ExploreEventsPage(){
               <PageButton onClick={() => setCurrentPage(prev => prev + 1)} disabled={!hasMore}>
                 Next ▶
               </PageButton>
-            </PagingWrapper>
+            </PagingWrapper> :
+            <NotFoundMessage>No events found.</NotFoundMessage>}
         </Section>
     )
 }

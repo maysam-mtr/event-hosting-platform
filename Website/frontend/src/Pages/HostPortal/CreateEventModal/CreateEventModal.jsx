@@ -12,6 +12,7 @@ import { FiCheck } from 'react-icons/fi'
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
+import { useNavigate } from "react-router-dom";
 
 const StepTracker = styled.div`
   display: flex;
@@ -233,6 +234,7 @@ export default function CreateEventModal({setPopup}) {
   const [maps, setMaps] = useState([]);
  
   const [sendRequest] = useSendRequest();
+  const navigate = useNavigate();
 
   const closeModal = () => {
     setEventData({
@@ -308,6 +310,7 @@ export default function CreateEventModal({setPopup}) {
     if(response?.success === true){
       setPopup({message: 'Event Created Successfuly', type: 'success', isVisible: true});
       closeModal();
+      //navigate('/host/my-events');
     }else{
       setErrorMsg(response?.error[0]?.message || "Something went wrong. Try Again!");
     }

@@ -2,6 +2,15 @@ import styled from 'styled-components';
 import Preload from './Preload';
 import JitsiComponent from './JitsiComponent';
 
+const GameContainer = styled.div`
+display: flex;
+justifyContent: center;
+alignItems: center;
+height: 100vh;
+width: 100vw;
+margin: 0;
+`;
+
 export default function EventGameSpace(){
     const gameContainerStyle = {
         display: 'flex',
@@ -26,9 +35,9 @@ export default function EventGameSpace(){
     
       return (
         <div className="App" style={{ position: 'relative' }}>
-          <div className="game-container" style={gameContainerStyle}>
+          <GameContainer style={gameContainerStyle}>
             <Preload />
-          </div>
+          </GameContainer>
           {/* <div style={jitsiStyle}>
             <JitsiComponent roomName="amz" />
           </div> */}

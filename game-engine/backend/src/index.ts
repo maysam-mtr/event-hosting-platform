@@ -151,7 +151,7 @@ app.get("/getMeetingLink/:boothId", (req, res) => {
   const { boothId } = req.params;
 
   // Your Cloudflare Tunnel domain
-  const jitsiDomain = "allocated-wed-cliff-johns.trycloudflare.com";
+  const jitsiDomain = "mhz-booking-yeah-pro.trycloudflare.com";
 
   // Room name format: booth_123
   const roomName = `booth_${boothId}`;
@@ -366,7 +366,7 @@ socket.data.avatar = avatar
         userId,
         boothId: booth.id,
         isPartner:socket.data.isPartner,
-        meetingUrl:`https://allocated-wed-cliff-johns.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
+        meetingUrl:`https://mhz-booking-yeah-pro.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
    
       })
       io.emit("userEnteredBooth", {
