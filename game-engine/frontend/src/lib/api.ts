@@ -1,4 +1,4 @@
-export const GAME_ENGINE_BASE_URL = "http://localhost:3004"
+export const GAME_ENGINE_BASE_URL = "gameback.eventurelb.online"
 
 export const getMapInfo = async () => {
     try {

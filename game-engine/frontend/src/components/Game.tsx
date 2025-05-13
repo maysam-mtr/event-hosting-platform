@@ -3,9 +3,9 @@ import Phaser from 'phaser'
 import { GAME_ENGINE_BASE_URL } from '../lib/api'
 import { io } from 'socket.io-client'
 
-const domain = "allocated-wed-cliff-johns.trycloudflare.com ";
+const domain = "jitsi.eventurelb.online";
 // Connect to backend
-const socket = io('http://localhost:3004')
+const socket = io('https://gameback.eventurelb.online')
 interface MapImage {
   image: string
   name: string

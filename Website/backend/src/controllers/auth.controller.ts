@@ -15,6 +15,7 @@ const loginController = async (req: Request, res: Response): Promise<void> => {
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
             maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
+            domain: '.eventurelb.online',
             secure: false
         });
         res.clearCookie(process.env.HOST_TOKEN_COOKIE_NAME || 'hostToken');
@@ -40,6 +41,7 @@ const loginHostController = async (req: Request, res: Response): Promise<void> =
             httpOnly: true, // Prevents client-side access
             sameSite: 'strict', // Helps prevent CSRF attacks
             maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
+            domain: '.eventurelb.online',
             secure: false
         });
         res.clearCookie(process.env.USER_TOKEN_COOKIE_NAME || 'token');

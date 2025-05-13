@@ -3,9 +3,9 @@ import Phaser from 'phaser'
 import { io } from 'socket.io-client'
 import useUserState from '../../hooks/use-user-state';
 
-const domain = "allocated-wed-cliff-johns.trycloudflare.com ";
+const domain = "jitsi.eventurelb.online";
 // Connect to backend
-const socket = io('http://localhost:3004')
+const socket = io('https://gameback.eventurelb.online')
 
 const Game = ({ mapInfo, characterInfo }) => {
   const gameRef = useRef(null)

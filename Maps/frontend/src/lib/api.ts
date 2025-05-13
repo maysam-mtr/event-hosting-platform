@@ -1,6 +1,6 @@
 import type { CustomResponse, Map } from "./types"
 
-const API_BASE_URL = "http://localhost:3000/api"
+const API_BASE_URL = "https://mapsback.eventurelb.online/api"
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<CustomResponse<T>> {

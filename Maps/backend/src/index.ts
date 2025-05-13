@@ -9,7 +9,7 @@ import router from '@routes/routes'
 const app = express()
 
 const corsOptions = {
-    origin: [`http://localhost:${MAP_FRONTEND_PROT}`, `http://localhost:${GAME_ENGINE_BACKEND_PORT}`, `http://localhost:${WEBSITE_FRONTEND_PORT}`],
+    origin: [`https://mapsfront.eventurelb.online`, `https://gameback.eventurelb.online`, `https://eventurelb.online`],
     optionsSuccessStatus: 200,
     credentials: true,
 }

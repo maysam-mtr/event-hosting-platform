@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3004"],
+    origin: ["https://website.eventurelb.online", "https://eventurelb.online", "https://gameback.eventurelb.online"],
     credentials: true, 
   })
 );
@@ -51,7 +51,7 @@ app.use('/api/host', hostRoute);
 app.use('/api/event/private/credentials', credentialRoute);
 
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log(`Server running on https://website.eventurelb.online`));
 app.use("/", async(req:Request, res: Response) => {
   res.send("Welcome to the API");
 });

@@ -21,6 +21,7 @@ export const adminLoginController = async (req: Request, res: Response, next: Ne
         res.cookie(ADMIN_TOKEN_COOKIE_NAME as string, response.accessToken, {
             httpOnly: true, // prvent client-side access
             sameSite: 'strict', // prevent CSRF attacks
+            domain: '.eventurelb.online',
             maxAge: 7200000, // 2 hours,
             secure: false,
         })

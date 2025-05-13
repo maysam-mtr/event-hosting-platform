@@ -13,7 +13,7 @@ const app = express()
 const server = http.createServer(app)
 const PORT = process.env.PORT || 3333
 
-app.use(cors({ origin: ["http://localhost:5000", "http://localhost:3004"], credentials: true }))
+app.use(cors({ origin: ["https://website.eventurelb.online", "https://gameback.eventurelb.online"], credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())

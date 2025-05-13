@@ -114,7 +114,7 @@ const PORT = process.env.PORT || 3004
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3333"],
+    origin: ["https://website.eventurelb.online", "https://eventurelb.online", "https://schedulerback.eventurelb.online"],
     credentials: true,
   })
 )
@@ -151,7 +151,7 @@ app.get("/getMeetingLink/:boothId", (req, res) => {
   const { boothId } = req.params;
 
   // Your Cloudflare Tunnel domain
-  const jitsiDomain = "allocated-wed-cliff-johns.trycloudflare.com";
+  const jitsiDomain = "jitsi.eventurelb.online";
 
   // Room name format: booth_123
   const roomName = `booth_${boothId}`;
@@ -171,7 +171,7 @@ app.get("/getMeetingLink/:boothId", (req, res) => {
 const httpServer = createServer(app)
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ["http://localhost:5000", "http://localhost:5173"],
+    origin: ["https://website.eventurelb.online", "https://eventurelb.online"],
     credentials: true,
   }
 })
@@ -366,7 +366,7 @@ socket.data.avatar = avatar
         userId,
         boothId: booth.id,
         isPartner:socket.data.isPartner,
-        meetingUrl:`https://allocated-wed-cliff-johns.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
+        meetingUrl:`https://jitsi.eventurelb.online/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
    
       })
       io.emit("userEnteredBooth", {
@@ -411,7 +411,7 @@ initializeMapData()
   .then(async () => {
     await loadBoothsFromMap()
     httpServer.listen(PORT, () => {
-      console.log(`🎮 Game engine running at http://localhost:${PORT}`)
+      console.log(`🎮 Game engine running at https://gameback.eventurelb.online`)
     })
   })
   .catch((err) => {

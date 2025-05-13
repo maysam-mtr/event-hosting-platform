@@ -55,9 +55,6 @@ const createEventController = async (req: Request, res: Response): Promise<void>
         }
 
         const event = await createEvent(eventData, hostUser.id);
-        
-        const BASE_URL = process.env.BASE_URL || "http://localhost";
-        const SCHEDULER_PORT = process.env.SCHEDULER_PORT || 3333;
 
         const requestBody = {
             data: {
@@ -69,7 +66,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 
         const cookieHeader = req.headers.cookie
 
-        const endpoint = `${BASE_URL}:${SCHEDULER_PORT}/schedule`;
+        const endpoint = `https://schedulerback.eventurelb.online/schedule`;
 
         const scheduleEventRes = await fetch(endpoint, {
             method: "POST",
