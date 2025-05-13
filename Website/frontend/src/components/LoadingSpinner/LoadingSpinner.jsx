@@ -6,8 +6,8 @@ const spin = keyframes`
 `;
 
 const Spinner = styled.div`
-  width: 50%;
-  height: 50%;
+  width: 70%;
+  height: 70%;
   max-width: 100px;
   max-height: 100px;
   min-width: 20px;
@@ -16,6 +16,7 @@ const Spinner = styled.div`
   border-top: 5px solid ${({$role}) => $role === 'host' ? 'var(--host-bg-light)' : 'var(--general-bg-light)'};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
+  padding: ${({$padding}) => $padding === true ? '50px' : '0px'};
 `;
 
 const SpinnerContainer = styled.div`
@@ -26,10 +27,10 @@ const SpinnerContainer = styled.div`
   min-height: 100%;
 `;
 
-export default function LoadingSpinner({role = 'guest'}) {
+export default function LoadingSpinner({role = 'guest', padding = false}) {
   return (
     <SpinnerContainer>
-      <Spinner $role={role}/>
+      <Spinner $role={role} $padding={padding}/>
     </SpinnerContainer>
   );
 }

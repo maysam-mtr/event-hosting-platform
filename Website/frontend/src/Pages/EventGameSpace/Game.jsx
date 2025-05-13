@@ -2,8 +2,25 @@ import { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import { io } from 'socket.io-client'
 import useUserState from '../../hooks/use-user-state';
+import styled from 'styled-components';
+import GameControls from './GameControls';
 
-const domain = "allocated-wed-cliff-johns.trycloudflare.com ";
+const MapContainer = styled.div`
+width: 100%;
+height: 100%;
+align-content: center;
+`;
+
+const JitsiContainer = styled.div`
+width: 400px;
+height: 300px;
+position: absolute;
+top: 50px;
+right: 50px;
+z-index: 100;
+`;
+
+const domain = "mhz-booking-yeah-pro.trycloudflare.com";
 // Connect to backend
 const socket = io('http://localhost:3004')
 
@@ -11,6 +28,25 @@ const Game = ({ mapInfo, characterInfo }) => {
   const gameRef = useRef(null)
   const gameInstance = useRef(null)
   const { user, setUser } = useUserState();
+  
+  function zoomIn() {
+    const scene = gameInstance.current?.scene?.scenes?.[0];
+    if (scene && scene.cameras && scene.cameras.main) {
+      const newZoom = Math.min(scene.cameras.main.zoom * 1.2, 4); // 4 is max zoom
+      scene.cameras.main.setZoom(newZoom);
+    }
+  }
+
+  function zoomOut() {
+    const scene = gameInstance.current?.scene?.scenes?.[0];
+    if (scene && scene.cameras && scene.cameras.main) {
+      const minZoom = scene.minZoom || 0.1; // fallback if not set
+      const newZoom = Math.max(scene.cameras.main.zoom / 1.2, minZoom);
+      scene.cameras.main.setZoom(newZoom);
+    }
+  }
+
+
 
   console.log("user:", user);
 
@@ -79,14 +115,21 @@ const Game = ({ mapInfo, characterInfo }) => {
       api.addEventListener('audioMuteStatusChanged', handleAudioMute);
       api.addEventListener('videoMuteStatusChanged', handleVideoMute);
 
+      
+
   
     }
 
+
     const config = {
       type: Phaser.AUTO,
-      width: 840,
-      height: 480,
+      width: window.innerWidth, //or statiz 1600
+      height: window.innerHeight, //or static 700
       parent: gameRef.current,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+      },
       scene: {
         preload() {
           this.load.json('mapdata', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
@@ -171,6 +214,15 @@ const Game = ({ mapInfo, characterInfo }) => {
           this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
           this.cameras.main.startFollow(this.player, true, 0.1, 0.1)
           this.cameras.main.zoom = 2
+
+          //zoom thing
+          const cam = this.cameras.main;
+          const minZoom = Math.max(
+            cam.width / map.widthInPixels,
+            cam.height / map.heightInPixels
+          );
+          this.minZoom = minZoom;
+          //jc
 
           this.cursors = this.input.keyboard.createCursorKeys()
           
@@ -425,41 +477,53 @@ const Game = ({ mapInfo, characterInfo }) => {
 
     gameInstance.current = new Phaser.Game(config)
 
+    //for responsiveness
+    const handleResize = () => {
+      const canvas = gameRef.current?.querySelector('canvas');
+      if (canvas) {
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+      }
+      if (gameInstance.current) {
+        gameInstance.current.scale.resize(window.innerWidth, window.innerHeight);
+      }
+    };
+
+     window.addEventListener('resize', handleResize);
+
     return () => {
       socket.off("playerMoved")
       socket.off("playerDisconnected")
       gameInstance.current?.destroy(true)
       gameInstance.current = null
+
+      //for responsiveness
+      window.removeEventListener('resize', handleResize);
+      if (gameInstance.current) {
+        gameInstance.current.destroy(true);
+      }
     }
   }, [])
 
   return (
   <>
-    <div ref={gameRef} id="game-container" style={{ width: "1040px", height: "680px", alignContent:"center"}}>
-    {
-      inMeeting && (
-        <div>
-          <button onClick={toggleMic}>🎤 {isMicMuted ? "Enable Mic" : "Disable Mic"}</button>
-          <button onClick={toggleCamera}>📹 {isCamMuted ? "Enable Camera" : "Disable Camera"}</button>
-          <button onClick={openChat}>💬 {isChatOpened ? "Open Chat" : "Close Chat"}</button>
-
-            {isPartner && (
-              <button onClick={toggleScreenShare}>
-                🖥️ {isSharingScreen ? "Stop Sharing" : "Start Screen Share"}
-              </button>
-            )}
-        </div>
-      )}
-    </div> 
-    <div id="jitsi-meet" style={{
-        width: '400px',
-        height: '300px',
-        position: 'absolute',
-        top: '50px',
-        right: '50px',
-        zIndex: 100,
-      }}>
-    </div>
+    <MapContainer ref={gameRef} id="game-container">
+        <GameControls 
+            onZoomIn={zoomIn} 
+            onZoomOut={zoomOut} 
+            toggleMic={toggleMic} 
+            toggleCamera={toggleCamera} 
+            isCamMuted={isCamMuted} 
+            openChat={openChat}
+            isChatOpened={isChatOpened}
+            isPartner={isPartner}
+            isSharingScreen={isSharingScreen}
+            toggleScreenShare={toggleScreenShare}
+            isMicMuted={isMicMuted}
+            inMeeting={inMeeting}/>
+    </MapContainer> 
+    <JitsiContainer id="jitsi-meet">
+    </JitsiContainer>
   </>
   )
 }

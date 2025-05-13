@@ -27,7 +27,7 @@ app.post('/schedule', hostAuthMiddleware, (req, res, next) => {
         }
 
         const dateValidation = (time: Date) : string[] => {
-            const now = Date.now()
+            const now = Date.now() + 3 * 60 * 60 * 1000 // add 3 hours to convert to local timing
             const maxTime = now + 30 * 24 * 60 * 60 * 1000 // 30 days from now
             
             const errors = []    

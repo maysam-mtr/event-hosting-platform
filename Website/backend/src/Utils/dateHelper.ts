@@ -13,4 +13,11 @@ const getTimeNow = (): string => {
     const utcSeconds = String(now.getSeconds()).padStart(2, "0");
     return `${utcHours}:${utcMinutes}:${utcSeconds}`; // HH:mm:ss format in UTC
 };
-export{getTimeNow, getTodayDate}
+
+const getLocalDate = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 3);
+    return now;
+}
+
+export{getTimeNow, getTodayDate, getLocalDate}

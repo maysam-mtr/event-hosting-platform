@@ -17,6 +17,8 @@ export const scheduleCronJob = (
   endTime: Date
 ): void => {
   const now = new Date()
+  now.setHours(now.getHours() + 3)
+
   const fiveMinutesBefore = new Date(startTime.getTime() - 5 * 60 * 1000)
   const startImmediately = fiveMinutesBefore <= now
 
@@ -29,7 +31,7 @@ export const scheduleCronJob = (
   } else {
     const startExpr = [
       fiveMinutesBefore.getMinutes(),
-      fiveMinutesBefore.getHours(),
+      fiveMinutesBefore.getUTCHours(),
       fiveMinutesBefore.getDate(),
       fiveMinutesBefore.getMonth() + 1,
       '*',
@@ -48,7 +50,7 @@ export const scheduleCronJob = (
 
   const endExpr = [
     endTime.getMinutes(),
-    endTime.getHours(),
+    endTime.getUTCHours(),
     endTime.getDate(),
     endTime.getMonth() + 1,
     '*',
