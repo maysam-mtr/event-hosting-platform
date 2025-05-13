@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { GAME_ENGINE_BASE_URL } from '../lib/api'
 import { io } from 'socket.io-client'
 
-const domain = "students-finite-forward-our.trycloudflare.com";
+const domain = "hi-mr-anaheim-anatomy.trycloudflare.com";
 // Connect to backend
 const socket = io('http://localhost:3004')
 interface MapImage {
