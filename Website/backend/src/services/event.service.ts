@@ -2,7 +2,7 @@ import Event from '../models/Event';
 import { Op } from 'sequelize';
 import { markSubscriptionAsUsed, isSubscriptionValid, getMaxDurationBySubscriptionId } from './subscription.service';
 import { createPrivateEventCredential,getPrivateEventCredential,deletePrivateEventCredential } from './PrivateEventCredential.service';
-import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
+import { getTodayDate, getTimeNow, getLocalDate } from "../Utils/dateHelper";
 import Host from '../models/Host';
 import { start } from 'repl';
 const createEvent = async (eventData: any, hostId: string): Promise<any> => {
@@ -368,7 +368,7 @@ export const isEventOngoing = (
 ): { isOngoing: boolean; status: string } => {
     // Get the current UTC date and time
     console.log("hi",startDate, startTime, endDate, endTime)
-    const now = new Date();
+    const now = getLocalDate();
 
     // Parse the start and end times
     const [startHours, startMinutes] = startTime.split(":").map(Number);

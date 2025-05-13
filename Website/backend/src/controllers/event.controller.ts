@@ -22,15 +22,16 @@ const createEventController = async (req: Request, res: Response): Promise<void>
     }
 
     try {
-        const event = await createEvent(eventData, hostUser.id);
 
+        const { eventName, startDate, startTime, endTime, endDate, subscriptionId, mapTemplateId, eventType, passcode } = eventData;
+        
         const getDateAndTime = (combinedDateAndTime: string) : Date | null => {
             const localDate = new Date(combinedDateAndTime);
             const scheduleStartTime = new Date(Date.UTC(
                 localDate.getUTCFullYear(),
                 localDate.getUTCMonth(),
                 localDate.getUTCDate(),
-                localDate.getUTCHours(),
+                localDate.getUTCHours() + 3,
                 localDate.getUTCMinutes(),
                 localDate.getUTCSeconds()
             ));
@@ -41,13 +42,20 @@ const createEventController = async (req: Request, res: Response): Promise<void>
             
             return scheduleStartTime
         }
-        const scheduleStartTime = getDateAndTime(`${event.event.startDate}T${event.event.startTime}`)
-        const scheduleEndTime = getDateAndTime(`${event.event.endDate}T${event.event.endTime}`)
-        if (!scheduleStartTime || !scheduleEndTime) {
+
+        const [startDateOnly] = startDate.toISOString().split('T')
+        const [endDateOnly] = endDate.toISOString().split('T')
+
+        const localStartTime = getDateAndTime(`${startDateOnly}T${startTime}`)
+        const localEndTime = getDateAndTime(`${endDateOnly}T${endTime}`)
+
+        if (!localStartTime || !localEndTime) {
             sendResponse(res, false, 400, "Failed to convert event start/end date and time");
             return;
         }
 
+        const event = await createEvent(eventData, hostUser.id);
+        
         const BASE_URL = process.env.BASE_URL || "http://localhost";
         const SCHEDULER_PORT = process.env.SCHEDULER_PORT || 3333;
 
@@ -55,8 +63,8 @@ const createEventController = async (req: Request, res: Response): Promise<void>
             data: {
                 eventId: event.event.id
             },
-            startTime: scheduleStartTime.toISOString(),
-            endTime: scheduleEndTime.toISOString(),
+            startTime: localStartTime,
+            endTime: localEndTime,
         };
 
         const cookieHeader = req.headers.cookie
