@@ -1,11 +1,11 @@
-import { getEventDetails, getPartnerBooth, loadBoothsAPI, loadMapAPI } from "./utils/apis"
+import { getEventDetails, getPartnerBooth, loadBoothsAPI,loadMapAPI  } from "./utils/apis"
 import fs from "fs/promises"
 import path from "path"
 import { downloadPartnerCompanyLogo } from "./utils/supabase"
 import { Partner, EventDetails } from "./utils/interfaces"
 
-const EVENT_ID = process.env.EVENT_ID
-// const EVENT_ID = "f64968a1-2c75-4b5d-89cb-f234d4900be4"
+//const EVENT_ID = process.env.EVENT_ID
+ const EVENT_ID = "e8e8da0c-144c-4cd0-b016-00491e4eb9b3"
 if (!EVENT_ID) {
     throw new Error("Missing EVENT_ID environment variable")
 }
@@ -50,7 +50,7 @@ export const initializeMapData = async () => {
     try {
         const { mapId, partners } = await getEventInformation(EVENT_ID)
         
-        const { images, rawData } = await loadMapAPI(mapId)
+       const { images, rawData } = await loadMapAPI(mapId)
         const boothsResponse = await loadBoothsAPI(mapId)
 
         // Ensuring the assets directory exists
@@ -79,14 +79,14 @@ console.log(" Booth data saved to assets/booths.json")
 
         console.log("Booths data:", boothsResponse)
 
-        const imageNames = images.map(image => ({ image: image.image, name: image.name}))
+       const imageNames = images.map(image => ({ image: image.image, name: image.name}))
         const filePath = path.join(__dirname, "mapInfo.json")
 
         // if file doesn't exist -> create
         try {
             await fs.access(filePath)
         } catch (err: any) {
-            await fs.writeFile(path.join(__dirname, "mapInfo.json"), JSON.stringify({ images: imageNames }))   
+         await fs.writeFile(path.join(__dirname, "mapInfo.json"), JSON.stringify({ images: imageNames }))   
         }
 
         const mapJsonPath = path.join(assetsDir, "map.json")
@@ -94,11 +94,11 @@ console.log(" Booth data saved to assets/booths.json")
         try {
             await fs.access(mapJsonPath)
         } catch (err: any) {
-            await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
+          await fs.writeFile(mapJsonPath, JSON.stringify(rawData))
         }
 
       
-        for(const image of images) {
+     for(const image of images) {
             const filePath = path.join(assetsDir, image.image)
 
             // Decode the Base64 string into a Buffer
@@ -121,7 +121,7 @@ console.log(" Booth data saved to assets/booths.json")
             await fs.mkdir(partnersDir, { recursive: true })
         }
 
-        for(const partner of partners) {
+       for(const partner of partners) {
             const logo = partner.companyLogo.split((process.env.SUPABASE_PARTNERS_BUCKET_NAME || "eventure-imgs") + "/").pop()!
             const logoFileName = partner.companyLogo.split('/').pop()!
             const localFileNameWithoutExt = path.parse(logoFileName).base

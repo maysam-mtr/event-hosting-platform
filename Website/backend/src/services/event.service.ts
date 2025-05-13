@@ -51,8 +51,8 @@ console.log(startDateObj=== (endDateObj))
         const startDateTime = new Date(startDateObj);
         const endDateTime = new Date(endDateObj);
 
-        startDateTime.setUTCHours(startHours, startMinutes, 0, 0);
-        endDateTime.setUTCHours(endHours, endMinutes, 0, 0);
+        startDateTime.setHours(startHours, startMinutes, 0, 0);
+        endDateTime.setHours(endHours, endMinutes, 0, 0);
 
         const durationInMinutes = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
 
@@ -186,8 +186,8 @@ const updateEvent = async (
             const [startH, startM] = newStartTime.split(':').map(Number);
             const [endH, endM] = newEndTime.split(':').map(Number);
 
-            startDateTime.setUTCHours(startH, startM, 0, 0);
-            endDateTime.setUTCHours(endH, endM, 0, 0);
+            startDateTime.setHours(startH, startM, 0, 0);
+            endDateTime.setHours(endH, endM, 0, 0);
 
             const durationInMinutes = Math.ceil(
                 (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60)
@@ -366,7 +366,7 @@ export const isEventOngoing = (
     endDate: Date,
     endTime: string
 ): { isOngoing: boolean; status: string } => {
-    // Get the current UTC date and time
+   
     console.log("hi",startDate, startTime, endDate, endTime)
     const now = new Date();
 
@@ -376,10 +376,10 @@ export const isEventOngoing = (
 
     // Combine date and time into full start and end timestamps
     const startDateTime = new Date(startDate);
-    startDateTime.setUTCHours(startHours, startMinutes, 0, 0);
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
 
     const endDateTime = new Date(endDate);
-    endDateTime.setUTCHours(endHours, endMinutes, 0, 0);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
 
     // Determine the event status
     if (now < startDateTime) {
@@ -469,7 +469,8 @@ const filterEventsByStatus = async (
     try {
         const today = getTodayDate();
         const currentTime = getTimeNow();
-
+console.log("Current Time:", currentTime);
+console.log("Today:", today);
         let whereCondition = {};
 
         switch (status) {
