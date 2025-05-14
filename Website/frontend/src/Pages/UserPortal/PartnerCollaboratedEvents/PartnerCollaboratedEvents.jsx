@@ -58,9 +58,9 @@ const [events, setEvents] = useState([]);
                       target.onerror = null; 
                       target.src = previewImg;
                   }}/>
-                  <EventTitle>{event.eventName}</EventTitle>
+                  <EventTitle>{event.Event.eventName}</EventTitle>
                   <StatusIndicator style={{alignSelf: 'center'}} $status={event.status}>{getEventStatus(event.status)}</StatusIndicator>
-                  <Schedule><strong>Host: </strong>{event.Event.hostName}</Schedule>
+                  <Schedule><strong>Host: </strong>{event.Event.Host.fullName}</Schedule>
                   <Schedule><strong>Scheduled at:</strong>{formatDateTime(`${event.Event.startDate}T${event.Event.startTime}`)}</Schedule>
                   <Schedule><strong>Created at:</strong> {formatDateTime(event.createdAt)}</Schedule>
                   <Button1 style={{fontSize: 'var(--body)', alignSelf: 'center', marginTop: '10px'}} 

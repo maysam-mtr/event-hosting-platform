@@ -4,6 +4,7 @@ import { Op } from "sequelize";
 import Event from "../models/Event";
 import { isEventOngoing } from './event.service';
 import { getPrivateEventCredential } from './PrivateEventCredential.service';
+import Host from '../models/Host';
 
 // Fetch or create booth details
 export const getOrCreateBoothDetails = async ( eventId: string, boothTemplateId: string ): Promise<any> => {
@@ -79,8 +80,13 @@ export const getBoothsForPartner = async (partnerId: string): Promise<any> => {
             include: [
                 {
                     model: Event,
-                    attributes: ["startDate", "startTime", "endDate", "endTime","id","eventType"], // Include event details
-                },
+                    attributes: ["startDate", "startTime", "endDate", "endTime","id","eventType","eventName","mapTemplateId","hostId"], // Include event details
+                    include: [
+                        {
+                            model: Host,
+                            attributes:["fullName"],
+                        },],
+                        },
             ],
         });
 

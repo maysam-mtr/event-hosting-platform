@@ -101,7 +101,7 @@ export default function EditEventModal({setPopup, event, updatEventDetails}) {
     console.log(response)
 
     if(response?.success === true){
-      setPopup({message: 'Event Created Successfuly', type: 'success', isVisible: true});
+      setPopup({message: 'Event Updatedd Successfuly', type: 'success', isVisible: true});
       updatEventDetails();
       closeModal();
     }else{

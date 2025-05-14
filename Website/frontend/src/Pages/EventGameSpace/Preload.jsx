@@ -14,6 +14,7 @@ function Preload() {
     const fetchMapInfo = async () => {
       try {
         const { response } = await sendRequest("/getMapInformation", {}, "game-engine")
+        console.log(response)
 
         setImages(response.mapImages.images)
         setPartners(response.partners)

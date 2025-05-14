@@ -2,7 +2,7 @@ import Event from '../models/Event';
 import { Op } from 'sequelize';
 import { markSubscriptionAsUsed, isSubscriptionValid, getMaxDurationBySubscriptionId } from './subscription.service';
 import { createPrivateEventCredential,getPrivateEventCredential,deletePrivateEventCredential } from './PrivateEventCredential.service';
-import { getTodayDate, getTimeNow, getLocalDate } from "../Utils/dateHelper";
+import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
 import Host from '../models/Host';
 import { start } from 'repl';
 const createEvent = async (eventData: any, hostId: string): Promise<any> => {
@@ -51,8 +51,8 @@ console.log(startDateObj=== (endDateObj))
         const startDateTime = new Date(startDateObj);
         const endDateTime = new Date(endDateObj);
 
-        startDateTime.setUTCHours(startHours, startMinutes, 0, 0);
-        endDateTime.setUTCHours(endHours, endMinutes, 0, 0);
+        startDateTime.setHours(startHours, startMinutes, 0, 0);
+        endDateTime.setHours(endHours, endMinutes, 0, 0);
 
         const durationInMinutes = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
 
@@ -186,8 +186,8 @@ const updateEvent = async (
             const [startH, startM] = newStartTime.split(':').map(Number);
             const [endH, endM] = newEndTime.split(':').map(Number);
 
-            startDateTime.setUTCHours(startH, startM, 0, 0);
-            endDateTime.setUTCHours(endH, endM, 0, 0);
+            startDateTime.setHours(startH, startM, 0, 0);
+            endDateTime.setHours(endH, endM, 0, 0);
 
             const durationInMinutes = Math.ceil(
                 (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60)
@@ -366,9 +366,8 @@ export const isEventOngoing = (
     endDate: Date,
     endTime: string
 ): { isOngoing: boolean; status: string } => {
-    // Get the current UTC date and time
     console.log("hi",startDate, startTime, endDate, endTime)
-    const now = getLocalDate();
+    const now = new Date();
 
     // Parse the start and end times
     const [startHours, startMinutes] = startTime.split(":").map(Number);
@@ -376,10 +375,10 @@ export const isEventOngoing = (
 
     // Combine date and time into full start and end timestamps
     const startDateTime = new Date(startDate);
-    startDateTime.setUTCHours(startHours, startMinutes, 0, 0);
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
 
     const endDateTime = new Date(endDate);
-    endDateTime.setUTCHours(endHours, endMinutes, 0, 0);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
 
     // Determine the event status
     if (now < startDateTime) {
@@ -469,7 +468,8 @@ const filterEventsByStatus = async (
     try {
         const today = getTodayDate();
         const currentTime = getTimeNow();
-
+console.log("Current Time:", currentTime);
+console.log("Today:", today);
         let whereCondition = {};
 
         switch (status) {
@@ -651,8 +651,9 @@ export const filterPublicEventsByStatus = async (status: string,page:number,limi
 const getEvent = async (eventID: string): Promise<any> => {
     try {
         const event = await Event.findByPk(eventID);
+        console.log(eventID)
         if (!event) {
-            throw new Error("User not found");
+            throw new Error("Event not found");
         }
         return event;
     } catch (err) {

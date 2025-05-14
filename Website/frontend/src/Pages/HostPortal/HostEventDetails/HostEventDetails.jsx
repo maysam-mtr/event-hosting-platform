@@ -514,7 +514,7 @@ export default function HostEventDetails() {
                     <td>{partner.Partner.companyName}</td>
                     <td>{partner.Partner.primaryContactFullName}</td>
                     <td>{partner.Partner.User?.email}</td>
-                    <td>{`${partner.boothTemplateId}` || '-'}</td>
+                    <td>{`${getMappedBoothId(partner.boothTemplateId)}` || '-'}</td>
                   </tr>
                 ))}
               </tbody>

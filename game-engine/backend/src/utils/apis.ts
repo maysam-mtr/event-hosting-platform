@@ -49,6 +49,7 @@ export const loadBoothsAPI = async (mapId: string): Promise<MapResponse> => {
 export const getEventDetails = async (eventId: string): Promise<any> => {
   try {
     const res = await fetch(`${WEBSITE_API_BASE_URL}/events/booth-details/${eventId}`)
+    console.log(res)
     
     // Check if the response is successful
     if (!res.ok) {
