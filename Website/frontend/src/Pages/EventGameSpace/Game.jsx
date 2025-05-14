@@ -20,7 +20,7 @@ right: 50px;
 z-index: 100;
 `;
 
-const domain = "mhz-booking-yeah-pro.trycloudflare.com";
+const domain = "fatty-theory-classics-jackets.trycloudflare.com";
 // Connect to backend
 const socket = io('http://localhost:3004')
 
@@ -71,7 +71,7 @@ const Game = ({ mapInfo, characterInfo }) => {
   const [isMicMuted, setIsMicMuted] = useState(true);
   const [isCamMuted, setIsCamMuted] = useState(true);
   const [isPartner, setIsPartner] = useState(false);
-  const [isChatOpened, setIsChatOpened] = useState(true);
+  const [isChatOpened, setIsChatOpened] = useState(false);
   const [inMeeting, setInMeeting] = useState(false);
   let api;
   const [isSharingScreen, setIsSharingScreen] = useState(false);

@@ -2,7 +2,7 @@ import { JitsiMeeting } from '@jitsi/react-sdk';
 
 const JitsiComponent = ({ roomName }) => (
   <JitsiMeeting
-    domain="mhz-booking-yeah-pro.trycloudflare.com         "
+    domain="fatty-theory-classics-jackets.trycloudflare.com"
     roomName={roomName}
     configOverwrite={{
       startWithAudioMuted: true,
