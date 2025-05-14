@@ -24,6 +24,8 @@ import ExploreEventsPage from "../Pages/UserPortal/ExploreEventsPage/ExploreEven
 import InvitationAccessRoute from "../middlewares/InvitationAccessRoute";
 import InvitationPage from "../Pages/InvitationPage/InvitationPage";
 import HostEventDetails from "../Pages/HostPortal/HostEventDetails/HostEventDetails";
+import PartnerAccessRoute from "../middlewares/PartnerAccessRoute";
+import PartnerCollaboratedEvents from "../Pages/UserPortal/PartnerCollaboratedEvents/PartnerCollaboratedEvents";
 
 export const Router = createBrowserRouter([
     {
@@ -116,6 +118,15 @@ export const Router = createBrowserRouter([
                     {
                         path: 'settings',
                         element: <SettingsPage/>
+                    },
+                    {
+                        element: <PartnerAccessRoute/>,
+                        children: [
+                            {
+                                path: 'collaborated-events',
+                                element: <PartnerCollaboratedEvents/>
+                            }
+                        ]
                     }
                 ]
             },

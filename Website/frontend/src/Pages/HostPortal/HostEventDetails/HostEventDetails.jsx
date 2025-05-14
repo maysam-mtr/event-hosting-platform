@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { StatusIndicator } from "../MyEventsPage/MyEventsPage";
 import { OrangeShape, OverlayShape } from "../../SignUpPage/SignUpPage";
 import { FaArrowLeft, FaTimes } from "react-icons/fa";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../UserPortal/HomePage/HomePage";
 import Input from "../../../components/Input/Input";
 import ErrorMessage from "../../../components/ErrorMessage/ErrorMessage";
@@ -203,6 +203,7 @@ export default function HostEventDetails() {
   })
   const [boothsMapping, setBoothsMapping] = useState([])
   const navigate = useNavigate();
+  const location = useLocation();
 
   const addEmail = () => {
     const trimmed = assignedEmail.email?.trim();
@@ -400,6 +401,13 @@ export default function HostEventDetails() {
     useEffect(() => {
         getInvitations();
     }, [emails])
+
+    useEffect(() => {
+      const {popupMessage} = location.state || {};
+      if(popupMessage){
+        setPopup({message: popupMessage, type: 'success', isVisible: 'true'});
+      }
+    }, [])
 
   return (
     <>

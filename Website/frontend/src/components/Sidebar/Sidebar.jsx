@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Link, useLocation } from "react-router-dom";
+import useUserState from "../../hooks/use-user-state";
 
 const SidebarContainer = styled.div`
   width: 250px;
@@ -42,6 +43,7 @@ const CloseButton = styled.button`
 
 export default function Sidebar({ isOpen, toggleSidebar, role }) {
   const location = useLocation();
+  const {user} = useUserState();
 
   return (
     <SidebarContainer $isOpen={isOpen}>
@@ -66,6 +68,9 @@ export default function Sidebar({ isOpen, toggleSidebar, role }) {
           <SidebarItem $role={role} to="/user/explore" $active={location.pathname === "/user/explore"} onClick={() => toggleSidebar()}>
             Explore Events
           </SidebarItem>
+          {user.isPartner === 1 && <SidebarItem $role={role} to="/user/collaborated-events" $active={location.pathname === "/user/collaborated-events"} onClick={() => toggleSidebar()}>
+            Collaborated Events
+          </SidebarItem>}
           <SidebarItem $role={role} to="/user/settings" $active={location.pathname === "/user/settings"} onClick={() => toggleSidebar()}>
             Settings
           </SidebarItem>

@@ -196,7 +196,7 @@ export default function EventDetailsPage() {
   }
 
   async function OnJoinEvent(){
-    //open  game
+    navigate('/event/space');
   }
 
   async function validateCredentials(password){

@@ -310,7 +310,9 @@ export default function CreateEventModal({setPopup}) {
     if(response?.success === true){
       setPopup({message: 'Event Created Successfuly', type: 'success', isVisible: true});
       closeModal();
-      //navigate('/host/my-events');
+      navigate(`/host/eventDetails/${response.data[0].event.id}`, {state: {
+        popupMessage: "Account created successfully!"
+      }});
     }else{
       setErrorMsg(response?.error[0]?.message || "Something went wrong. Try Again!");
     }
