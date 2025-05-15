@@ -247,8 +247,10 @@ export default function InvitationPage(){
 
         if(response?.success === true){
             //put success card
-            setUser((prev) => ({...prev, isPartner: 1}));
+            setUser((prev) => ({...prev, isPartner: 1, partnerId: response.data[0].boothDetails.partnerId}));
             setInvitationStatus('accepted');
+
+            localStorage.setItem("user", JSON.stringify({...user, role: 'user', isPartner: 1, partnerId: response.data[0].boothDetails.partnerId}));
             //change user isPartner to 1
         }else{
             console.log(response)

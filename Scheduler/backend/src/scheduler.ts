@@ -100,7 +100,7 @@ const startGameEngine = async (eventId: string): Promise<void> => {
     '-p', `${hostPort}:3004`,
     '--env', `EVENT_ID=${eventId}`,
     '--env-file', envFilePath,
-    'game-engine-back'
+    'game-engine-backend'
   ].join(' ')
 
   exec(cmd, (error, stdout, stderr) => {

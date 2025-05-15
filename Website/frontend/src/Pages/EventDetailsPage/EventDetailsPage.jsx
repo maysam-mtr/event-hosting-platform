@@ -218,6 +218,7 @@ export default function EventDetailsPage() {
       return;
     }else if (response.success === true){
       //navigate to game space
+      OnJoinEvent()
     }
     setLoading(false);
   }

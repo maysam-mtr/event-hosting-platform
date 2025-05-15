@@ -9,6 +9,7 @@ import Popup from "../../components/Popup/Popup";
 import { FaArrowLeft } from "react-icons/fa";
 import { BackButton } from "../EventDetailsPage/EventDetailsPage";
 import useUserState from "../../hooks/use-user-state";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const float = keyframes`
   0% { transform: translateY(0px) rotate(-5deg); }
@@ -172,6 +173,10 @@ export default function SignUpPage() {
     privacyAgreement: false
   })
 
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [showHostPassword, setShowHostPassword] = useState(false);
+
+
   const [error, setError] = useState("");
   const [sendRequest] = useSendRequest();
   const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
@@ -286,7 +291,31 @@ export default function SignUpPage() {
               <Input label="Username*" name="username" data={formData} setData={setFormData} placeholder={'Enter username'} required={true}/>
               <Input label="Full Name*" name="fullName" data={formData} setData={setFormData} placeholder={'Enter full name'} required={true}/>
               <Input label="Email*" type="email" name="email" data={formData} setData={setFormData} placeholder={'Enter email'} required={true}/>
-              <Input label="Password*" type="text" name="password" data={formData} setData={setFormData} placeholder={'Enter Password'} required={true}/>
+              {/* <Input label="Password*" type="text" name="password" data={formData} setData={setFormData} placeholder={'Enter Password'} required={true}/> */}
+              <div style={{ position: 'relative' }}>
+                <Input
+                  label="Password*"
+                  type={showUserPassword ? "text" : "password"}
+                  name="password"
+                  data={formData}
+                  setData={setFormData}
+                  placeholder="Enter Password"
+                  required={true}
+                />
+                <div
+                  onClick={() => setShowUserPassword(prev => !prev)}
+                  style={{
+                    position: "absolute",
+                    top: "57%",
+                    right: "5%",
+                    cursor: "pointer",
+                    display: "flex",
+                  }}
+                >
+                  {showUserPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              </div>
+
               <Input label="Date of Birth*" type="date" name="dateOfBirth" data={formData} setData={setFormData}/>
               {/* <Input label="Profile Picture" type="file" name="profilePic" onChange={handleFileChange} /> */}
               <Input label="Education Level" name="educationLevel" data={formData} setData={setFormData} placeholder={'Enter education level'}/>
@@ -299,7 +328,31 @@ export default function SignUpPage() {
               <Input label="Full Name*" name="fullName" data={hostData} setData={setHostData} required={true} placeholder={'Enter full name'}/>
               <Input label="Company Name*" name="companyName" data={hostData} setData={setHostData} required={true} placeholder={'Enter company name'}/>
               <Input label="Email*" type="email" name="email" data={hostData} setData={setHostData} required={true} placeholder={'Enter email'}/>
-              <Input label="Password*" type="password" name="password" data={hostData} setData={setHostData} placeholder={'Enter Password'} required={true}/>
+              {/* <Input label="Password*" type="password" name="password" data={hostData} setData={setHostData} placeholder={'Enter Password'} required={true}/> */}
+              <div style={{ position: 'relative' }}>
+                <Input
+                  label="Password*"
+                  type={showHostPassword ? "text" : "password"}
+                  name="password"
+                  data={hostData}
+                  setData={setHostData}
+                  placeholder="Enter Password"
+                  required={true}
+                />
+                <div
+                  onClick={() => setShowHostPassword(prev => !prev)}
+                  style={{
+                    position: "absolute",
+                    top: "57%",
+                    right: "5%",
+                    cursor: "pointer",
+                    display: "flex",
+                  }}
+                >
+                  {showHostPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              </div>
+
               <Input label="Phone Number*" type="tel" name="phoneNumber" data={hostData} setData={setHostData} placeholder={'Enter Phone nb'}/>
               <Input label="Company Website" type="url" name="website" data={hostData} setData={setHostData} placeholder={'Enter url'}/>
               <Input label="Industry" name="industry" data={hostData} setData={setHostData} placeholder={'Enter company industry'}/>

@@ -7,6 +7,7 @@ import logoHost from '../../assets/logoHost.png';
 import Popup from "../Popup/Popup";
 import useSendRequest from "../../hooks/use-send-request";
 
+// Styled Components
 const NavbarContainer = styled.div`
   width: 100%;
   height: 70px;
@@ -21,15 +22,21 @@ const NavbarContainer = styled.div`
   justify-content: space-between;
 `;
 
-const ButtonsWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 2rem;
-  width: 100%;
+const MobileMenu = styled.div`
+  display: none;
 
-  @media (${media.tablet}) {
-    justify-content: flex-end;
+  @media (max-width: 768px) {
+    display: ${props => (props.$open ? "flex" : "none")};
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: var(--background-main);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    padding: 1rem 2rem;
+    gap: 1.5rem;
+    z-index: 299;
   }
 `;
 
@@ -37,8 +44,20 @@ const PagesContainer = styled.div`
   display: flex;
   gap: 2.5rem;
 
-  @media (${media.tablet}) {
+  @media (max-width: 768px) {
     display: none;
+  }
+`;
+
+const ButtonsWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    justify-content: flex-end;
   }
 `;
 
@@ -47,24 +66,48 @@ const ButtonsContainer = styled.div`
   gap: 1rem;
 `;
 
+const LogoContainer = styled.img`
+  max-height: 100px;
+  max-width: 200px;
+  padding: 20px;
+`;
+
+const MenuIcon = styled.div`
+  font-size: 26px;
+  cursor: pointer;
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
+const Tab = styled(Link)`
+  color: ${({ $active }) => $active ? "var(--general-bg-base)" : 'var(--text-primary)'};
+  background-color: transparent;
+  font-size: var(--heading-6);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+
+  &:hover {
+    color: var(--general-bg-light);
+  }
+`;
+
 export const Button1 = styled.button`
   background-color: var(--general-bg-base);
   padding: 9px 12px;
   border-radius: 10px;
   font-size: var(--heading-6);
-  border: 0;
   border: 1px solid var(--general-bg-dark);
   border-bottom: 3px solid var(--general-bg-dark);
-  height: fit-content;
-  width: fit-content;
   color: var(--text-background);
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   cursor: pointer;
 
   &:hover {
-    border: 1px solid var(--general-bg-base-hover);
     background-color: var(--general-bg-base-hover);
-    border-bottom: 3px solid var(--general-bg-base-hover);
+    border-color: var(--general-bg-base-hover);
   }
 `;
 
@@ -73,15 +116,9 @@ export const Button2 = styled.button`
   padding: 9px 12px;
   border-radius: 10px;
   font-size: var(--heading-6);
-  font-weight: 500;
-  border: 0;
   border: 1px solid var(--general-bg-base);
   border-bottom: 3px solid var(--general-bg-base);
-  height: fit-content;
-  width: fit-content;
   color: var(--general-bg-base);
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-  text-decoration: none;
   cursor: pointer;
 
   &:hover {
@@ -108,160 +145,86 @@ export const Button3 = styled.button`
     border: 1px solid var(--host-bg-base-hover);
     background-color: var(--host-bg-base-hover);
     border-bottom: 3px solid var(--host-bg-base-hover);
-  }
-`;
-
-export const LogoContainer = styled.img`
-  max-height: 100px;
-  max-width: 200px;
-  padding: 20px;
-`;
-
-const MenuIcon = styled.div`
-  font-size: 24px;
-  cursor: pointer;
-  display: none;
-
-  @media (${media.tablet}) {
-    display: block;
-  }
-`;
-
-const BurgerMenuIcon = styled.div`
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.3s ease-in-out;
-
-  &:hover{
-  color: ${({ $role }) => $role === 'host' ? 'var(--host-bg-base)' : "var(--general-bg-base)"};
-  }
-`;
-
-const Tab = styled(Link)`
-color: ${({ $active }) => $active ? "var(--general-bg-base)" : 'var(--text-primary)'};
-border: 0;
-background-color: transparent;
-font-size: var(--heading-6);
-cursor: pointer;
-text-decoration: none;
-transition: color 0.3s ease-in-out;
-
-&:hover{
-color: var(--general-bg-light);
-}
-
-`;
-
-const NavbarContent = styled.div`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  position: relative;
-  justify-content: space-between;
-`;
+  }`
+;
 
 export default function NavBar({ role, toggleSidebar }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [popup, setPopup] = useState({message: 'message', type: 'success', isVisible: false});
+  const [popup, setPopup] = useState({ message: 'message', type: 'success', isVisible: false });
   const [sendRequest] = useSendRequest();
-
   const navigate = useNavigate();
 
-  const onLoginButtonClick = () => {
-    navigate('/login', {replace: true});
-  }
+  const onLoginButtonClick = () => navigate('/login');
+  const onSignUpButtonClick = () => navigate('/signup');
 
-  const onSignUpButtonClick = () => {
-    navigate('/signup', {replace: true});
-  }
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
-  async function onLogoutClick(){
+  const onLogoutClick = async () => {
+    let URL = role === 'user' ? '/api/auth/user/logout' : '/api/auth/host/logout';
+    let INIT = { method: 'POST', body: '' };
 
-    let URL = role === 'user' ? '/api/auth/user/logout': '/api/auth/host/logout';
-    let INIT = {method: 'POST', body: ''}
+    let { response } = await sendRequest(URL, INIT);
 
-    let {request, response} = await sendRequest(URL, INIT);
-    console.log(request, response)
-
-    if(response.success){
+    if (response.success) {
       localStorage.removeItem("user");
-      // navigate('/', {replace: true});
-      window.location.href = "/"; 
-    }else{
-      setPopup({message: 'Failed to logout!', type: 'fail', isVisible: true})
-    }
-  }
-
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-
-  const renderNavbarContent = () => {
-    switch(role){
-      case 'guest': 
-            return (
-              <>
-                <LogoContainer
-                  src={logo}
-                  alt="logo"/>
-                  
-                <ButtonsWrapper>
-                  {/* Page Links */}
-                  <PagesContainer>
-                  <Tab to="/index" $active={location.pathname === "/index"}>Home</Tab>
-                  <Tab to="/index/pricing" $active={location.pathname === "/index/pricing"}>Pricing</Tab>
-                  <Tab to="/index/contact_us" $active={location.pathname === "/index/contact_us"}>Contact Us</Tab>
-                  </PagesContainer>
-
-                  {/* Auth Buttons */}
-                  <ButtonsContainer>
-                    <Button2 onClick={onLoginButtonClick}>Log in</Button2>
-                    <Button1 onClick={onSignUpButtonClick}>Sign up</Button1>
-                  </ButtonsContainer>
-
-                  {/* Menu Icon for Mobile */}
-                  <MenuIcon onClick={toggleMenu}>☰</MenuIcon>
-                </ButtonsWrapper>
-              </>
-            );
-      case "host":
-        return(
-          <NavbarContent>
-            <BurgerMenuIcon $role={role} onClick={toggleSidebar} >☰</BurgerMenuIcon>
-            <LogoContainer
-              src={logoHost}
-              alt="logo"
-            />
-            <Button3 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button3>
-          </NavbarContent>
-        );
-      case "user": 
-            return(
-              <NavbarContent>
-                <BurgerMenuIcon $role={role} onClick={toggleSidebar} >☰</BurgerMenuIcon>
-                <LogoContainer
-                  src={logo}
-                  alt="logo"
-                />
-                <Button1 style={{right: '20px'}} onClick={onLogoutClick}>Logout</Button1>
-              </NavbarContent>
-            );
-      default: 
-            return (
-              <>
-                <LogoContainer
-                  src={logo}
-                  alt="logo"/>
-              </>
-            );
+      window.location.href = "/";
+    } else {
+      setPopup({ message: 'Failed to logout!', type: 'fail', isVisible: true });
     }
   };
 
+  const GuestNav = (
+    <>
+      <LogoContainer src={logo} alt="logo" />
+
+      <ButtonsWrapper>
+        <PagesContainer>
+          <Tab to="/index" $active={location.pathname === "/index"}>Home</Tab>
+          <Tab to="/index/pricing" $active={location.pathname === "/index/pricing"}>Pricing</Tab>
+          <Tab to="/index/contact_us" $active={location.pathname === "/index/contact_us"}>Contact</Tab>
+        </PagesContainer>
+
+        <ButtonsContainer>
+          <Button2 onClick={onLoginButtonClick}>Log in</Button2>
+          <Button1 onClick={onSignUpButtonClick}>Sign up</Button1>
+        </ButtonsContainer>
+
+        <MenuIcon onClick={toggleMenu}>☰</MenuIcon>
+      </ButtonsWrapper>
+
+      <MobileMenu $open={menuOpen}>
+        <Tab to="/index" onClick={toggleMenu}>Home</Tab>
+        <Tab to="/index/pricing" onClick={toggleMenu}>Pricing</Tab>
+        <Tab to="/index/contact_us" onClick={toggleMenu}>Contact</Tab>
+      </MobileMenu>
+    </>
+  );
+
+  const HostNav = (
+    <>
+      <span style={{ fontSize: 24, cursor: 'pointer' }} onClick={toggleSidebar}>☰</span>
+      <LogoContainer src={logoHost} alt="logo" />
+      <Button3 onClick={onLogoutClick}>Logout</Button3>
+    </>
+  );
+
+  const UserNav = (
+    <>
+      <span style={{ fontSize: 24, cursor: 'pointer' }} onClick={toggleSidebar}>☰</span>
+      <LogoContainer src={logo} alt="logo" />
+      <Button1 onClick={onLogoutClick}>Logout</Button1>
+    </>
+  );
+
   return (
     <>
-    <Popup popUpSettings={popup}/>
-    <NavbarContainer>
-      {renderNavbarContent()}
-    </NavbarContainer>
+      <Popup popUpSettings={popup} />
+      <NavbarContainer>
+        {role === 'guest' && GuestNav}
+        {role === 'host' && HostNav}
+        {role === 'user' && UserNav}
+      </NavbarContainer>
     </>
   );
 }
