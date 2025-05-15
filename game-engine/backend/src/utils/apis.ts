@@ -1,10 +1,10 @@
 import { MapsApiResponse, MapResponse, WebsiteApiResponse } from "./interfaces"
 
 const MAPS_PORT = process.env.MAPS_PORT || 3000
-export const MAPS_API_BASE_URL = `http://localhost:${MAPS_PORT}/api`
+export const MAPS_API_BASE_URL = `http://host.docker.internal:${MAPS_PORT}/api`
 
 const WEBSITE_PORT = process.env.WEBSITE_PORT || 5000
-export const WEBSITE_API_BASE_URL = `http://localhost:${WEBSITE_PORT}/api`
+export const WEBSITE_API_BASE_URL = `http://host.docker.internal:${WEBSITE_PORT}/api`
 
 
 export const loadMapAPI = async (mapId: string): Promise<MapResponse> => {

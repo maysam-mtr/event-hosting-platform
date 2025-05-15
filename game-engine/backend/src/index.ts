@@ -114,7 +114,7 @@ const PORT = process.env.PORT || 3004
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173", "http://localhost:3333"],
+    origin: ["http://localhost:5173", "http://localhost:3333"],
     credentials: true,
   })
 )
@@ -171,7 +171,7 @@ app.get("/getMeetingLink/:boothId", (req, res) => {
 const httpServer = createServer(app)
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ["http://localhost:5000", "http://localhost:5173"],
+    origin: ["http://localhost:5173"],
     credentials: true,
   }
 })
@@ -411,7 +411,7 @@ initializeMapData()
   .then(async () => {
     await loadBoothsFromMap()
     httpServer.listen(PORT, () => {
-      console.log(`🎮 Game engine running at http://localhost:${PORT}`)
+      console.log(`🎮 Game engine running at http://host.docker.internal:${PORT}`)
     })
   })
   .catch((err) => {
