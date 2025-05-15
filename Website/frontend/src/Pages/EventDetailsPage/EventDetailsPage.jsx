@@ -196,7 +196,8 @@ export default function EventDetailsPage() {
   }
 
   async function OnJoinEvent(){
-    navigate('/event/space');
+    navigate("/event/space", { state: { eventId } })
+    //open  game
   }
 
   async function validateCredentials(password){

@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import Preload from './Preload';
 import JitsiComponent from './JitsiComponent';
+import { useLocation } from 'react-router-dom';
 
 const GameContainer = styled.div`
 display: flex;
@@ -12,6 +13,10 @@ margin: 0;
 `;
 
 export default function EventGameSpace(){
+
+  const location = useLocation()
+  const { eventId } = location.state
+
     const gameContainerStyle = {
         display: 'flex',
         justifyContent: 'center',
@@ -36,7 +41,7 @@ export default function EventGameSpace(){
       return (
         <div className="App" style={{ position: 'relative' }}>
           <GameContainer style={gameContainerStyle}>
-            <Preload />
+            <Preload eventId={eventId}/>
           </GameContainer>
           {/* <div style={jitsiStyle}>
             <JitsiComponent roomName="amz" />

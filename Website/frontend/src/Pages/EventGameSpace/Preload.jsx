@@ -1,23 +1,40 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Game from "./Game"
 import useSendRequest from '../../hooks/use-send-request';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 
-function Preload() {
+function Preload({ eventId }) {
   const [images, setImages] = useState([])
   const [partners, setPartners] = useState([])
   const [characterInfo, setCharacterInfo] = useState(null)
+  const gameEngineUrl = useRef(null)
   const [sendRequest] = useSendRequest()
 
 
   useEffect(() => {
     const fetchMapInfo = async () => {
       try {
-        const { response } = await sendRequest("/getMapInformation", {}, "game-engine")
-        console.log(response)
+        const { response: schedulerResponse } = await sendRequest(`/getGameEnginePort/${eventId}`, {}, 'scheduler')
 
-        setImages(response.mapImages.images)
-        setPartners(response.partners)
+        var gameEnginePort = 0
+        if (schedulerResponse.statusCode === 200) {
+          gameEnginePort = schedulerResponse?.data?.hostPort
+          
+          gameEngineUrl.current = `http://localhost:${gameEnginePort}`;
+        } else {
+          console.warn("Error fetching game-engine port");
+          return;
+        }
+        
+        const { response: gameEngineResponse } = await sendRequest(`${gameEnginePort}/getMapInformation`, {}, 'game-engine')
+        
+        if (gameEngineResponse) {
+          setImages(gameEngineResponse.mapImages.images)
+          setPartners(gameEngineResponse.partners)
+        } else {
+          console.warn("gameEngineResponse returned is null for: /getMapInformation call");
+          return
+        }
         
       } catch (err) {
         console.error("Failed to fetch layer names:", err)
@@ -34,10 +51,10 @@ function Preload() {
       })
     }
     fetchMapInfo()
-  }, [])
+  }, [eventId])
 
-  //return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<div>Loading...</div>)
-  return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } />) : (<LoadingSpinner padding={true}/>)
+
+  return images.length > 0 ? (<Game mapInfo={{ images, partners }} characterInfo={ characterInfo } gameEngineUrl={gameEngineUrl.current} />) : (<LoadingSpinner padding={true}/>)
 }
 
 export default Preload

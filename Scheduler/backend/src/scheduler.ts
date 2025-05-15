@@ -1,12 +1,13 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { exec } from 'child_process'
 import cron, { ScheduledTask } from 'node-cron'
 import path from 'path'
-import kill from 'tree-kill'
+import net from 'net'
 
 interface TaskEntry {
   startTask?: ScheduledTask
   endTask: ScheduledTask
-  childProcess?: ChildProcessWithoutNullStreams
+  containerId?: string
+  hostPort?: number
 }
 
 export const scheduledTasks: Record<string, TaskEntry> = {}
@@ -67,62 +68,81 @@ export const scheduleCronJob = (
   entry.endTask = endTask
 }
 
-const startGameEngine = (eventId: string): void => {
-  const backendPath = path.resolve(__dirname, '../../../Game-engine/backend')
+// get a free port
+const findFreePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const srv = net.createServer()
+    srv.listen(0, () => {
+      const port = (srv.address() as net.AddressInfo).port
+      srv.close(err => err ? reject(err) : resolve(port))
+    })
+    srv.on('error', reject)
+})
 
-  const backend = spawn('npm', ['run', 'dev'], {
-    cwd: backendPath,
-    shell: true,
-    detached: true,
-    env: {
-      EVENT_ID: eventId,
-    }
-  })
-  backend.unref()
-
-  console.log(`[${eventId}] Spawned BACKEND pid=${backend.pid}`)
-
-  backend.stdout.on('data', (data) =>
-    console.log(`[Backend ${eventId}] ${data.toString().trim()}`)
-  )
-  backend.stderr.on('data', (data) =>
-    console.error(`[Backend ${eventId} Error] ${data.toString().trim()}`)
-  )
-
+const startGameEngine = async (eventId: string): Promise<void> => {
   const entry = scheduledTasks[eventId]
-  if (entry) {
-    entry.childProcess = backend
-  } else {
-    console.warn(`⚠️ [${eventId}] No TaskEntry to attach processes`)
+  if (!entry) {
+    console.warn(`⚠️ [${eventId}] No TaskEntry found`)
+    return
   }
+
+  let hostPort: number
+  try {
+    hostPort = await findFreePort()
+  } catch (err) {
+    console.error(`❌ [${eventId}] Error finding free port:`, err)
+    return
+  }
+
+  const envFilePath = path.resolve(__dirname, 'game-engine-backend.env')
+  const cmd = [
+    'docker', 'run', '-d',
+    '-p', `${hostPort}:3004`,
+    '--env', `EVENT_ID=${eventId}`,
+    '--env-file', envFilePath,
+    'game-engine-back'
+  ].join(' ')
+
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`❌ [${eventId}] Docker run error: ${error.message}`)
+      return
+    }
+    if (stderr) {
+      console.error(`❌ [${eventId}] Docker stderr: ${stderr}`)
+    }
+
+    const containerId = stdout.trim()
+    entry.containerId = containerId
+    entry.hostPort = hostPort
+    console.log(`✅ [${eventId}] Container ${containerId} launched on port ${hostPort}`)
+  })
 }
 
 function stopGameEngine(eventId: string): void {
   const entry = scheduledTasks[eventId]
 
-  const killProc = (
-    proc: ChildProcessWithoutNullStreams | undefined,
-    label: string
-  ) => {
-    if (!proc?.pid) {
-      console.warn(`⚠️ [${eventId}] No ${label} process to kill`)
-      return
-    }
-    const pid = proc.pid
-    console.log(`[${eventId}] Killing ${label} pid=${pid}`)
-    kill(pid, 'SIGINT', (err) => {
-      if (err) {
-        console.error(`❌ [${eventId}] Failed to kill ${label}: ${err.message}`)
-      } else {
-        console.log(`✅ [${eventId}] ${label} pid=${pid} terminated`)
-      }
-    })
+  if (!entry) {
+    console.warn(`⚠️ [${eventId}] No task entry to stop`)
+    return
   }
 
-  killProc(entry?.childProcess, 'Backend')
+  const containerId = entry.containerId
+  if (containerId) {
+    console.log(`[${eventId}] Stopping container ${containerId}`)
+    exec(`docker stop ${containerId}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`❌ [${eventId}] Failed to stop container: ${error.message}`)
+      } else {
+        console.log(`✅ [${eventId}] Container ${containerId} stopped`)
+      }
+    })
+  } else {
+    console.warn(`⚠️ [${eventId}] No container ID found to stop`)
+  }
 
   entry?.startTask?.stop()
-  entry?.endTask.stop()
+  entry.endTask.stop()
   delete scheduledTasks[eventId]
   console.log(`🗑️ [${eventId}] Cron tasks cleaned up.`)
 }

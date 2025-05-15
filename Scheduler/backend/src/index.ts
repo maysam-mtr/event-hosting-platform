@@ -1,10 +1,10 @@
-import express, { ErrorRequestHandler, Request, Response } from 'express'
+import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import http from 'http'
 import { errorHandler } from './middlewares/error.handler'
 import { Schedule } from './interfaces/schedule.interface'
-import { scheduleCronJob } from './scheduler'
+import { scheduleCronJob, scheduledTasks } from './scheduler'
 import { CustomError } from './utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-error'
 import { CustomResponse } from './utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-response'
 import { hostAuthMiddleware } from './middlewares/auth.middleware'
@@ -13,7 +13,7 @@ const app = express()
 const server = http.createServer(app)
 const PORT = process.env.PORT || 3333
 
-app.use(cors({ origin: ["http://localhost:5000", "http://localhost:3004"], credentials: true }))
+app.use(cors({ origin: ["http://localhost:5000", "http://localhost:3004", "http://localhost:5173"], credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
@@ -61,6 +61,25 @@ app.post('/schedule', hostAuthMiddleware, (req, res, next) => {
         next(err)
     }
 })
+
+app.get('/getGameEnginePort/:id', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const eventId = req.params.id
+    const entry = scheduledTasks[eventId]
+
+    if (!entry || !entry.hostPort) {
+        throw new CustomError("Game Engine not running or port not found", 404)
+    }
+
+    CustomResponse(res, 200, "Game Engine port available", {
+        hostPort: entry.hostPort
+    })
+
+  } catch (err: any) {
+    next(err)
+  }
+})
+
 
 app.use(errorHandler as ErrorRequestHandler)
 

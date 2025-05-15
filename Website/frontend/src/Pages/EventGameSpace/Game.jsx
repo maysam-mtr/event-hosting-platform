@@ -20,15 +20,16 @@ right: 50px;
 z-index: 100;
 `;
 
-const domain = "descriptions-sas-kathy-sunday.trycloudflare.com";
+const domain = "prefix-loans-sol-organizations.trycloudflare.com";
 // Connect to backend
-const socket = io('http://localhost:3004')
 
-const Game = ({ mapInfo, characterInfo }) => {
+const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
   const gameRef = useRef(null)
   const gameInstance = useRef(null)
   const { user, setUser } = useUserState();
-  
+
+  const socket = io(gameEngineUrl)
+
   function zoomIn() {
     const scene = gameInstance.current?.scene?.scenes?.[0];
     if (scene && scene.cameras && scene.cameras.main) {
@@ -47,10 +48,8 @@ const Game = ({ mapInfo, characterInfo }) => {
   }
 
 
-
   console.log("user:", user);
 
-  const GAME_ENGINE_BASE_URL = import.meta.env.VITE_GAME_ENGINE_API_URL
 
   // recurse nested layers
   function findObjectById(layers, targetId) {
@@ -97,9 +96,8 @@ const Game = ({ mapInfo, characterInfo }) => {
   }
 
   useEffect(() => {
-    if (!characterInfo || !mapInfo || !mapInfo.images || !mapInfo.partners || gameInstance.current) return;
 
-    
+    if (!characterInfo || !mapInfo || !mapInfo.images || !mapInfo.partners || gameInstance.current || !gameEngineUrl ) return;
 
     if(api){
       const handleAudioMute = (data) => {
@@ -114,10 +112,6 @@ const Game = ({ mapInfo, characterInfo }) => {
   
       api.addEventListener('audioMuteStatusChanged', handleAudioMute);
       api.addEventListener('videoMuteStatusChanged', handleVideoMute);
-
-      
-
-  
     }
 
 
@@ -132,12 +126,12 @@ const Game = ({ mapInfo, characterInfo }) => {
       },
       scene: {
         preload() {
-          this.load.json('mapdata', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+          this.load.json('mapdata', `${gameEngineUrl}/assets/map.json`)
 
           mapInfo.images.forEach(image => {
-            this.load.image(image.name, `${GAME_ENGINE_BASE_URL}/assets/${image.image}`)
+            this.load.image(image.name, `${gameEngineUrl}/assets/${image.image}`)
           })
-          this.load.tilemapTiledJSON('map', `${GAME_ENGINE_BASE_URL}/assets/map.json`)
+          this.load.tilemapTiledJSON('map', `${gameEngineUrl}/assets/map.json`)
           this.load.spritesheet('character', '/character.png', {
             frameWidth: characterInfo.width / characterInfo.frameCount,
             frameHeight: characterInfo.height / characterInfo.frameCount
@@ -146,7 +140,7 @@ const Game = ({ mapInfo, characterInfo }) => {
           mapInfo.partners.forEach(partner => {
             this.load.image(
               partner.boothId,
-              `${GAME_ENGINE_BASE_URL}/assets/partners/${partner.companyLogo}`
+              `${gameEngineUrl}/assets/partners/${partner.companyLogo}`
             )
           })
         },
@@ -503,7 +497,7 @@ const Game = ({ mapInfo, characterInfo }) => {
         gameInstance.current.destroy(true);
       }
     }
-  }, [])
+  }, [characterInfo, mapInfo, gameEngineUrl])
 
   return (
   <>
