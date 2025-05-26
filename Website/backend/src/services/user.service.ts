@@ -1,3 +1,16 @@
+/**
+ * User Service
+ * 
+ * Handles all user-related business logic including:
+ * - User registration with validation and password hashing
+ * - User authentication and profile management
+ * - Password changes with security validation
+ * - User data retrieval and updates
+ * - User deletion and account management
+ * 
+ * This service manages the core user functionality for event attendees
+ * and handles secure password operations using bcrypt.
+ */
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { Op } from 'sequelize';
@@ -5,6 +18,13 @@ import User from '../models/User';
 
 dotenv.config();
 
+/**
+ * Creates a new user account with encrypted password and validation
+ * Checks for duplicate usernames and emails before creation
+ * @param userData - Object containing user registration information
+ * @returns Promise resolving to user data (excluding password)
+ * @throws Error if username/email already exists or creation fails
+ */
 const createUser = async (userData: any): Promise<any> => {
     try {
         const { username, email} = userData;
@@ -32,6 +52,11 @@ const createUser = async (userData: any): Promise<any> => {
     }
 };
 
+/**
+ * Retrieves all users from the database
+ * @returns Promise resolving to array of all user records
+ * @throws Error if database query fails
+ */
 const getAllUsers = async (): Promise<any[]> => {
     try {
         const users = await User.findAll();
@@ -41,6 +66,12 @@ const getAllUsers = async (): Promise<any[]> => {
     }
 };
 
+/**
+ * Retrieves a specific user by their ID
+ * @param userID - UUID of the user to retrieve
+ * @returns Promise resolving to user data
+ * @throws Error if user not found or query fails
+ */
 const getUser = async (userID: string): Promise<any> => {
     try {
         const user = await User.findByPk(userID);
@@ -53,6 +84,12 @@ const getUser = async (userID: string): Promise<any> => {
     }
 };
 
+/**
+ * Permanently deletes a user account from the database
+ * @param userID - UUID of the user to delete
+ * @returns Promise resolving to deleted user data
+ * @throws Error if user not found or deletion fails
+ */
 const deleteUser = async (userID: string): Promise<any> => {
     try {
         const user = await User.findByPk(userID);
@@ -66,6 +103,14 @@ const deleteUser = async (userID: string): Promise<any> => {
     }
 };
 
+/**
+ * Changes a user's password with old password verification
+ * @param user - User object to update
+ * @param oldPassword - Current password for verification
+ * @param newPassword - New password to set
+ * @returns Promise resolving to updated user data
+ * @throws Error if old password is incorrect or update fails
+ */
 const changePassword = async ({ user, oldPassword, newPassword }: { user: any, oldPassword: string, newPassword: string }): Promise<any> => {
     try {
         const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -80,6 +125,13 @@ const changePassword = async ({ user, oldPassword, newPassword }: { user: any, o
     }
 };
 
+/**
+ * Finds a user by either username or email address
+ * Used for login functionality where users can use either identifier
+ * @param usernameOrEmail - Username or email to search for
+ * @returns Promise resolving to user data if found
+ * @throws Error if user not found or query fails
+ */
 const findByUsernameOrEmail = async (usernameOrEmail: string): Promise<any> => {
     try {
         console.log("usernameOrEmail",usernameOrEmail);
@@ -98,7 +150,14 @@ const findByUsernameOrEmail = async (usernameOrEmail: string): Promise<any> => {
     }
 };
 
-// Update a user by ID
+/**
+ * Updates user profile information with validation
+ * Prevents updating sensitive fields and enforces uniqueness constraints
+ * @param userId - UUID of user to update
+ * @param updatedData - Partial user data with fields to update
+ * @returns Promise resolving to updated user data
+ * @throws Error if user not found, validation fails, or unique constraints violated
+ */
 const updateUser = async (
     userId: string,
     updatedData: Partial<User>

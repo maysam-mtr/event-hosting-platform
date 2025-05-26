@@ -1,14 +1,27 @@
+/**
+ * File Upload Handler
+ * Manages the complete file upload process including validation, processing,
+ * and storage to Google Drive and Supabase
+ */
+
 import { createFolder, uploadFile } from "@/utils/google-drive"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
 import { Readable } from "stream"
 import type { FileArray, UploadedFile } from "express-fileupload"
 import { GOOGLE_MAPS_FOLDER_ID } from "@/config"
 import { toLower } from "lodash"
-import { convertImageToPng, convertJsonToBuffer, convertXmlBufferToJson, ensureArray, sanitizePath } from "./Helpers/helper-functions"
+import {
+  convertImageToPng,
+  convertJsonToBuffer,
+  convertXmlBufferToJson,
+  ensureArray,
+  sanitizePath,
+} from "./Helpers/helper-functions"
 import { boothesClassName, fileTypes, FileTypes, thumbnailFileType } from "@/constants"
 import { getRequiredFilesFromJSONFile } from "./maps.handler"
 import { uploadMapThumbnail } from "./supabase"
 
+// Interface for upload operation results
 interface UploadResult {
   folderId: string
   imageId: string | null
@@ -19,11 +32,15 @@ interface UploadResult {
   }[]
 }
 
-export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Promise<UploadResult> => {
+/**
+ * Main file upload function
+ * Validates all files, processes Tiled map data, and uploads to storage
+ */
+export const uploadFilesToDrive = async (files: FileArray, mapName: string): Promise<UploadResult> => {
   try {
     // Validation first
     const missingFileTypes = verifyAllFileTypesArePresent(files)
-    
+
     // if there is a missing file directly return an error
     if (missingFileTypes.length > 0) {
       throw new CustomError(missingFileTypes, 400)
@@ -33,7 +50,7 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     const jsonFile = files[FileTypes.JsonFile] as UploadedFile
     const jsonFileData = JSON.parse(jsonFile.data.toString())
     const requiredFiles = getRequiredFilesFromJSONFile(jsonFileData)
-    
+
     const tilesetsUploaded = getUploadedFiles(files[FileTypes.TilesetFiles])
 
     const missingTilesets = checkMissingFiles(requiredFiles.tilesets, tilesetsUploaded)
@@ -43,24 +60,24 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     }
 
     await fixTilesetProperties(files[FileTypes.TilesetFiles], jsonFileData)
-    
+
     // here tilesets required would all be present, now make sure images for those tilesets are uploaded too
     const requiredTilesetImages = await getRequiredTilesetImagesAndFilePaths(jsonFileData)
-    
+
     const uploadedTilesetImages = getUploadedFiles(files[FileTypes.ImageFiles])
-    
+
     const missingTilesetImages = checkMissingFiles(requiredTilesetImages, uploadedTilesetImages)
 
     if (missingTilesetImages.length > 0) {
       throw new CustomError("Please upload all required map tileset image files", 400, missingTilesets)
     }
-    
+
     const templateFiles = ensureArray(files[FileTypes.TemplateFiles])
-    
+
     const templatesUploaded = getUploadedFiles(templateFiles)
-    
+
     const missingTemplates = checkMissingFiles(requiredFiles.templates, templatesUploaded)
-    
+
     if (missingTemplates.length > 0) {
       throw new CustomError("Please upload all required map template files", 400, missingTemplates)
     }
@@ -68,9 +85,8 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     // Collect width and height for each template based on its name
     const templateDimensions = await getTemplateDimensions(templateFiles)
 
-
     fixTemplateDimensions(jsonFileData, templateDimensions)
-    
+
     // Update the JSON file data with the modified structure
     if (Array.isArray(files[FileTypes.JsonFile])) {
       files[FileTypes.JsonFile][0].data = convertJsonToBuffer(jsonFileData)
@@ -81,7 +97,7 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     // Create a new folder for this map
     const sanitizedMapName = mapName.replace(/[^a-zA-Z0-9-_]/g, "_")
     const folderName = `${sanitizedMapName}_${Date.now()}`
-    
+
     const folder = await createFolder(folderName, GOOGLE_MAPS_FOLDER_ID)
 
     if (!folder.id) {
@@ -95,10 +111,10 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
     // Handle thumbnail first
     if (files.thumbnailFile) {
       const thumbnailFile = Array.isArray(files.thumbnailFile) ? files.thumbnailFile[0] : files.thumbnailFile
-      
+
       thumbnailFile.data = await convertImageToPng(thumbnailFile.data)
       thumbnailFile.mimetype = "image/png"
-      
+
       const nameWithoutExt = thumbnailFile.name.replace(/\.[^/.]+$/, "")
       thumbnailFile.name = `${nameWithoutExt}.png`
 
@@ -142,6 +158,9 @@ export const uploadFilesToDrive = async (files: FileArray,  mapName: string): Pr
   }
 }
 
+/**
+ * Upload individual file to Google Drive
+ */
 const uploadSingleFile = async (file: UploadedFile, folderId: string) => {
   try {
     // Convert buffer to readable stream
@@ -160,21 +179,24 @@ const uploadSingleFile = async (file: UploadedFile, folderId: string) => {
   }
 }
 
-const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jsonFileData : any) : Promise<void> => {
+/**
+ * Fix tileset properties by extracting data from TSX files
+ */
+const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jsonFileData: any): Promise<void> => {
   try {
     tilesets = ensureArray(tilesets)
 
     for (const tileset of tilesets) {
       const jsonData = await convertXmlBufferToJson(tileset.data)
-      
+
       const { name, tilewidth, tileheight, tilecount, columns } = jsonData.tileset.$
       const imageAttributes = jsonData.tileset.image[0].$
-      
+
       const indx = jsonFileData.tilesets.findIndex((ts: any) => ts.source === tileset.name)
-      
+
       if (indx !== -1) {
         const firstgid = jsonFileData.tilesets[indx].firstgid
-        
+
         jsonFileData.tilesets[indx] = {
           columns: Number(columns),
           firstgid,
@@ -190,13 +212,18 @@ const fixTilesetProperties = async (tilesets: UploadedFile | UploadedFile[], jso
         }
       }
     }
-    
   } catch (err: any) {
     throw new CustomError("Error extracting tileset properties", 400)
   }
 }
 
-const fixTemplateDimensions = (jsonData: any, templateDimensions: { name: string, width: number, height: number }[]) => {
+/**
+ * Fix template dimensions in booth objects
+ */
+const fixTemplateDimensions = (
+  jsonData: any,
+  templateDimensions: { name: string; width: number; height: number }[],
+) => {
   for (const layer of jsonData.layers) {
     if (layer?.class && toLower(layer.class) === toLower(boothesClassName)) {
       if (layer.layers) {
@@ -204,9 +231,7 @@ const fixTemplateDimensions = (jsonData: any, templateDimensions: { name: string
           if (subLayer.objects) {
             for (const obj of subLayer.objects) {
               if (obj.template) {
-                const templateDimension = templateDimensions.find(
-                  (dim) => dim.name === obj.template
-                )
+                const templateDimension = templateDimensions.find((dim) => dim.name === obj.template)
                 if (templateDimension) {
                   obj.width = templateDimension.width
                   obj.height = templateDimension.height
@@ -220,9 +245,11 @@ const fixTemplateDimensions = (jsonData: any, templateDimensions: { name: string
   }
 }
 
-const getRequiredTilesetImagesAndFilePaths = async (jsonData: any) : Promise<Set<string>> => {
+/**
+ * Get required tileset image files from processed JSON data
+ */
+const getRequiredTilesetImagesAndFilePaths = async (jsonData: any): Promise<Set<string>> => {
   try {
-
     const requiredTilesetImages: Set<string> = new Set()
 
     for (const tileset of jsonData.tilesets) {
@@ -233,63 +260,74 @@ const getRequiredTilesetImagesAndFilePaths = async (jsonData: any) : Promise<Set
   } catch (err: any) {
     throw new CustomError("Error gathering required tileset image files", 400)
   }
-  
 }
 
-const getTemplateDimensions = async (templateFiles: UploadedFile[]) : Promise<{ name: string, width: number, height: number }[]> => {
+/**
+ * Extract dimensions from template files
+ */
+const getTemplateDimensions = async (
+  templateFiles: UploadedFile[],
+): Promise<{ name: string; width: number; height: number }[]> => {
   const templateDimensions = []
 
-    for (const template of templateFiles) {
-      const jsonData = await convertXmlBufferToJson(template.data)
-      const width = parseInt(jsonData.template.object[0].$.width, 10)
-      const height = parseInt(jsonData.template.object[0].$.height, 10)
+  for (const template of templateFiles) {
+    const jsonData = await convertXmlBufferToJson(template.data)
+    const width = Number.parseInt(jsonData.template.object[0].$.width, 10)
+    const height = Number.parseInt(jsonData.template.object[0].$.height, 10)
 
-      templateDimensions.push({
-        name: template.name,
-        width,
-        height,
-      })
-    }
-    return templateDimensions
+    templateDimensions.push({
+      name: template.name,
+      width,
+      height,
+    })
+  }
+  return templateDimensions
 }
 
-const getUploadedFiles = (files : UploadedFile | UploadedFile[]) : Set<string> => {
-    
+/**
+ * Get set of uploaded file names
+ */
+const getUploadedFiles = (files: UploadedFile | UploadedFile[]): Set<string> => {
   // if files is not an array place it in an array
   const filesUploaded = ensureArray(files)
-  
+
   const fileNames: Set<string> = new Set()
 
-  for(const file of filesUploaded) {
-      fileNames.add(file.name)
+  for (const file of filesUploaded) {
+    fileNames.add(file.name)
   }
 
   return fileNames
 }
 
-const checkMissingFiles = (requiredTilesets: Set<string>, uploadedTilesets: Set<string>) : string[] => {
-    
+/**
+ * Check for missing required files
+ */
+const checkMissingFiles = (requiredTilesets: Set<string>, uploadedTilesets: Set<string>): string[] => {
   if (requiredTilesets.size === 0) {
-      return ["Required Tilesets is empty"]
+    return ["Required Tilesets is empty"]
   }
-  
+
   const errors: string[] = []
   requiredTilesets.forEach((file: string) => {
-      if (!uploadedTilesets.has(file)) {
-          errors.push(`${file} is missing`)
-      }
+    if (!uploadedTilesets.has(file)) {
+      errors.push(`${file} is missing`)
+    }
   })
   return errors
 }
 
+/**
+ * Verify all required file types are present
+ */
 const verifyAllFileTypesArePresent = (files: FileArray): string[] => {
   const missingFiles: string[] = []
-  
+
   if (!files[thumbnailFileType]) {
     missingFiles.push(`Please upload map thumbnail`)
   }
 
-  for(const type of fileTypes) {
+  for (const type of fileTypes) {
     if (!files[type]) {
       missingFiles.push(`Please upload the ${type}`)
     }

@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Latest Maps Page
+ * Shows only the latest versions of each original map
+ * Similar to Home page but filtered to show current versions only
+ */
+
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -21,6 +29,7 @@ export default function LatestMaps() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { toast } = useToast()
 
+  // Fetch latest maps on component mount
   useEffect(() => {
     const fetchMaps = async () => {
       try {
@@ -42,6 +51,7 @@ export default function LatestMaps() {
     fetchMaps()
   }, [toast])
 
+  // Filter maps based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredMaps(maps)
@@ -91,15 +101,16 @@ export default function LatestMaps() {
     <main className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-        <Link to="/">
-          <Button variant="ghost">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Maps
-          </Button>
-        </Link>
-        <LogoutButton />
+          <Link to="/">
+            <Button variant="ghost">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Maps
+            </Button>
+          </Link>
+          <LogoutButton />
         </div>
         <h1 className="text-3xl font-bold mb-6">Latest Maps</h1>
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Search input */}
           <div className="relative w-full md:w-1/2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <Input
@@ -117,6 +128,7 @@ export default function LatestMaps() {
         </div>
       </div>
 
+      {/* Maps grid or loading/empty states */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, index) => (
@@ -157,4 +169,3 @@ export default function LatestMaps() {
     </main>
   )
 }
-

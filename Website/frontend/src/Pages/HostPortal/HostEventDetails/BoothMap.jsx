@@ -1,17 +1,37 @@
-import styled from 'styled-components';
-import { useEffect, useRef, useState } from 'react';
+/**
+ * BoothMap Component
+ *
+ * Interactive booth mapping component that displays event booths overlaid on a venue map image.
+ * This component handles the visual representation of booth locations within a virtual event space.
+ *
+ * Key Features:
+ * - Displays venue map image with responsive scaling
+ * - Overlays booth markers at precise coordinates
+ * - Automatically adjusts booth positions based on image scaling
+ * - Responsive design that maintains booth positioning accuracy
+ * - Real-time scale calculation for proper booth placement
+ *
+ * Props:
+ * - imageUrl: URL of the venue map background image
+ * - booths: Array of booth objects with position and dimension data
+ * - map: Map configuration object containing original dimensions
+ *
+ * Usage: Used in host event details to show booth layout and positioning
+ */
+import styled from "styled-components"
+import { useEffect, useRef, useState } from "react"
 
 const ImageWrapper = styled.div`
   position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
-`;
+`
 
 const ImageContainer = styled.div`
   position: relative;
   width: 80%; // responsive width
-`;
+`
 
 const PreviewImage = styled.img`
   width: 100%;
@@ -19,7 +39,7 @@ const PreviewImage = styled.img`
   object-fit: cover;
   border-radius: 12px;
   display: block;
-`;
+`
 
 const BoothOverlay = styled.div`
   position: absolute;
@@ -30,52 +50,47 @@ const BoothOverlay = styled.div`
   border-radius: 6px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-`;
+`
 
 export default function BoothMap({ imageUrl, booths, map }) {
-  const imageRef = useRef(null);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
+  const imageRef = useRef(null)
+  const [scale, setScale] = useState({ x: 1, y: 1 })
 
   useEffect(() => {
     const updateScale = () => {
-      const img = imageRef.current;
+      const img = imageRef.current
       if (img) {
-        const displayedWidth = img.clientWidth;
-        const displayedHeight = img.clientHeight;
+        const displayedWidth = img.clientWidth
+        const displayedHeight = img.clientHeight
 
-        const scaleX = displayedWidth / map.width;
-        const scaleY = displayedHeight / map.height;
+        const scaleX = displayedWidth / map.width
+        const scaleY = displayedHeight / map.height
 
-        setScale({ x: scaleX, y: scaleY });
+        setScale({ x: scaleX, y: scaleY })
       }
-    };
+    }
 
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [map.width, map.height]);
+    updateScale()
+    window.addEventListener("resize", updateScale)
+    return () => window.removeEventListener("resize", updateScale)
+  }, [map.width, map.height])
 
   return (
     <ImageWrapper>
       <ImageContainer>
-        <PreviewImage src={imageUrl} ref={imageRef} />
+        <PreviewImage src={imageUrl || "/placeholder.svg"} ref={imageRef} />
         {booths.map((booth, index) => {
-          const left = booth.x * scale.x + (booth.width * scale.x) / 2;
-          const top = booth.y * scale.y + (booth.height * scale.y) / 2;
+          const left = booth.x * scale.x + (booth.width * scale.x) / 2
+          const top = booth.y * scale.y + (booth.height * scale.y) / 2
 
           return (
-            <BoothOverlay
-              key={booth.id}
-              style={{ left: `${left}px`, top: `${top}px` }}
-            >
+            <BoothOverlay key={booth.id} style={{ left: `${left}px`, top: `${top}px` }}>
               {/*booth.id*/}
               {index}
             </BoothOverlay>
-          );
+          )
         })}
       </ImageContainer>
     </ImageWrapper>
-  );
+  )
 }
-
-

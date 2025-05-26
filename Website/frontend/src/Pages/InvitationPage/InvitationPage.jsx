@@ -1,4 +1,18 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+/**
+ * Invitation Page Component
+ *
+ * Handles partner invitation acceptance and processing:
+ * - Displays invitation details and event information
+ * - Partner registration and company information forms
+ * - Invitation acceptance/decline functionality
+ * - Booth assignment and collaboration setup
+ * - Integration with partner onboarding flow
+ *
+ * Converts invited partners into active collaborators
+ * and sets up their booth participation in events.
+ */
+
+import { useNavigate, useParams } from "react-router-dom";
 import useUserState from "../../hooks/use-user-state";
 import { useEffect, useState } from "react";
 import useSendRequest from "../../hooks/use-send-request";
@@ -8,7 +22,6 @@ import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 import styled from "styled-components";
 import ErrorPopup from "../../components/ErrorPopup/ErrorPopup";
 import Input from "../../components/Input/Input";
-import FileUpload from "../../Supabase/FileUpload";
 import {Button1} from '../../components/Navbar/Navbar'
 import Popup from "../../components/Popup/Popup";
 import ImageInput from "../../components/ImageInput/ImageInput";

@@ -1,11 +1,24 @@
-import { Button1, Button2, Button3 } from "../../../components/Navbar/Navbar";
+/**
+ * Explore Events Page Component
+ *
+ * Event discovery and browsing interface for users:
+ * - List and grid views of available events
+ * - Search and filtering capabilities
+ * - Event categories and type filtering
+ * - Event details preview and quick join
+ * - Pagination for large event lists
+ *
+ * Helps users discover interesting events to join
+ * and provides detailed information for decision making.
+ */
+
+import { Button1 } from "../../../components/Navbar/Navbar";
 import { Card, EventTitle, NotFoundMessage, PreviewImg, Schedule, StatusIndicator } from "../../HostPortal/MyEventsPage/MyEventsPage";
 import { CardsWrapper, PageTitle, Section } from "../SettingsPage/SettingsPage";
 import previewImg from '../../../assets/landing2.png';
 import { useEffect, useState } from "react";
 import useUserState from "../../../hooks/use-user-state";
 import useSendRequest from "../../../hooks/use-send-request";
-import Popup from "../../../components/Popup/Popup";
 import formatDateTime from "../../../utils/formatDateTime";
 import { useNavigate } from "react-router-dom";
 import getEventStatus from "../../../utils/getEventStatus";

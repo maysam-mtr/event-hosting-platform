@@ -1,5 +1,31 @@
-import styled from "styled-components";
-import { MdErrorOutline, MdCheckCircleOutline, MdInfoOutline } from "react-icons/md";
+/**
+ * StatusPopup Component
+ *
+ * A specialized status display component that shows informational messages
+ * with color-coded styling and appropriate icons for different message types.
+ *
+ * Key Features:
+ * - Three status types: success, error, and neutral
+ * - Color-coded backgrounds and borders
+ * - Icon-based visual indicators
+ * - Responsive card-based layout
+ * - Smooth pop-in animation
+ * - Accessible design with proper contrast
+ *
+ * Props:
+ * - message: string text to display (default: "Hmm, here's something to note.")
+ * - type: 'success', 'error', or 'neutral' for styling and icon selection
+ *
+ * Usage: Used for displaying status information such as:
+ * - Operation completion status
+ * - System notifications
+ * - User guidance messages
+ * - Error state explanations
+ * - Information alerts
+ */
+
+import styled from "styled-components"
+import { MdErrorOutline, MdCheckCircleOutline, MdInfoOutline } from "react-icons/md"
 
 const getColors = (type) => {
   switch (type) {
@@ -8,22 +34,22 @@ const getColors = (type) => {
         bg: "#e8fff0",
         border: "#c6f0d7",
         color: "#007a3d",
-      };
+      }
     case "error":
       return {
         bg: "#fff0f0",
         border: "#ffcccc",
         color: "#a30000",
-      };
+      }
     case "neutral":
     default:
       return {
         bg: "#f0f4ff",
         border: "#d6e1ff",
         color: "#3a61d1",
-      };
+      }
   }
-};
+}
 
 const Card = styled.div`
   background-color: ${({ $type }) => getColors($type).bg};
@@ -53,7 +79,7 @@ const Card = styled.div`
       opacity: 1;
     }
   }
-`;
+`
 
 const IconWrapper = styled.div`
   display: flex;
@@ -65,7 +91,7 @@ const IconWrapper = styled.div`
     color: ${({ $type }) => getColors($type).color};
     flex-shrink: 0;
   }
-`;
+`
 
 const CenterContainer = styled.div`
   display: flex;
@@ -74,15 +100,17 @@ const CenterContainer = styled.div`
   min-height: 100%;
   width: 100%;
   padding: 1rem;
-`;
+`
 
-export default function StatusPopup({message = "Hmm, here's something to note.", type = "neutral", // "success", "error", or "neutral"
+export default function StatusPopup({
+  message = "Hmm, here's something to note.",
+  type = "neutral", // "success", "error", or "neutral"
 }) {
   const renderIcon = () => {
-    if (type === "success") return <MdCheckCircleOutline />;
-    if (type === "error") return <MdErrorOutline />;
-    return <MdInfoOutline />;
-  };
+    if (type === "success") return <MdCheckCircleOutline />
+    if (type === "error") return <MdErrorOutline />
+    return <MdInfoOutline />
+  }
 
   return (
     <CenterContainer>
@@ -91,5 +119,5 @@ export default function StatusPopup({message = "Hmm, here's something to note.",
         {message}
       </Card>
     </CenterContainer>
-  );
+  )
 }

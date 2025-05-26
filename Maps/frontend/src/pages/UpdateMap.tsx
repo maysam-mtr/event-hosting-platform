@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Update Map Page
+ * Provides interface for updating existing maps with new files
+ * Fetches current map data and allows modification while maintaining version history
+ */
+
 import { useState, useEffect } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
@@ -16,6 +24,7 @@ export default function UpdateMap() {
   const navigate = useNavigate()
   const { toast } = useToast()
 
+  // Fetch map data on component mount
   useEffect(() => {
     const fetchMap = async () => {
       if (!id) return
@@ -45,10 +54,10 @@ export default function UpdateMap() {
     try {
       setIsSubmitting(true)
 
-      // Add original map ID to form data
+      // Add original map ID to form data for version tracking
       formData.append("original_map_id", map.original_map_id || map.id)
 
-      // Send the form data directly to the API
+      // Send the form data to the API
       await updateMap(id, formData)
 
       toast({
@@ -69,6 +78,7 @@ export default function UpdateMap() {
     }
   }
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -81,6 +91,7 @@ export default function UpdateMap() {
     )
   }
 
+  // Map not found state
   if (!map) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">

@@ -1,3 +1,17 @@
+/**
+ * GameControls Component
+ *
+ * Overlay UI controls for the virtual event game:
+ * - Movement instructions and help
+ * - Chat interface and messaging
+ * - Event information panel
+ * - Settings and audio controls
+ * - Exit and navigation options
+ * - Mobile-friendly touch controls
+ *
+ * Provides essential game interface elements and user controls
+ * for navigating and interacting within the virtual event space.
+ */
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaComments, FaDesktop } from 'react-icons/fa';

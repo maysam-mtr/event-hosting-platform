@@ -1,3 +1,17 @@
+/**
+ * Share Event Modal Component
+ *
+ * Event sharing and promotion interface:
+ * - Generate shareable event links and codes
+ * - Social media sharing integration
+ * - Email invitation system for participants
+ * - QR code generation for easy access
+ * - Customizable invitation messages
+ *
+ * Helps hosts promote their events and invite
+ * participants through multiple channels.
+ */
+
 import { createPortal } from "react-dom";
 import Modal from "../../../components/Modal/Modal";
 import { EnterButton } from "./EditEventModal";

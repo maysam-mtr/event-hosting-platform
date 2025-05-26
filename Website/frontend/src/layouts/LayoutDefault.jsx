@@ -1,3 +1,17 @@
+/**
+ * Default Layout Component
+ *
+ * Base layout for public pages and guest users:
+ * - Navigation bar for unauthenticated users
+ * - Footer with company information
+ * - Responsive design for mobile and desktop
+ * - Landing page structure and styling
+ * - Public route container with consistent branding
+ *
+ * Used for home page, pricing, contact, and other public pages
+ * before user authentication.
+ */
+
 import { Outlet } from "react-router-dom";
 import styled from 'styled-components'
 import NavBar from "../components/Navbar/Navbar";

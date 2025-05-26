@@ -1,6 +1,20 @@
+/**
+ * Event Validation Rules
+ * 
+ * Defines validation rules for event creation and updates using express-validator.
+ * Ensures data integrity and security for event-related operations including:
+ * - Event name validation with length constraints
+ * - Date validation preventing past dates
+ * - Time format validation (24-hour HH:mm format)
+ * - Event type validation (public/private)
+ * - UUID validation for related entities
+ */
 import { check } from 'express-validator';
 
-// Validation for eventName
+/**
+ * Validates event name field
+ * Ensures event has a meaningful name within reasonable length limits
+ */
 export const eventNameValidation = () => [
     check('eventName')
         .notEmpty()
@@ -9,6 +23,10 @@ export const eventNameValidation = () => [
         .withMessage("Event name must be between 1 and 255 characters long"),
 ];
 
+/**
+ * Validates event start date
+ * Ensures date is in valid ISO format and not in the past
+ */
 export const startDateValidation = () => [
     check('startDate')
         .notEmpty()
@@ -29,6 +47,11 @@ export const startDateValidation = () => [
             return true;
         }),
 ];
+
+/**
+ * Validates event end date
+ * Ensures date is in valid ISO format and not in the past
+ */
 export const endDateValidation = () => [
     check('endDate')
         .notEmpty()
@@ -51,7 +74,10 @@ export const endDateValidation = () => [
 ];
 
 
-// Validation for eventTime
+/**
+ * Validates event start time
+ * Ensures time is in 24-hour HH:mm format
+ */
 export const startTimeValidation = () => [
     check('startTime')
         .notEmpty()
@@ -59,6 +85,11 @@ export const startTimeValidation = () => [
         .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
         .withMessage("Start time must be in HH:mm format (24-hour clock)"),
 ];
+
+/**
+ * Validates event end time
+ * Ensures time is in 24-hour HH:mm format
+ */
 export const endTimeValidation = () => [
     check('endTime')
         .notEmpty()
@@ -67,7 +98,10 @@ export const endTimeValidation = () => [
         .withMessage("End time must be in HH:mm format (24-hour clock)"),
 ];
 
-// Validation for eventType
+/**
+ * Validates event type field
+ * Restricts to only 'public' or 'private' event types
+ */
 export const eventTypeValidation = () => [
     check('eventType')
         .optional()
@@ -75,7 +109,10 @@ export const eventTypeValidation = () => [
         .withMessage("Event type must be either 'public' or 'private'"),
 ];
 
-// Validation for subscriptionId
+/**
+ * Validates subscription ID
+ * Ensures valid UUID format for subscription reference
+ */
 export const subscriptionIdValidation = () => [
     check('subscriptionId')
         .notEmpty()
@@ -84,7 +121,10 @@ export const subscriptionIdValidation = () => [
         .withMessage("Subscription ID must be a valid UUID"),
 ];
 
-// Validation for mapTemplateId
+/**
+ * Validates map template ID
+ * Ensures valid UUID format for map template reference
+ */
 export const mapTemplateIdValidation = () => [
     check('mapTemplateId')
         .notEmpty()
@@ -93,7 +133,10 @@ export const mapTemplateIdValidation = () => [
         .withMessage("Map template ID must be a valid UUID"),
 ];
 
-// Combine all validations for creating an event
+/**
+ * Combined validation rules for creating a new event
+ * Includes all required fields with strict validation
+ */
 export const createEventValidation = () => [
     ...eventNameValidation(),
     ...startDateValidation(),
@@ -105,7 +148,10 @@ export const createEventValidation = () => [
     ...mapTemplateIdValidation(),
 ];
 
-// Combine all validations for updating an event
+/**
+ * Combined validation rules for updating an existing event
+ * All fields are optional to allow partial updates
+ */
 export const updateEventValidation = () => [
     ...eventNameValidation().map((validation) => validation.optional()),
     ...startDateValidation().map((validation) => validation.optional()),

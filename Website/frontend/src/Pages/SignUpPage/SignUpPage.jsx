@@ -1,8 +1,22 @@
-import React, { useState } from "react";
+/**
+ * Sign Up Page Component
+ *
+ * User registration interface for new accounts:
+ * - Registration forms for hosts and regular users
+ * - Form validation and password requirements
+ * - Email verification integration
+ * - Terms of service and privacy policy acceptance
+ * - Role selection during registration
+ *
+ * Onboards new users to the platform and creates
+ * their accounts with appropriate role assignments.
+ */
+
+import { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Input from "../../components/Input/Input";
 import { Link, useNavigate } from "react-router-dom";
-import { Button1, Button2 } from "../../components/Navbar/Navbar";
+import { Button1 } from "../../components/Navbar/Navbar";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
 import useSendRequest from "../../hooks/use-send-request";
 import Popup from "../../components/Popup/Popup";

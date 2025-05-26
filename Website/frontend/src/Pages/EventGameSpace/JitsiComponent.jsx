@@ -1,3 +1,17 @@
+/**
+ * Jitsi Component
+ *
+ * Video conferencing integration for booth interactions:
+ * - Embeds Jitsi Meet for real-time video communication
+ * - Configures video chat settings for booth meetings
+ * - Handles participant management in video calls
+ * - Provides seamless integration with the virtual environment
+ * - Manages audio/video controls and screen sharing
+ *
+ * Enables face-to-face communication when users interact
+ * with booths in the virtual event space.
+ */
+
 import { JitsiMeeting } from '@jitsi/react-sdk';
 
 const JitsiComponent = ({ roomName }) => (

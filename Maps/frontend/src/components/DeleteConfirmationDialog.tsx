@@ -1,3 +1,10 @@
+"use client"
+
+/**
+ * Delete Confirmation Dialog Component
+ * Shows a confirmation dialog before deleting maps to prevent accidental deletions
+ */
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,4 +52,3 @@ export default function DeleteConfirmationDialog({
     </AlertDialog>
   )
 }
-

@@ -1,36 +1,57 @@
-import { Router } from 'express';
-import { createInvitationController, handleSharableLinkController, handleAcceptedInvitationController
-    , handleRejectedInvitationController, getInvitationsForEventController, deleteInvitationByIdController,
-    handleAcceptedInvitationForNewPartnerController
-} from '../controllers/invitation.controller';
-import { authenticateUser } from '../middleware/authentication';
-import { createInvitationValidation } from '../validation/invitation.validator';
-import { createPartnerValidation } from '../validation/partner.validator';
-const router = Router();
+import { Router } from "express"
+import {
+  createInvitationController,
+  handleSharableLinkController,
+  handleAcceptedInvitationController,
+  handleRejectedInvitationController,
+  getInvitationsForEventController,
+  deleteInvitationByIdController,
+  handleAcceptedInvitationForNewPartnerController,
+} from "../controllers/invitation.controller"
+import { authenticateUser } from "../middleware/authentication"
+import { createInvitationValidation } from "../validation/invitation.validator"
+import { createPartnerValidation } from "../validation/partner.validator"
 
-//dont forget to make sure the host inviting is the host of the event
-router.post('/invite/:eventId', createInvitationValidation,createInvitationController);
+/**
+ * Invitation Management Routes
+ *
+ * Comprehensive invitation system for partner collaboration in events.
+ * Handles invitation creation, acceptance, rejection, and partner registration.
+ * Supports both existing partners and new partner onboarding.
+ */
+const router = Router()
 
-// Handle an accepted invitation for partner
-router.put('/partners/:invitationId/accept',authenticateUser, handleAcceptedInvitationController);
+// Create and send invitation to potential partners
+// Validates invitation data and sends email notification
+router.post("/invite/:eventId", createInvitationValidation, createInvitationController)
 
-// Handle an accepted invitation for new partner
-router.post("/partners/register/:invitationId/accept",authenticateUser, createPartnerValidation(),handleAcceptedInvitationForNewPartnerController);
+// Handle invitation acceptance by existing partners
+// Updates invitation status and assigns partner to booth
+router.put("/partners/:invitationId/accept", authenticateUser, handleAcceptedInvitationController)
 
-// Handle a rejected (declined) invitation
-router.put('/:invitationId/reject',authenticateUser, handleRejectedInvitationController);
+// Handle invitation acceptance with new partner registration
+// Creates new partner account and assigns to booth in one step
+router.post(
+  "/partners/register/:invitationId/accept",
+  authenticateUser,
+  createPartnerValidation(),
+  handleAcceptedInvitationForNewPartnerController,
+)
 
-// Sharable link for invitations
-router.get('/events/:eventId', authenticateUser, handleSharableLinkController);
+// Handle invitation rejection/decline
+// Updates invitation status to declined
+router.put("/:invitationId/reject", authenticateUser, handleRejectedInvitationController)
 
-// Get all invitations for a specific event
-router.get("/events/:eventId/getAll", getInvitationsForEventController);
+// Generate shareable invitation link for events
+// Provides invitation access for authenticated users
+router.get("/events/:eventId", authenticateUser, handleSharableLinkController)
 
-// Delete an invitation by ID
-router.delete("/delete/:invitationId", deleteInvitationByIdController);
+// Retrieve all invitations for a specific event
+// Host management tool for tracking event invitations
+router.get("/events/:eventId/getAll", getInvitationsForEventController)
 
+// Delete a specific invitation
+// Allows hosts to remove unwanted invitations
+router.delete("/delete/:invitationId", deleteInvitationByIdController)
 
-export default router;
-
-
-
+export default router

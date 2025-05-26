@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Login Page Component
+ * Provides authentication interface for admin users
+ * Handles login form submission and redirects on successful authentication
+ */
+
 import { useState, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { Input } from "../components/ui/input"
@@ -21,7 +29,7 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      // Login request
+      // Attempt login
       await login(username, password)
 
       // Verify authentication status after login
@@ -64,10 +72,10 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                type="username"
+                type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -94,4 +102,3 @@ export default function Login() {
     </div>
   )
 }
-

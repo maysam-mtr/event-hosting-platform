@@ -1,7 +1,21 @@
-import React, { useState } from "react";
+/**
+ * Login Page Component
+ *
+ * User authentication interface for both hosts and users:
+ * - Email and password authentication forms
+ * - Role-based login (host vs regular user)
+ * - Form validation and error handling
+ * - Remember me functionality
+ * - Password reset link integration
+ *
+ * Handles user authentication and redirects to appropriate
+ * dashboard based on user role after successful login.
+ */
+
+import { useState } from "react";
 import styled from "styled-components";
 import Input from "../../components/Input/Input";
-import { Link, replace, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useSendRequest from "../../hooks/use-send-request";
 import useUserState from "../../hooks/use-user-state";
 import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";

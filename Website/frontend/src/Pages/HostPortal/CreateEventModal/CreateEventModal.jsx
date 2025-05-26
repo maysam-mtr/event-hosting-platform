@@ -1,3 +1,16 @@
+/**
+ * Create Event Modal Component
+ *
+ * Multi-step event creation wizard for hosts:
+ * - Step 1: Basic event information (name, dates, type)
+ * - Step 2: Map template selection for virtual space
+ * - Step 3: Subscription plan purchase and confirmation
+ * - Form validation and error handling throughout
+ * - Integration with payment processing and map services
+ *
+ * Guides hosts through the complete event creation process
+ * from initial setup to final publication.
+ */
 import { createPortal } from "react-dom";
 import { Button3 } from "../../../components/Navbar/Navbar";
 import Modal from "../../../components/Modal/Modal";

@@ -1,19 +1,50 @@
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
-import styled from "styled-components";
-import { Button1 } from "../../components/Navbar/Navbar";
-import { StatusIndicator } from "../HostPortal/MyEventsPage/MyEventsPage";
-import { OrangeShape, OverlayShape } from "../SignUpPage/SignUpPage";
-import { FaArrowLeft } from "react-icons/fa";
-import useSendRequest from "../../hooks/use-send-request";
-import formatDateTime from "../../utils/formatDateTime";
-import { useEffect, useState } from "react";
-import previewImg from '../../assets/landing2.png';
-import Modal from "../../components/Modal/Modal";
-import Input from "../../components/Input/Input";
-import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
-import { Button } from "../UserPortal/HomePage/HomePage";
-import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-import getEventStatus from "../../utils/getEventStatus";
+/**
+ * EventDetailsPage Component
+ *
+ * Displays comprehensive information about a specific event including details,
+ * schedule, host information, and join functionality. Serves as the main
+ * landing page for event discovery and participation.
+ *
+ * Key Features:
+ * - Event information display with status indicators
+ * - Host details and event metadata
+ * - Join functionality with passcode validation for private events
+ * - Responsive card-based layout
+ * - Real-time event status checking
+ * - Map preview integration
+ * - Back navigation with breadcrumb
+ *
+ * Displays:
+ * - Event name, type, and status
+ * - Host information and contact
+ * - Start/end dates and times
+ * - Event creation and update timestamps
+ * - Map preview image
+ * - Join button (enabled only for ongoing events)
+ *
+ * Handles both public and private event access:
+ * - Public events: Direct join functionality
+ * - Private events: Passcode validation modal
+ *
+ * Integrates with backend API for event data fetching and join validation
+ */
+
+import { useParams, useNavigate } from "react-router-dom" // Import useNavigate
+import styled from "styled-components"
+import { Button1 } from "../../components/Navbar/Navbar"
+import { StatusIndicator } from "../HostPortal/MyEventsPage/MyEventsPage"
+import { OrangeShape, OverlayShape } from "../SignUpPage/SignUpPage"
+import { FaArrowLeft } from "react-icons/fa"
+import useSendRequest from "../../hooks/use-send-request"
+import formatDateTime from "../../utils/formatDateTime"
+import { useEffect, useState } from "react"
+import previewImg from "../../assets/landing2.png"
+import Modal from "../../components/Modal/Modal"
+import Input from "../../components/Input/Input"
+import ErrorMessage from "../../components/ErrorMessage/ErrorMessage"
+import { Button } from "../UserPortal/HomePage/HomePage"
+import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner"
+import getEventStatus from "../../utils/getEventStatus"
 
 const Container = styled.div`
   display: flex;
@@ -21,7 +52,7 @@ const Container = styled.div`
   justify-content: center;
   width: 100%;
   height: 90vh;
-`;
+`
 
 export const BackButton = styled.button`
   position: absolute;
@@ -42,7 +73,7 @@ export const BackButton = styled.button`
   svg {
     margin-right: 8px;
   }
-`;
+`
 
 const Card = styled.div`
   display: flex;
@@ -60,7 +91,7 @@ const Card = styled.div`
   @media (min-width: 768px) {
     flex-direction: row;
   }
-`;
+`
 
 const PreviewImage = styled.img`
   width: 100%;
@@ -72,7 +103,7 @@ const PreviewImage = styled.img`
     width: 40%;
     height: 100%;
   }
-`;
+`
 
 const ContentWrapper = styled.div`
   display: flex;
@@ -84,37 +115,37 @@ const ContentWrapper = styled.div`
   @media (min-width: 768px) {
     width: 60%;
   }
-`;
+`
 
 const MainInfo = styled.div`
 display: flex;
 flex-direction: column;
 gap: 10px;
-`;
+`
 
 export const TitleWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-`;
+`
 
 export const Title = styled.h2`
   margin: 0;
   font-size: 24px;
   color: #000;
-`;
+`
 
 const InfoItem = styled.div`
   font-size: 16px;
   color: #333;
-`;
+`
 
 export const ModalContainer = styled.div`
 display: flex;
 flex-direction: column;
 gap: 1rem;
-`;
+`
 
 const DisabledButton = styled.button`
   background-color: var(--text-secondary);
@@ -128,52 +159,52 @@ const DisabledButton = styled.button`
   color: var(--text-background);
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   cursor: not-allowed;
-`;
+`
 
 export default function EventDetailsPage() {
-  const { eventId } = useParams();
-  const [sendRequest] = useSendRequest();
-  const navigate = useNavigate();
+  const { eventId } = useParams()
+  const [sendRequest] = useSendRequest()
+  const navigate = useNavigate()
   const [eventDetails, setEventDetails] = useState({
     eventName: "Battle Royale Showdown",
     hostName: "Gaming Arena",
-    code: 'jggfyufufu',
+    code: "jggfyufufu",
     createdAt: "2025-03-25",
     scheduledTime: "2025-04-01T18:00",
     eventType: "Tournament",
     eventStatus: "live",
     gameMapName: "Desert Storm",
     previewImageUrl: previewImg,
-  });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [mapDetails, setMapDetails] = useState({});
-  const [passcode, setPasscode] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  })
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [mapDetails, setMapDetails] = useState({})
+  const [passcode, setPasscode] = useState("")
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    getEventDetails();
+    getEventDetails()
   }, [])
 
   const openModal = () => {
-    setIsModalOpen(true);
-  };
+    setIsModalOpen(true)
+  }
 
   const closeModal = () => {
-    setIsModalOpen(false);
-  };
+    setIsModalOpen(false)
+  }
 
-  async function getEventDetails(){
-    const URL = `/api/events/details/${eventId}`;
-    const {request, response} = await sendRequest(URL);
+  async function getEventDetails() {
+    const URL = `/api/events/details/${eventId}`
+    const { request, response } = await sendRequest(URL)
 
-    if(response?.success === false){
-      setError("An Error occured. Try Again!");
-      return;
-    }else if(response?.success === true && response?.data){
-      const eventData = response.data[0];
+    if (response?.success === false) {
+      setError("An Error occured. Try Again!")
+      return
+    } else if (response?.success === true && response?.data) {
+      const eventData = response.data[0]
       console.log(eventData)
-      setError("");
+      setError("")
       setEventDetails({
         eventName: eventData.eventName,
         hostName: eventData.hostName,
@@ -185,58 +216,57 @@ export default function EventDetailsPage() {
         startDate: eventData.startDate,
         endDate: eventData.endDate,
         eventType: eventData.eventType,
-        eventStatus: eventData.isOngoing.status || 'unknown',
+        eventStatus: eventData.isOngoing.status || "unknown",
         gameMapName: "Desert Storm",
         previewImageUrl: previewImg,
-        mapTemplateId: eventData.mapTemplateId
+        mapTemplateId: eventData.mapTemplateId,
       })
 
       //getMapDetails(eventData.mapTemplateId);
     }
   }
 
-  async function OnJoinEvent(){
+  async function OnJoinEvent() {
     navigate("/event/space", { state: { eventId } })
     //open  game
   }
 
-  async function validateCredentials(password){
-    setLoading(true);
-    if(!passcode){
-      setError("Passcode is required");
-      setLoading(false);
-      return;
+  async function validateCredentials(password) {
+    setLoading(true)
+    if (!passcode) {
+      setError("Passcode is required")
+      setLoading(false)
+      return
     }
 
-    const URL = `/api/events/${eventDetails.code}/join`;
-    const INIT = {method: 'POST', body: JSON.stringify({passcode: password})}
-    const {request, response} = await sendRequest(URL, INIT);
+    const URL = `/api/events/${eventDetails.code}/join`
+    const INIT = { method: "POST", body: JSON.stringify({ passcode: password }) }
+    const { request, response } = await sendRequest(URL, INIT)
 
-    if(response?.success === false){
-      setError(response.error[0]?.message);
-      setLoading(false);
-      return;
-    }else if (response.success === true){
+    if (response?.success === false) {
+      setError(response.error[0]?.message)
+      setLoading(false)
+      return
+    } else if (response.success === true) {
       //navigate to game space
       OnJoinEvent()
     }
-    setLoading(false);
+    setLoading(false)
   }
 
   const getMapPreviewImg = (mapId) => {
-    if(!mapId){
-      return previewImg;
+    if (!mapId) {
+      return previewImg
     }
-            
-    return import.meta.env.VITE_SUPABASE_IMG_URL +  mapId + '.png';
-                      
+
+    return import.meta.env.VITE_SUPABASE_IMG_URL + mapId + ".png"
   }
 
   return (
     <Container>
       <OverlayShape />
       <OrangeShape />
-      <BackButton onClick={() => navigate("/", {replace: true})}>
+      <BackButton onClick={() => navigate("/", { replace: true })}>
         <FaArrowLeft />
         Back
       </BackButton>
@@ -277,31 +307,34 @@ export default function EventDetailsPage() {
             </InfoItem>
           </MainInfo>
 
-          {eventDetails.eventStatus === "ongoing" ? 
-            (<div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button1 onClick={eventDetails.eventType === 'public' ? OnJoinEvent: openModal}>Join Now!</Button1>
-            </div>) :
-             (<div style={{ display: "flex", justifyContent: "flex-end" }}>
-             <DisabledButton>Join Now!</DisabledButton>
-           </div>)
-          }
+          {eventDetails.eventStatus === "ongoing" ? (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button1 onClick={eventDetails.eventType === "public" ? OnJoinEvent : openModal}>Join Now!</Button1>
+            </div>
+          ) : (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <DisabledButton>Join Now!</DisabledButton>
+            </div>
+          )}
         </ContentWrapper>
       </Card>
       <Modal isOpen={isModalOpen} closeModal={closeModal} title="Enter Password">
-          <Input
-              type="text"
-              placeholder="Enter Event passcode"
-              name='passcode'
-              data={passcode}
-              setData={setPasscode}
-              required={true}
-              label='Passcode'
-          />
-      
-          <ErrorMessage message={error}/>
-                    
-          <Button onClick={() => validateCredentials(passcode)} style={{alignSelf: 'end'}}>{loading ? <LoadingSpinner/> : 'Join!'}</Button>
+        <Input
+          type="text"
+          placeholder="Enter Event passcode"
+          name="passcode"
+          data={passcode}
+          setData={setPasscode}
+          required={true}
+          label="Passcode"
+        />
+
+        <ErrorMessage message={error} />
+
+        <Button onClick={() => validateCredentials(passcode)} style={{ alignSelf: "end" }}>
+          {loading ? <LoadingSpinner /> : "Join!"}
+        </Button>
       </Modal>
     </Container>
-  );
+  )
 }

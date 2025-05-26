@@ -1,3 +1,17 @@
+/**
+ * Pricing Page Component
+ *
+ * Displays subscription plans and pricing information:
+ * - Different subscription tiers and features
+ * - Pricing comparison tables
+ * - Feature breakdown by plan
+ * - Call-to-action for plan selection
+ * - Integration with payment processing
+ *
+ * Helps hosts understand pricing options and select
+ * appropriate subscription plans for their event needs.
+ */
+
 import styled from "styled-components";
 
 const Container = styled.div`

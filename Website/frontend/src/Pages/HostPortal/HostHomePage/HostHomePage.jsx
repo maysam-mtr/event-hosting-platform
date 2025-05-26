@@ -1,7 +1,20 @@
+/**
+ * Host Home Page Component
+ *
+ * Main dashboard for authenticated host users:
+ * - Overview of created events and their status
+ * - Quick event creation and management tools
+ * - Event analytics and participation metrics
+ * - Recent activity and notifications
+ * - Navigation to detailed event management
+ *
+ * Central command center for hosts to monitor
+ * and manage their virtual events and participants.
+ */
+
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import hostHero from '../../../assets/heroHost.png';
-import { Button3 } from "../../../components/Navbar/Navbar";
 import { useState } from "react";
 import CreateEventModal from "../CreateEventModal/CreateEventModal";
 import Popup from "../../../components/Popup/Popup";

@@ -1,5 +1,33 @@
-import styled from "styled-components";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+/**
+ * ErrorPage Component
+ *
+ * A generic error page component that displays user-friendly error messages
+ * when something goes wrong in the application or when users access invalid routes.
+ *
+ * Key Features:
+ * - Customizable error codes and messages
+ * - Responsive design with animated background
+ * - Clear call-to-action with "Go Back Home" button
+ * - Professional error presentation
+ * - Mobile-optimized layout
+ *
+ * Props (via location.state):
+ * - errorCode: HTTP status code or custom error code (default: "404")
+ * - errorMessage: Detailed error description
+ * - errorTitle: Brief error title (default: "Page Not Found")
+ *
+ * Handles different error scenarios:
+ * - 404 Not Found errors
+ * - 500 Server errors
+ * - Network connectivity issues
+ * - Permission denied errors
+ * - Custom application errors
+ *
+ * Provides users with clear navigation back to safe application areas
+ */
+
+import styled from "styled-components"
+import { useLocation, useNavigate } from "react-router-dom"
 
 const ErrorContainer = styled.div`
   height: 100vh;
@@ -12,7 +40,7 @@ const ErrorContainer = styled.div`
   position: relative;
   padding: 0 2rem;
   width: 100%;
-`;
+`
 
 const BackgroundShape = styled.div`
   position: absolute;
@@ -37,7 +65,7 @@ const BackgroundShape = styled.div`
     height: 300px;
     transform: translate(-50%, -50%) scale(1);
   }
-`;
+`
 
 const ErrorCode = styled.h1`
   font-size: 8rem;
@@ -53,7 +81,7 @@ const ErrorCode = styled.h1`
   @media (max-width: 480px) {
     font-size: 3rem;
   }
-`;
+`
 
 const ErrorMessage = styled.p`
   font-size: var(--heading-6);
@@ -70,7 +98,7 @@ const ErrorMessage = styled.p`
     font-size: 0.9rem;
     max-width: 80%;
   }
-`;
+`
 
 const BackButton = styled.button`
   background: var(--general-bg-base);
@@ -98,27 +126,31 @@ const BackButton = styled.button`
     padding: 8px 16px;
     font-size: 0.9rem;
   }
-`;
+`
 
 const ErrorPage = (/*{ errorCode = "404", errorMessage = "Page Not Found" }*/) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const { errorCode = "404", 
-          errorMessage = "The page you're looking for does not exit. Try something else?", 
-          errorTitle = "Page Not Found" } = location.state || {};
+  const {
+    errorCode = "404",
+    errorMessage = "The page you're looking for does not exit. Try something else?",
+    errorTitle = "Page Not Found",
+  } = location.state || {}
 
   const onBackButtonClick = () => {
-    navigate('/', {replace: true});
+    navigate("/", { replace: true })
   }
   return (
     <ErrorContainer>
       <BackgroundShape />
       <ErrorCode>{errorCode}</ErrorCode>
-      <ErrorMessage>{errorTitle}: {errorMessage}</ErrorMessage>
+      <ErrorMessage>
+        {errorTitle}: {errorMessage}
+      </ErrorMessage>
       <BackButton onClick={onBackButtonClick}>Go Back Home</BackButton>
     </ErrorContainer>
-  );
-};
+  )
+}
 
-export default ErrorPage;
+export default ErrorPage

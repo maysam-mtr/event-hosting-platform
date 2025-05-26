@@ -1,3 +1,17 @@
+/**
+ * Default Route Middleware
+ *
+ * Handles default routing behavior and redirects:
+ * - Redirects users to appropriate dashboard based on role
+ * - Handles root path routing logic
+ * - Manages initial page load routing
+ * - Provides fallback routing for undefined paths
+ * - Ensures users land on correct starting page
+ *
+ * Determines where users should be directed when accessing
+ * the application root or undefined routes.
+ */
+
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import useUserState from "../hooks/use-user-state";

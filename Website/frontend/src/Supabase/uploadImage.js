@@ -1,4 +1,17 @@
-// utils/uploadImage.js
+/**
+ * Image Upload Utilities
+ *
+ * Specialized image upload functions for Supabase storage:
+ * - Handles image file uploads with optimization
+ * - Provides image compression and resizing
+ * - Manages image format conversion and validation
+ * - Returns optimized image URLs for display
+ * - Handles upload errors and retry logic
+ *
+ * Optimized image upload functionality for profile pictures,
+ * company logos, and event images throughout the application.
+ */
+
 import { supabase } from "./supabaseClient";
 
 export const uploadImage = async (file, folder = "eventure-imgs/images") => {

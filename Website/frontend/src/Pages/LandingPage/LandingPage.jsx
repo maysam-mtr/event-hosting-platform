@@ -1,3 +1,17 @@
+/**
+ * Landing Page Component
+ *
+ * Main marketing and introduction page for the application:
+ * - Hero section with value proposition
+ * - Feature highlights and benefits
+ * - Call-to-action buttons for registration
+ * - Responsive design for all devices
+ * - Integration with navigation and authentication flows
+ *
+ * First impression page that converts visitors into users
+ * by showcasing the virtual event platform capabilities.
+ */
+
 import styled from 'styled-components';
 import heroImg from '../../assets/hero.png'
 import landing1 from '../../assets/landing1.png'

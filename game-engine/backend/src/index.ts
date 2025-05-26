@@ -1,108 +1,25 @@
-/**import express from "express"
-import http from "http"
+/**
+ * Game Engine Server
+ *
+ * This is the main server file that handles:
+ * - Express HTTP server setup with CORS configuration
+ * - Socket.IO real-time communication for multiplayer functionality
+ * - Player movement tracking and broadcasting
+ * - Booth interaction detection (enter/exit events)
+ * - Meeting room URL generation for booth interactions
+ * - Static asset serving for game resources
+ *
+ * The server manages real-time player positions, booth interactions, and provides
+ * meeting links for virtual booth experiences using Jitsi integration.
+ */
+
+import express from "express"
 import cors from "cors"
 import { createServer } from "node:http"
 import { Server as SocketIOServer } from "socket.io"
 import path from "path"
 import fs from "fs/promises"
 
-// Import your initialization logic
-import { initializeMapData } from "./initialization"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-const app = express()
-const PORT = process.env.PORT || 3004
-
-// Serve static assets
-app.use("/assets", express.static(path.join(__dirname, "assets")))
-
-// CORS middleware
-app.use(
-  cors({
-    origin: ["http://localhost:5000", "http://localhost:5173"],
-    credentials: true,
-  })
-)
-
-// Routes
-app.get("/", (req, res) => {
-  res.send("Virtual Event Platform - Game Engine")
-})
-
-app.get("/getTilesetImages", async (req, res) => {
-  try {
-    const filePath = path.join(__dirname, "mapInfo.json")
-    const fileContent = await fs.readFile(filePath, "utf8")
-    const data = JSON.parse(fileContent)
-
-    res.status(200).json({ data })
-  } catch (err) {
-    console.error("Failed to load tileset images:", err)
-    res.status(500).json({ error: "Failed to read layer names" })
-  }
-})
-
-// Create HTTP server and Socket.IO
-const httpServer = createServer(app)
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: ["http://localhost:5000", "http://localhost:5173"],
-    credentials: true,
-  },
-})
-const connectedUsers: Record<string, string> = {} // userId -> socket.id
-// Socket connection handler
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id)
-   for(const keys in connectedUsers) {
-    if(keys === socket.id) {
-      socket.emit("playerConnected", { userId: keys, socketId: connectedUsers[keys] })
-    }}
-  socket.on("playerMove", (data) => {
-    const { userId, name, x, y } = data
-
-    // Store the userId to socket.id mapping (if needed later)
-    connectedUsers[userId] = socket.id
-
-    // Broadcast to everyone else
-    socket.broadcast.emit('playerMoved', { userId, name, x, y })
-  })
-
-  socket.on("disconnect", () => {
-    const disconnectedUserId = Object.keys(connectedUsers).find(userId => connectedUsers[userId] === socket.id)
-    if (!disconnectedUserId) return // User not found
-    console.log("User disconnected:", socket.id)
-    delete connectedUsers[disconnectedUserId]
-    socket.broadcast.emit('playerDisconnected', disconnectedUserId)
-    console.log(`❌ User disconnected: ${disconnectedUserId}`)
-    //io.emit("playerDisconnected", socket.id)
-  })
-})
-
-// Start server after map data loaded
-initializeMapData()
-  .then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`🎮 Game engine running at http://localhost:${PORT}`)
-    })
-  })
-  .catch((err) => {
-    console.error("❌ Failed to start game engine:", err.message)
-    process.exit(1)
-  })
-*/
-
-import express from "express"
-import http from "http"
-import cors from "cors"
-import { createServer } from "node:http"
-import { Server as SocketIOServer, Socket } from "socket.io"
-import path from "path"
-import fs from "fs/promises"
-
-// Initialization logic
 import { getBoothIdForPartner, initializeMapData } from "./initialization"
 import dotenv from "dotenv"
 
@@ -111,33 +28,36 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3004
 
-// Middleware
+// Configure CORS to allow connections from frontend applications
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://localhost:3333"],
     credentials: true,
-  })
+  }),
 )
 
-// Static assets
+// Serve static game assets (images, maps, partner logos)
 app.use("/assets", express.static(path.join(__dirname, "assets")))
 
-// Routes
+// Health check endpoint
 app.get("/", (req, res) => {
   res.send("Virtual Event Platform - Game Engine")
 })
 
+/**
+ * API endpoint to retrieve map information and partner data
+ * Returns both map tileset images and partner information for game initialization
+ */
 app.use("/getMapInformation", async (req, res) => {
   try {
     const mapFilePath = path.join(__dirname, "mapInfo.json")
     const mapInfo = await fs.readFile(mapFilePath, "utf-8")
     const mapData = JSON.parse(mapInfo)
-    
+
     const partnersFilePath = path.join(__dirname, "partners.json")
     const partnersInfo = await fs.readFile(partnersFilePath, "utf-8")
     const partnersData = JSON.parse(partnersInfo)
-    
-    
+
     res.status(200).json({ mapImages: mapData, partners: partnersData })
   } catch (err) {
     console.error("Failed to load tileset images:", err)
@@ -145,50 +65,47 @@ app.use("/getMapInformation", async (req, res) => {
   }
 })
 
-
-// Add this route
+/**
+ * Generate meeting room URLs for booth interactions
+ * Creates Jitsi meeting links using Cloudflare Tunnel domain
+ */
 app.get("/getMeetingLink/:boothId", (req, res) => {
-  const { boothId } = req.params;
-
-  // Your Cloudflare Tunnel domain
+  const { boothId } = req.params
   const jitsiDomain = "descriptions-sas-kathy-sunday.trycloudflare.com";
+  const roomName = `booth_${boothId}`
+  const meetingUrl = `https://${jitsiDomain}/${roomName}`
 
-  // Room name format: booth_123
-  const roomName = `booth_${boothId}`;
+  res.json({ meetingUrl })
+})
 
-  // Full URL to Jitsi meeting
-  const meetingUrl = `https://${jitsiDomain}/${roomName}`;
-
-  // Optional: Add JWT token if using authentication
-  // const jwtToken = generateJWT({ userId: "guest_" + uuidv4(), role: "guest" });
-  // const meetingUrl = `https://${jitsiDomain}/${roomName}?jwt=${jwtToken}`;
-
-  res.json({ meetingUrl });
-});
-
-
-// Create HTTP + Socket.IO server
+// Create HTTP server and Socket.IO instance for real-time communication
 const httpServer = createServer(app)
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: ["http://localhost:5173"],
     credentials: true,
-  }
+  },
 })
 
-// Track active users
-const userIdToSocketId: Record<string, string> = {} // userId -> socket.id
+// Track active users and booth data
+const userIdToSocketId: Record<string, string> = {} // Maps user IDs to socket IDs
 let booths: { id: string; x: number; y: number; width: number; height: number }[] = []
 
-// Helper: Check if two rectangles overlap
-const rectsOverlap = (r1: { x: number, y: number, width: number, height: number }, r2: { x: number, y: number, width: number, height: number }) => {
-  return !(
-    r1.x > r2.x + r2.width ||
-    r2.x > r1.x + r1.width ||
-    r1.y > r2.y + r2.height ||
-    r2.y > r1.y + r1.height
-  )
+/**
+ * Collision detection utility
+ * Checks if two rectangular areas overlap (used for booth interaction detection)
+ */
+const rectsOverlap = (
+  r1: { x: number; y: number; width: number; height: number },
+  r2: { x: number; y: number; width: number; height: number },
+) => {
+  return !(r1.x > r2.x + r2.width || r2.x > r1.x + r1.width || r1.y > r2.y + r2.height || r2.y > r1.y + r1.height)
 }
+
+/**
+ * Load booth configuration data from JSON file
+ * Booth data includes position and dimensions for collision detection
+ */
 const loadBoothsFromMap = async () => {
   const boothsJsonPath = path.join(__dirname, "assets", "booths.json")
   try {
@@ -205,35 +122,43 @@ const loadBoothsFromMap = async () => {
     }
   }
 }
+
+// Socket.IO connection handling for real-time multiplayer functionality
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id)
 
+  /**
+   * Handle player joining the game
+   * Validates user data, manages duplicate connections, and broadcasts join event
+   */
   socket.on("joinGame", async (userData) => {
-    const { id, name, avatar,partnerId } = userData
-    
+    const { id, name, avatar, partnerId } = userData
 
     if (!id || !name || !avatar) {
       return socket.emit("authError", { message: "Missing required fields" })
     }
 
-    // Save user data in socket.data
+    // Store user data in socket session
     socket.data.userId = id
     socket.data.name = name
     socket.data.avatar = avatar
-    socket.data.isPartner = false; // Default to guest
+    socket.data.isPartner = false
     socket.data.currentBooth = null
-    if(partnerId){
-      try{
-      const boothId = await getBoothIdForPartner(partnerId);
-      if( boothId ){
-      socket.data.isPartner=true;
-      socket.data.boothId= boothId;
-      }
-      }catch(err){
+
+    // Check if user is a partner and assign booth ownership
+    if (partnerId) {
+      try {
+        const boothId = await getBoothIdForPartner(partnerId)
+        if (boothId) {
+          socket.data.isPartner = true
+          socket.data.boothId = boothId
+        }
+      } catch (err) {
         console.log(err)
       }
     }
-    // If same user already connected → disconnect old socket
+
+    // Handle duplicate connections by disconnecting previous session
     if (userIdToSocketId[id]) {
       const oldSocketId = userIdToSocketId[id]
       const oldSocket = io.sockets.sockets.get(oldSocketId)
@@ -241,162 +166,104 @@ io.on("connection", (socket) => {
       oldSocket?.disconnect(true)
     }
 
-    // Update mapping
+    // Update user mapping and broadcast join event
     userIdToSocketId[id] = socket.id
-socket.data.userId = id
-socket.data.name = name
-socket.data.avatar = avatar
-    // Broadcast join with full data
+
     socket.broadcast.emit("playerMoved", {
       userId: id,
       name,
       avatar,
       x: userData.x || Math.random() * 400,
-      y: userData.y || Math.random() * 400
+      y: userData.y || Math.random() * 400,
     })
 
     console.log(`User ${name} [${id}] joined`)
   })
-/*
+
+  /**
+   * Handle player movement and booth interaction detection
+   * Tracks player position, detects booth entry/exit, and broadcasts movement
+   */
   socket.on("playerMove", (data) => {
     const userId = socket.data.userId
     const name = socket.data.name
     const avatar = socket.data.avatar
-    const prevBooth = socket.data.currentBooth || null
+    const prevBooth = socket.data.currentBooth
+    const isPartner = socket.data.isPartner
 
     if (!userId || !name || !avatar) return
-  
+
     const payload = {
       userId,
       name,
       avatar,
       x: data.x,
-      y: data.y
+      y: data.y,
     }
-  
-    
-    // Define player bounds (e.g., 32x32 area around player)
+
+    // Broadcast movement to all connected clients
+    io.emit("playerMoved", payload)
+
+    // Define player collision bounds for booth interaction
     const playerBounds = {
       x: data.x - 16,
       y: data.y - 16,
       width: 32,
-      height: 32
+      height: 32,
     }
+
     let newBooth = null
-   // Check if player overlaps any booth
-    booths.forEach(booth => {
+
+    // Check collision with all booths
+    for (const booth of booths) {
       const boothBounds = {
         x: booth.x,
         y: booth.y,
         width: booth.width,
-        height: booth.height
+        height: booth.height,
       }
-   if (rectsOverlap(playerBounds, boothBounds)&& prevBooth! == booth.id) {
+
+      const overlap = rectsOverlap(playerBounds, boothBounds)
+
+      // Handle booth entry
+      if (overlap && prevBooth !== booth.id) {
         socket.data.currentBooth = booth.id
-      
         socket.emit("enteredBooth", {
           userId,
-          boothId: booth.id
+          boothId: booth.id,
+          isPartner: socket.data.isPartner,
+          meetingUrl: `https://descriptions-sas-kathy-sunday.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`,
         })
-  
         io.emit("userEnteredBooth", {
           userId,
-          boothId: booth.id
+          boothId: booth.id,
         })
       }
-      else if(!rectsOverlap(playerBounds, boothBounds)&& prevBooth===booth.id){
-        console.log(`User ${userId} exited booth ${booth.id}`)
-        socket.emit("exitedBooth", { userId, boothId: booth.id })
-        socket.data.currentBooth = null
+
+      if (!newBooth && overlap) {
+        newBooth = booth.id
       }
-    })
-    if (!entered && prevBooth) {
-      console.log(`User ${userId} exited previous booth ${prevBooth.id}`)
-      socket.emit("exitedBooth", { userId, boothId: prevBooth })
-      io.emit("userExitedBooth", { userId, boothId: prevBooth })
-  
+    }
+
+    // Handle booth exit
+    if (prevBooth && !newBooth) {
       socket.data.currentBooth = null
-    }
-
-    io.emit("playerMoved", payload)
-  
-  })*/
- socket.on("playerMove", (data) => {
-  const userId = socket.data.userId
-  const name = socket.data.name
-  const avatar = socket.data.avatar
-  const prevBooth = socket.data.currentBooth
-  const isPartner = socket.data.isPartner
-
-  if (!userId || !name || !avatar) return
-
-  const payload = {
-    userId,
-    name,
-    avatar,
-    x: data.x,
-    y: data.y
-  }
-
-  io.emit("playerMoved", payload)
-
-  const playerBounds = {
-    x: data.x - 16,
-    y: data.y - 16,
-    width: 32,
-    height: 32
-  }
-
-  let newBooth = null
-
-  for (const booth of booths) {
-    const boothBounds = {
-      x: booth.x,
-      y: booth.y,
-      width: booth.width,
-      height: booth.height
-    }
-
-    const overlap = rectsOverlap(playerBounds, boothBounds)
-
-    if (overlap && prevBooth !== booth.id) {
-      // Entered a new booth
-      socket.data.currentBooth = booth.id
-      socket.emit("enteredBooth", {
+      socket.emit("exitedBooth", {
         userId,
-        boothId: booth.id,
-        isPartner:socket.data.isPartner,
-        meetingUrl:`https://descriptions-sas-kathy-sunday.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
-   
+        boothId: prevBooth,
       })
-      io.emit("userEnteredBooth", {
+      io.emit("userExitedBooth", {
         userId,
-        boothId: booth.id
+        boothId: prevBooth,
       })
+      console.log(`User ${userId} exited booth ${prevBooth}`)
     }
+  })
 
-    if (!newBooth && overlap) {
-      newBooth = booth.id // currently in this booth
-    }
-  }
-
-  // Check if exited from previous booth
-  if (prevBooth && !newBooth) {
-    socket.data.currentBooth = null
-    socket.emit("exitedBooth", {
-      userId,
-      boothId: prevBooth
-    })
-    io.emit("userExitedBooth", {
-      userId,
-      boothId: prevBooth
-    })
-    console.log(`User ${userId} exited booth ${prevBooth}`)
-  }
-})
-
-
-
+  /**
+   * Handle player disconnection
+   * Cleans up user data and broadcasts disconnection event
+   */
   socket.on("disconnect", () => {
     const userId = socket.data.userId
     if (userId && userIdToSocketId[userId] === socket.id) {
@@ -407,6 +274,7 @@ socket.data.avatar = avatar
   })
 })
 
+// Initialize server with map data and booth configuration
 initializeMapData()
   .then(async () => {
     await loadBoothsFromMap()

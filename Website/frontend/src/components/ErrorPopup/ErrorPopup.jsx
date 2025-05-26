@@ -1,3 +1,16 @@
+/**
+ * Error Popup Component
+ *
+ * Displays error messages as overlay popups:
+ * - Shows critical errors that need immediate attention
+ * - Provides modal-style error display
+ * - Includes error details and suggested actions
+ * - Supports different error types and severity levels
+ * - Auto-dismisses after timeout or user interaction
+ *
+ * Used for system errors, network failures, and critical user notifications.
+ */
+
 import styled from "styled-components";
 import { MdErrorOutline } from "react-icons/md";
 

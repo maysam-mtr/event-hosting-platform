@@ -1,15 +1,15 @@
-/* imports */
-import { check } from 'express-validator'
+/**
+ * Authentication Input Validation
+ * Defines validation rules for authentication endpoints
+ */
 
-const usernameValidation = () => [
-    check('username').notEmpty().withMessage("Username is required"),
-]
+import { check } from "express-validator"
 
-const passwordValidation = () => [
-    check('password').notEmpty().withMessage("Password is required"),
-]
+// Username validation rules
+const usernameValidation = () => [check("username").notEmpty().withMessage("Username is required")]
 
-export const validateAdminLogin = [
-    ...usernameValidation(),
-    ...passwordValidation(),
-]
+// Password validation rules
+const passwordValidation = () => [check("password").notEmpty().withMessage("Password is required")]
+
+// Combined validation for admin login
+export const validateAdminLogin = [...usernameValidation(), ...passwordValidation()]

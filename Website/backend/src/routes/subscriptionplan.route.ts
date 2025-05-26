@@ -1,10 +1,23 @@
-import { Router } from 'express';
-import { createSubscriptionPlanController,getAllSubscriptionPlanController } from '../controllers/subscriptionplan.controller';
+import { Router } from "express"
+import {
+  createSubscriptionPlanController,
+  getAllSubscriptionPlanController,
+} from "../controllers/subscriptionplan.controller"
 
-const router = Router();
+/**
+ * Subscription Plan Management Routes
+ *
+ * Manages the available subscription plans and their configurations.
+ * Handles plan creation and retrieval for pricing and feature comparison.
+ */
+const router = Router()
 
-router.post('/add', createSubscriptionPlanController);
+// Create a new subscription plan
+// Administrative endpoint for adding new pricing tiers
+router.post("/add", createSubscriptionPlanController)
 
-router.get('/get', getAllSubscriptionPlanController);
+// Retrieve all available subscription plans
+// Public endpoint for displaying pricing options to hosts
+router.get("/get", getAllSubscriptionPlanController)
 
-export default router;
+export default router

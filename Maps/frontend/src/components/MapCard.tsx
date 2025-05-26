@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Map Card Component
+ * Displays individual map information in a card format with action buttons
+ * Shows map thumbnail, metadata, and provides edit/download/delete functionality
+ */
+
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Edit, Trash2, Download } from "lucide-react"
@@ -14,11 +22,10 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="truncate" title={map.name}>
-          {map.name}
-        </CardTitle>
+        <CardTitle title={map.name}>{map.name}</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow p-0">
+        {/* Map thumbnail with fallback */}
         <div className="relative h-40 w-full">
           <img
             src={
@@ -35,6 +42,7 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
             }}
           />
         </div>
+        {/* Map metadata */}
         <div className="p-4">
           <div className="text-sm text-muted-foreground mb-1">
             <span className="font-semibold">ID:</span> {map.id.substring(0, 8)}...
@@ -52,11 +60,12 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
           </div>
         </div>
       </CardContent>
+      {/* Action buttons */}
       <CardFooter className="flex justify-between p-4 pt-2 border-t">
         <div className="flex space-x-2 w-full">
           <Link to={`/update/${map.id}`} className="flex-1">
             <Button variant="outline" className="w-full">
-              <Edit className="mr-2 h-4 w-4" /> Edit
+              <Edit className="mr-2 h-4 w-4" /> Update
             </Button>
           </Link>
           <Button
@@ -77,4 +86,3 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
     </Card>
   )
 }
-

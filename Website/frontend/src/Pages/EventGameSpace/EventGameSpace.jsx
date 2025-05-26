@@ -1,3 +1,17 @@
+/**
+ * Event Game Space Component
+ *
+ * Main container for the virtual event environment:
+ * - Initializes the game engine and virtual space
+ * - Manages the integration between game and video chat
+ * - Handles event-specific configurations
+ * - Coordinates user interactions within the virtual environment
+ * - Provides the main interface for event participation
+ *
+ * Core component that brings together the virtual world
+ * and communication tools for immersive event experiences.
+ */
+
 import styled from 'styled-components';
 import Preload from './Preload';
 import JitsiComponent from './JitsiComponent';

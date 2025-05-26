@@ -1,3 +1,17 @@
+/**
+ * User Home Page Component
+ *
+ * Main dashboard for authenticated regular users:
+ * - Overview of upcoming and ongoing events
+ * - Quick access to event exploration and joining
+ * - User activity summary and recent events
+ * - Personalized event recommendations
+ * - Navigation to other user features
+ *
+ * Central hub for users to discover and participate
+ * in virtual events based on their interests.
+ */
+
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import skyImg from '../../../assets/sky.png';

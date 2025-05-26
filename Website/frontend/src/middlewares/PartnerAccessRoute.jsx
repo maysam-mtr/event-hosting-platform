@@ -1,3 +1,17 @@
+/**
+ * Partner Access Route Middleware
+ *
+ * Controls access to partner-specific features:
+ * - Validates user partner status
+ * - Checks booth assignment and permissions
+ * - Manages partner collaboration features
+ * - Handles partner-only event participation
+ * - Redirects non-partners to appropriate pages
+ *
+ * Ensures only verified partners can access
+ * booth management and collaboration features.
+ */
+
 import { Outlet, useNavigate } from "react-router-dom";
 import useUserState from "../hooks/use-user-state";
 import { useEffect } from "react";

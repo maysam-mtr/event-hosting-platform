@@ -1,667 +1,736 @@
-import Event from '../models/Event';
-import { Op } from 'sequelize';
-import { markSubscriptionAsUsed, isSubscriptionValid, getMaxDurationBySubscriptionId } from './subscription.service';
-import { createPrivateEventCredential,getPrivateEventCredential,deletePrivateEventCredential } from './PrivateEventCredential.service';
-import { getTodayDate, getTimeNow } from "../Utils/dateHelper";
-import Host from '../models/Host';
-import { start } from 'repl';
+/**
+ * Event Service
+ *
+ * This service handles all business logic related to event management in the virtual event platform.
+ * It provides comprehensive functionality for creating, updating, retrieving, and managing events,
+ * including validation of event timing, subscription limits, and access control.
+ *
+ * Key functionalities:
+ * - Create and update events with comprehensive validation
+ * - Manage public and private events with passcode protection
+ * - Retrieve events with filtering by status and type
+ * - Handle event joining with access control
+ * - Validate event timing and duration constraints
+ * - Manage event-host relationships and permissions
+ */
+
+import Event from "../models/Event"
+import { Op } from "sequelize"
+import { markSubscriptionAsUsed, isSubscriptionValid, getMaxDurationBySubscriptionId } from "./subscription.service"
+import {
+  createPrivateEventCredential,
+  getPrivateEventCredential,
+  deletePrivateEventCredential,
+} from "./PrivateEventCredential.service"
+import { getTodayDate, getTimeNow } from "../Utils/dateHelper"
+import Host from "../models/Host"
+import BoothDetails from "../models/BoothDetails"
+import Partner from "../models/Partner"
+import User from "../models/User"
+
+/**
+ * Creates a new event with comprehensive validation
+ * Validates timing, duration limits based on subscription, and manages private event credentials
+ *
+ * @param eventData - Object containing event details (name, dates, times, type, etc.)
+ * @param hostId - The unique identifier of the host creating the event
+ * @returns Object containing the created event and credentials (if private)
+ */
 const createEvent = async (eventData: any, hostId: string): Promise<any> => {
-    try {
-        const { eventName, startDate, startTime, endTime, endDate, subscriptionId, mapTemplateId, eventType, passcode } = eventData;
+  try {
+    const { eventName, startDate, startTime, endTime, endDate, subscriptionId, mapTemplateId, eventType, passcode } =
+      eventData
 
-        // Step 1: Convert startDate and endDate to Date objects
-        const startDateObj = new Date(startDate).toISOString().split('T')[0];
-        const endDateObj = new Date(endDate).toISOString().split('T')[0];
-        // Log for debugging
-        console.log("Start Date:", startDate, startDateObj);
-        console.log("End Date:", endDate, endDateObj);
+    // Normalize dates to ISO format for consistent comparison
+    const startDateObj = new Date(startDate).toISOString().split("T")[0]
+    const endDateObj = new Date(endDate).toISOString().split("T")[0]
 
-        // Validate start date and end date
-        if (startDateObj > endDateObj) {
-            throw new Error("End date must be on or after the start date.");
-        }
-console.log(startDateObj=== (endDateObj))
-        // Step 2: Validate start time and end time if on the same day
-        if (startDateObj === endDateObj) {
-            const [startHours, startMinutes] = startTime.split(":").map(Number);
-            const [endHours, endMinutes] = endTime.split(":").map(Number);
+    console.log("Start Date:", startDate, startDateObj)
+    console.log("End Date:", endDate, endDateObj)
 
-            const startTimeInMinutes = startHours * 60 + startMinutes;
-            const endTimeInMinutes = endHours * 60 + endMinutes;
-
-            console.log("Start Time in minutes:", startTimeInMinutes);
-            console.log("End Time in minutes:", endTimeInMinutes);
-
-            if (endTimeInMinutes <= startTimeInMinutes) {
-                throw new Error("End time must be later than start time.");
-            }
-
-            // if (endTimeInMinutes - startTimeInMinutes < 30) {
-            //     throw new Error("The event duration must be at least 30 minutes.");
-            // }
-        }
-
-        // Step 3: Validate maximum duration based on subscription plan
-        const maxDuration = await getMaxDurationBySubscriptionId(subscriptionId); // Maximum duration in minutes
-
-        // Combine date and time into Date objects for accurate duration calculation
-        const [startHours, startMinutes] = startTime.split(":").map(Number);
-        const [endHours, endMinutes] = endTime.split(":").map(Number);
-
-        const startDateTime = new Date(startDateObj);
-        const endDateTime = new Date(endDateObj);
-
-        startDateTime.setHours(startHours, startMinutes, 0, 0);
-        endDateTime.setHours(endHours, endMinutes, 0, 0);
-
-        const durationInMinutes = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
-
-        console.log("Duration in minutes:", durationInMinutes);
-        console.log("Max Duration in minutes:", maxDuration);
-
-        if (durationInMinutes > maxDuration) {
-            throw new Error(`The event duration exceeds the maximum allowed duration of ${maxDuration} minutes.`);
-        }
-
-        // Validate subscription
-        let result = await isSubscriptionValid(subscriptionId, hostId);
-        if (!result.isValid) {
-            throw new Error(result.message);
-        }
-
-        // Create a new event
-        const event = await Event.create({
-            eventName,
-            startDate,
-            startTime,
-            endTime,
-            endDate,
-            hostId,
-            subscriptionId,
-            mapTemplateId,
-            eventType,
-        });
-
-        let credential = null;
-        if (eventType === "private") {
-            credential = await createPrivateEventCredential(event.id, passcode);
-        }
-
-        if (subscriptionId) {
-            await markSubscriptionAsUsed(subscriptionId);
-        }
-
-        console.log("New event created:", event.toJSON());
-        return {
-            event: event.toJSON(),
-            ...(credential ? { credential } : {}),
-        };
-    } catch (err) {
-        throw new Error((err as Error).message || "An error occurred while creating the event.");
+    // Validate that end date is not before start date
+    if (startDateObj > endDateObj) {
+      throw new Error("End date must be on or after the start date.")
     }
-};
-const updateEvent = async (
-    eventId: string,
-    updateData: any,
-    userId: string,
-    passcode: string
-): Promise<any> => {
-    try {
-        // Find the event by ID
-        const event = await Event.findByPk(eventId);
-        if (!event) {
-            throw new Error(`Event with ID ${eventId} not found.`);
-        }
 
-        // Check authorization
-        if (event.hostId !== userId) {
-            throw new Error('You are not authorized to update this event');
-        }
+    // For same-day events, validate that end time is after start time
+    if (startDateObj === endDateObj) {
+      const [startHours, startMinutes] = startTime.split(":").map(Number)
+      const [endHours, endMinutes] = endTime.split(":").map(Number)
 
-        // Handle event type changes (private/public)
-        let credential = null;
-        if (updateData.eventType && updateData.eventType !== event.eventType) {
-            if (updateData.eventType === 'private') {
-                credential = await createPrivateEventCredential(event.id, passcode);
-            } else if (updateData.eventType === 'public') {
-                await deletePrivateEventCredential(event.id);
-            }
-        }
+      const startTimeInMinutes = startHours * 60 + startMinutes
+      const endTimeInMinutes = endHours * 60 + endMinutes
 
-        // Validate date/time fields if any are updated
-        if (
-            updateData.startDate ||
-            updateData.endDate ||
-            updateData.startTime ||
-            updateData.endTime
-        ) {
-            // Merge existing and updated data
-            const newStartDate = updateData.startDate || event.startDate;
-            const newStartTime = updateData.startTime || event.startTime;
-            const newEndDate = updateData.endDate || event.endDate;
-            const newEndTime = updateData.endTime || event.endTime;
+      console.log("Start Time in minutes:", startTimeInMinutes)
+      console.log("End Time in minutes:", endTimeInMinutes)
 
-            // Convert to Date objects for comparison
-            const startDateObj = new Date(newStartDate);
-            const endDateObj = new Date(newEndDate);
-
-            // Validate date format
-            if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-                throw new Error('Invalid date format.');
-            }
-
-            // Validate start date <= end date
-            if (startDateObj > endDateObj) {
-                throw new Error('End date must be on or after the start date.');
-            }
-
-            // Check if dates are the same day
-            const normalizedStartDate = startDateObj.toISOString().split('T')[0];
-            const normalizedEndDate = endDateObj.toISOString().split('T')[0];
-
-            if (normalizedStartDate === normalizedEndDate) {
-                // Validate start time and end time
-                const [startHours, startMinutes] = newStartTime.split(':').map(Number);
-                const [endHours, endMinutes] = newEndTime.split(':').map(Number);
-
-                const startTimeInMinutes = startHours * 60 + startMinutes;
-                const endTimeInMinutes = endHours * 60 + endMinutes;
-
-                if (endTimeInMinutes <= startTimeInMinutes) {
-                    throw new Error('End time must be later than start time.');
-                }
-
-                // if (endTimeInMinutes - startTimeInMinutes < 30) {
-                //     throw new Error('The event duration must be at least 30 minutes.');
-                // }
-            }
-
-            // Validate maximum duration
-            const maxDuration = await getMaxDurationBySubscriptionId(event.subscriptionId);
-
-            // Combine date and time into full Date objects
-            const startDateTime = new Date(newStartDate);
-            const endDateTime = new Date(newEndDate);
-
-            const [startH, startM] = newStartTime.split(':').map(Number);
-            const [endH, endM] = newEndTime.split(':').map(Number);
-
-            startDateTime.setHours(startH, startM, 0, 0);
-            endDateTime.setHours(endH, endM, 0, 0);
-
-            const durationInMinutes = Math.ceil(
-                (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60)
-            );
-
-            if (durationInMinutes > maxDuration) {
-                throw new Error(
-                    `The event duration exceeds the maximum allowed duration of ${maxDuration} minutes.`
-                );
-            }
-        }
-
-        // Update the event with the provided data
-        await event.update(updateData);
-
-        console.log('Event updated successfully:', event.toJSON());
-        return {
-            event: event.toJSON(),
-            ...(credential ? { credential } : {}),
-        };
-    } catch (err) {
-        throw new Error((err as Error).message || 'Failed to update event.');
+      if (endTimeInMinutes <= startTimeInMinutes) {
+        throw new Error("End time must be later than start time.")
+      }
     }
-};
 
-// Fetch all public events that are today or in the future
- const getPublicEvents = async (limit:number,page:number): Promise<any[]> => {
-    try {
-        const today = getTodayDate();
-        const currentTime = getTimeNow();
-         limit = limit ||15;
-        const offset = (page - 1) * limit;
-        console.log("Current Time:", currentTime);
-        // Query the database for public events
-        const publicEvents = await Event.findAll({
-            where: {
-                eventType: 'public', // Only public events
-                [Op.or]: [
-                    {
-                        // Ongoing Events
-                        [Op.and]: [
-                            { startDate: { [Op.lte]: today } }, // Events that started today or earlier
-                            { endDate: { [Op.gte]: today } },   // Events that end today or later
-                            {
-                                [Op.or]: [
-                                    { endDate: { [Op.gt]: today } }, // Events ending tomorrow or later
-                                    {
-                                        [Op.and]: [
-                                            { endDate: today },      // Events ending today
-                                            { endTime: { [Op.gt]: currentTime } }, // Events that haven't ended yet
-                                        ],
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        // Future Events
-                        [Op.or]: [
-                            { startDate: { [Op.gt]: today } }, // Events starting after today
-                            {
-                                [Op.and]: [
-                                    { startDate: today },      // Events starting today
-                                    { startTime: { [Op.gt]: currentTime } }, // Events starting after current time
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            
-            },
-            order: [['startDate', 'ASC'], ['startTime', 'ASC']], // Order by date and time
-            limit,
-            offset,
-        });
-        // Add the event link to each event
-         const s = await Promise.all (publicEvents.map( async(event) => {
-            const host = await Host.findByPk(event.hostId, {
-                attributes: ["fullName"], // Only fetch the "fullName" field
-            });
-    
-            if (!host) {
-                throw new Error("Host not found");
-            }
-    
-            const {status} = isEventOngoing(event.startDate, event.startTime,event.endDate, event.endTime);
-            return {
-                status: status,
-                hostName: host.fullName,
-            ...event.toJSON(),}
-            }));
+    // Validate event duration against subscription plan limits
+    const maxDuration = await getMaxDurationBySubscriptionId(subscriptionId)
 
-            return s;
-    } catch (error) {
-        throw new Error((error as Error).message || 'Failed to fetch public events.');
+    // Calculate actual event duration in minutes
+    const [startHours, startMinutes] = startTime.split(":").map(Number)
+    const [endHours, endMinutes] = endTime.split(":").map(Number)
+
+    const startDateTime = new Date(startDateObj)
+    const endDateTime = new Date(endDateObj)
+
+    startDateTime.setHours(startHours, startMinutes, 0, 0)
+    endDateTime.setHours(endHours, endMinutes, 0, 0)
+
+    const durationInMinutes = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60))
+
+    console.log("Duration in minutes:", durationInMinutes)
+    console.log("Max Duration in minutes:", maxDuration)
+
+    if (durationInMinutes > maxDuration) {
+      throw new Error(`The event duration exceeds the maximum allowed duration of ${maxDuration} minutes.`)
     }
-};
 
-
-
-// Fetch event details by ID and check if the event is ongoing
-const getEventDetails = async (eventId: string): Promise<any> => {
-    try {
-        // Fetch the event from the database
-        const event = await Event.findByPk(eventId);
-
-        if (!event) {
-            throw new Error("Event not found");
-        }
-        const host = await Host.findByPk(event.hostId, {
-            attributes: ["fullName"], // Only fetch the "fullName" field
-        });
-
-        if (!host) {
-            throw new Error("Host not found");
-        }
-
-        const isOngoing = isEventOngoing(event.startDate, event.startTime,event.endDate, event.endTime);
-    
-             
-        // Return the event details with the "isOngoing" flag
-        return {
-            ...event.toJSON(),
-            isOngoing,
-            hostName: host.fullName,
-        };
-    } catch (error) {
-        throw new Error((error as Error).message || 'Failed to fetch event details.');
+    // Validate subscription status and availability
+    const result = await isSubscriptionValid(subscriptionId, hostId)
+    if (!result.isValid) {
+      throw new Error(result.message)
     }
-};
-import BoothDetails from "../models/BoothDetails"; // Adjust the import path as needed
-import Partner from "../models/Partner"; // Adjust the import path as needed
-import User from '../models/User';
 
+    // Create the event record
+    const event = await Event.create({
+      eventName,
+      startDate,
+      startTime,
+      endTime,
+      endDate,
+      hostId,
+      subscriptionId,
+      mapTemplateId,
+      eventType,
+    })
 
- export const getEventDetailsForHost =async (eventId: string): Promise<any>=> {
-    try {
-        const boothDetails = await BoothDetails.findAll({
-            where: {
-              eventId: eventId, // Filter by the specific event ID
-              partnerId: {
-                [Op.ne]: "2", // Exclude partner ID equal to 2
-              },
-            },
-            attributes: {
-              exclude: ["createdAt", "updatedAt", "partnerId"], // Exclude createdAt, updatedAt, and partnerId
-            },
-            include: [
-              {
-                model: Partner, // Include the associated Partner model
-                attributes: {
-                  exclude: ["createdAt", "updatedAt"], // Exclude createdAt and updatedAt from Partner
-                },
-                  include: [
-                    {
-                      model: User, // Include the associated User model
-                      attributes: ["email"], // Only include the email field from the User model
-                    },
-                  ],
-               
-              },
-            ],
-          });
-    
-          return {Partners: boothDetails};
-        } catch (error) {
-          console.error("Error fetching booth details:", error);
-          throw new Error("Failed to fetch booth details");
+    // Create private event credentials if needed
+    let credential = null
+    if (eventType === "private") {
+      credential = await createPrivateEventCredential(event.id, passcode)
+    }
+
+    // Mark subscription as used
+    if (subscriptionId) {
+      await markSubscriptionAsUsed(subscriptionId)
+    }
+
+    console.log("New event created:", event.toJSON())
+    return {
+      event: event.toJSON(),
+      ...(credential ? { credential } : {}),
+    }
+  } catch (err) {
+    throw new Error((err as Error).message || "An error occurred while creating the event.")
+  }
+}
+
+/**
+ * Updates an existing event with validation and authorization checks
+ * Handles event type changes (public/private) and validates new timing constraints
+ *
+ * @param eventId - The unique identifier of the event to update
+ * @param updateData - Object containing fields to update
+ * @param userId - The ID of the user attempting the update (must be the host)
+ * @param passcode - New passcode for private events (if applicable)
+ * @returns Object containing the updated event and credentials
+ */
+const updateEvent = async (eventId: string, updateData: any, userId: string, passcode: string): Promise<any> => {
+  try {
+    // Find and validate event existence
+    const event = await Event.findByPk(eventId)
+    if (!event) {
+      throw new Error(`Event with ID ${eventId} not found.`)
+    }
+
+    // Verify user authorization (only host can update)
+    if (event.hostId !== userId) {
+      throw new Error("You are not authorized to update this event")
+    }
+
+    // Handle event type changes and credential management
+    let credential = null
+    if (updateData.eventType && updateData.eventType !== event.eventType) {
+      if (updateData.eventType === "private") {
+        credential = await createPrivateEventCredential(event.id, passcode)
+      } else if (updateData.eventType === "public") {
+        await deletePrivateEventCredential(event.id)
+      }
+    }
+
+    // Validate timing changes if any date/time fields are updated
+    if (updateData.startDate || updateData.endDate || updateData.startTime || updateData.endTime) {
+      // Merge existing and updated data for validation
+      const newStartDate = updateData.startDate || event.startDate
+      const newStartTime = updateData.startTime || event.startTime
+      const newEndDate = updateData.endDate || event.endDate
+      const newEndTime = updateData.endTime || event.endTime
+
+      // Validate date formats
+      const startDateObj = new Date(newStartDate)
+      const endDateObj = new Date(newEndDate)
+
+      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+        throw new Error("Invalid date format.")
+      }
+
+      // Validate date sequence
+      if (startDateObj > endDateObj) {
+        throw new Error("End date must be on or after the start date.")
+      }
+
+      // Validate time sequence for same-day events
+      const normalizedStartDate = startDateObj.toISOString().split("T")[0]
+      const normalizedEndDate = endDateObj.toISOString().split("T")[0]
+
+      if (normalizedStartDate === normalizedEndDate) {
+        const [startHours, startMinutes] = newStartTime.split(":").map(Number)
+        const [endHours, endMinutes] = newEndTime.split(":").map(Number)
+
+        const startTimeInMinutes = startHours * 60 + startMinutes
+        const endTimeInMinutes = endHours * 60 + endMinutes
+
+        if (endTimeInMinutes <= startTimeInMinutes) {
+          throw new Error("End time must be later than start time.")
         }
       }
 
-// Helper function to check if an event is ongoing
-export const isEventOngoing = (
-    startDate: Date,
-    startTime: string,
-    endDate: Date,
-    endTime: string
-): { isOngoing: boolean; status: string } => {
-    console.log("hi",startDate, startTime, endDate, endTime)
-    const now = new Date();
+      // Validate duration against subscription limits
+      const maxDuration = await getMaxDurationBySubscriptionId(event.subscriptionId)
 
-    // Parse the start and end times
-    const [startHours, startMinutes] = startTime.split(":").map(Number);
-    const [endHours, endMinutes] = endTime.split(":").map(Number);
+      const startDateTime = new Date(newStartDate)
+      const endDateTime = new Date(newEndDate)
 
-    // Combine date and time into full start and end timestamps
-    const startDateTime = new Date(startDate);
-    startDateTime.setHours(startHours, startMinutes, 0, 0);
+      const [startH, startM] = newStartTime.split(":").map(Number)
+      const [endH, endM] = newEndTime.split(":").map(Number)
 
-    const endDateTime = new Date(endDate);
-    endDateTime.setHours(endHours, endMinutes, 0, 0);
+      startDateTime.setHours(startH, startM, 0, 0)
+      endDateTime.setHours(endH, endM, 0, 0)
 
-    // Determine the event status
-    if (now < startDateTime) {
-        // Event is in the future
-        return { isOngoing: false, status: "future" };
-    } else if (now > endDateTime) {
-        // Event has ended
-        return { isOngoing: false, status: "past" };
-    } else {
-        // Event is ongoing
-        return { isOngoing: true, status: "ongoing" };
+      const durationInMinutes = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60))
+
+      if (durationInMinutes > maxDuration) {
+        throw new Error(`The event duration exceeds the maximum allowed duration of ${maxDuration} minutes.`)
+      }
     }
-};
 
-// Join an event
-const joinEvent = async (eventId: string, passcode?: string): Promise<any> => {
-    try {
-        // Fetch the event along with its private credentials (if any)
-        const event = await Event.findByPk(eventId);
+    // Apply the updates
+    await event.update(updateData)
 
-        if (!event) {
-            throw new Error("Event not found");
-        }
-
-        // Check if the event is ongoing
-        const isOngoing = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime);
-        if (!isOngoing) {
-            throw new Error("Event is not currently ongoing");
-        }
-
-        // Handle public and private events
-        if (event.eventType === 'public') {
-            // Public events can be joined directly
-            return {
-                message: "You have successfully joined the event",
-            };
-        } else if (event.eventType === 'private') {
-            // Private events require a valid passcode
-            let credential = await getPrivateEventCredential(event.id);
-
-            if (!credential) {
-                throw new Error("Private event credentials not found");
-            }
-
-            // Validate the passcode
-            if (!passcode || passcode !== credential) {
-                throw new Error("Invalid passcode");
-            }
-
-            return {
-                message: "You have successfully joined the event",
-            };
-        }
-
-        throw new Error("Invalid event type");
-    } catch (error) {
-        throw new Error((error as Error).message || 'Failed to join event.');
+    console.log("Event updated successfully:", event.toJSON())
+    return {
+      event: event.toJSON(),
+      ...(credential ? { credential } : {}),
     }
-};
+  } catch (err) {
+    throw new Error((err as Error).message || "Failed to update event.")
+  }
+}
 
-// Get all events for a specific host
-const getEventsForHost = async (hostId: string): Promise<any> => {
-    try {
-        // Fetch events for the specified host
-        const events = await Event.findAll({
-            where: { hostId },
-        });
-        console.log(events)
-        return events.map((event) => {
-            const status = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime);
-                     return {
-                         status: status.status,
-                     ...event.toJSON(),}
-                     });
-    } catch (error) {
-        console.error("Error in getEventsForHost:", error);
-        throw new Error((error as Error).message || "Failed to retrieve events.");
-    }
-};
+/**
+ * Retrieves all public events that are currently ongoing or scheduled for the future
+ * Includes pagination support and host information
+ *
+ * @param limit - Maximum number of events to return (default: 15)
+ * @param page - Page number for pagination (1-based)
+ * @returns Array of public events with status and host information
+ */
+const getPublicEvents = async (limit: number, page: number): Promise<any[]> => {
+  try {
+    const today = getTodayDate()
+    const currentTime = getTimeNow()
+    limit = limit || 15
+    const offset = (page - 1) * limit
+    console.log("Current Time:", currentTime)
 
+    // Query for public events that are ongoing or future
+    const publicEvents = await Event.findAll({
+      where: {
+        eventType: "public",
+        [Op.or]: [
+          {
+            // Ongoing Events: started but not yet ended
+            [Op.and]: [
+              { startDate: { [Op.lte]: today } },
+              { endDate: { [Op.gte]: today } },
+              {
+                [Op.or]: [
+                  { endDate: { [Op.gt]: today } },
+                  {
+                    [Op.and]: [{ endDate: today }, { endTime: { [Op.gt]: currentTime } }],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            // Future Events: haven't started yet
+            [Op.or]: [
+              { startDate: { [Op.gt]: today } },
+              {
+                [Op.and]: [{ startDate: today }, { startTime: { [Op.gt]: currentTime } }],
+              },
+            ],
+          },
+        ],
+      },
+      order: [
+        ["startDate", "ASC"],
+        ["startTime", "ASC"],
+      ],
+      limit,
+      offset,
+    })
 
+    // Enhance events with host information and status
+    const eventsWithDetails = await Promise.all(
+      publicEvents.map(async (event) => {
+        const host = await Host.findByPk(event.hostId, {
+          attributes: ["fullName"],
+        })
 
-const filterEventsByStatus = async (
-    hostId: string,
-    status: string,
-): Promise<any> => {
-    try {
-        const today = getTodayDate();
-        const currentTime = getTimeNow();
-console.log("Current Time:", currentTime);
-console.log("Today:", today);
-        let whereCondition = {};
-
-        switch (status) {
-            case "past":
-                whereCondition = {
-                    [Op.or]: [
-                        { endDate: { [Op.lt]: today } }, // Events that ended before today
-                        {
-                            [Op.and]: [
-                                { endDate: today }, // Events ending today
-                                { endTime: { [Op.lt]: currentTime } }, // Events ending before current time
-                            ],
-                        },
-                    ],
-                };
-                break;
-
-                case "ongoing":
-                    whereCondition = {
-                        [Op.and]: [
-                            { startDate: { [Op.lte]: today } }, // Event started today or earlier
-                            { endDate: { [Op.gte]: today } }, // Event ends today or later
-                            {
-                                [Op.or]: [
-                                    // Case 1: Event started today and is ongoing
-                                    {
-                                        [Op.and]: [
-                                            { startDate: today },
-                                            { startTime: { [Op.lte]: currentTime } }, // Event started before or at the current time
-                                        ],
-                                    },
-                                    // Case 2: Event started before today and ends today or later
-                                    {
-                                        [Op.and]: [
-                                            { startDate: { [Op.lt]: today } },
-                                            { endDate: { [Op.gte]: today } },
-                                        ],
-                                    },
-                                ],
-                            },
-                            {
-                                [Op.or]: [
-                                    // If the event ends today, ensure the current time is before endTime
-                                    {
-                                        [Op.and]: [
-                                            { endDate: today },
-                                            { endTime: { [Op.gt]: currentTime } }, // Event ends after the current time
-                                        ],
-                                    },
-                                    // If the event ends after today, it's still ongoing
-                                    { endDate: { [Op.gt]: today } },
-                                ],
-                            },
-                        ],
-                    };
-                    break;
-
-            case "future":
-                whereCondition = {
-                    [Op.or]: [
-                        { startDate: { [Op.gt]: today } }, // Events starting after today
-                        {
-                            [Op.and]: [
-                                { startDate: today }, // Events starting today
-                                { startTime: { [Op.gt]: currentTime } }, // Events starting after current time
-                            ],
-                        },
-                    ],
-                };
-                break;
-
-            default:
-                throw new Error("Invalid status. Use 'past', 'ongoing', or 'future'.");
+        if (!host) {
+          throw new Error("Host not found")
         }
 
-        console.log("Where Condition:", whereCondition);
-        console.log("Host ID:", hostId);
+        const { status } = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime)
+        return {
+          status: status,
+          hostName: host.fullName,
+          ...event.toJSON(),
+        }
+      }),
+    )
 
-        // Fetch events based on the status filter
-        const events = await Event.findAll({
-            where: {
-                hostId,
-                ...whereCondition,
+    return eventsWithDetails
+  } catch (error) {
+    throw new Error((error as Error).message || "Failed to fetch public events.")
+  }
+}
+
+/**
+ * Retrieves detailed information about a specific event
+ * Includes host information and current event status
+ *
+ * @param eventId - The unique identifier of the event
+ * @returns Event details with host information and status
+ */
+const getEventDetails = async (eventId: string): Promise<any> => {
+  try {
+    // Fetch the event
+    const event = await Event.findByPk(eventId)
+
+    if (!event) {
+      throw new Error("Event not found")
+    }
+
+    // Fetch host information
+    const host = await Host.findByPk(event.hostId, {
+      attributes: ["fullName"],
+    })
+
+    if (!host) {
+      throw new Error("Host not found")
+    }
+
+    // Determine current event status
+    const isOngoing = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime)
+
+    return {
+      ...event.toJSON(),
+      isOngoing,
+      hostName: host.fullName,
+    }
+  } catch (error) {
+    throw new Error((error as Error).message || "Failed to fetch event details.")
+  }
+}
+
+/**
+ * Retrieves detailed event information for hosts, including partner assignments
+ * Shows all partners assigned to booths in the event with their contact information
+ *
+ * @param eventId - The unique identifier of the event
+ * @returns Object containing partners assigned to the event
+ */
+export const getEventDetailsForHost = async (eventId: string): Promise<any> => {
+  try {
+    // Fetch booth details with partner information, excluding unassigned booths
+    const boothDetails = await BoothDetails.findAll({
+      where: {
+        eventId: eventId,
+        partnerId: {
+          [Op.ne]: "2", // Exclude default "no partner" ID
+        },
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "partnerId"],
+      },
+      include: [
+        {
+          model: Partner,
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: User,
+              attributes: ["email"],
             },
-        });
+          ],
+        },
+      ],
+    })
 
-        return {
-            events: events.map((event) => event.toJSON()),
-        };
-    } catch (error) {
-        console.error("Error in filterEventsByStatus:", error);
-        throw new Error((error as Error).message || "Failed to filter events.");
+    return { Partners: boothDetails }
+  } catch (error) {
+    console.error("Error fetching booth details:", error)
+    throw new Error("Failed to fetch booth details")
+  }
+}
+
+/**
+ * Utility function to determine if an event is currently ongoing
+ * Compares current date/time with event start and end times
+ *
+ * @param startDate - Event start date
+ * @param startTime - Event start time (HH:mm format)
+ * @param endDate - Event end date
+ * @param endTime - Event end time (HH:mm format)
+ * @returns Object with boolean isOngoing flag and status string
+ */
+export const isEventOngoing = (
+  startDate: Date,
+  startTime: string,
+  endDate: Date,
+  endTime: string,
+): { isOngoing: boolean; status: string } => {
+  console.log("Checking event status:", startDate, startTime, endDate, endTime)
+  const now = new Date()
+
+  // Parse time components
+  const [startHours, startMinutes] = startTime.split(":").map(Number)
+  const [endHours, endMinutes] = endTime.split(":").map(Number)
+
+  // Create full datetime objects
+  const startDateTime = new Date(startDate)
+  startDateTime.setHours(startHours, startMinutes, 0, 0)
+
+  const endDateTime = new Date(endDate)
+  endDateTime.setHours(endHours, endMinutes, 0, 0)
+
+  // Determine status based on current time
+  if (now < startDateTime) {
+    return { isOngoing: false, status: "future" }
+  } else if (now > endDateTime) {
+    return { isOngoing: false, status: "past" }
+  } else {
+    return { isOngoing: true, status: "ongoing" }
+  }
+}
+
+/**
+ * Handles user joining an event with access control
+ * Validates event status and passcode for private events
+ *
+ * @param eventId - The unique identifier of the event to join
+ * @param passcode - Optional passcode for private events
+ * @returns Success message upon successful join
+ */
+const joinEvent = async (eventId: string, passcode?: string): Promise<any> => {
+  try {
+    // Fetch the event
+    const event = await Event.findByPk(eventId)
+
+    if (!event) {
+      throw new Error("Event not found")
     }
-};
 
+    // Verify event is currently ongoing
+    const isOngoing = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime)
+    if (!isOngoing) {
+      throw new Error("Event is not currently ongoing")
+    }
 
-export const filterPublicEventsByStatus = async (status: string,page:number,limit:number): Promise<any> => {
-    try {
-        const today = getTodayDate();
-        const currentTime = getTimeNow();
-        limit = limit ||15;
-        const offset = (page - 1) * limit;
-        let whereCondition = {};
+    // Handle access control based on event type
+    if (event.eventType === "public") {
+      // Public events allow direct access
+      return {
+        message: "You have successfully joined the event",
+      }
+    } else if (event.eventType === "private") {
+      // Private events require passcode validation
+      const credential = await getPrivateEventCredential(event.id)
 
-        switch (status) {
-            case "ongoing":
-                whereCondition = {
-                    eventType: 'public', // Only public events
-                    [Op.and]: [
-                        { startDate: { [Op.lte]: today } }, // Events starting today or earlier
-                        { endDate: { [Op.gte]: today } }, // Events ending today or later
-                        {
-                            [Op.or]: [
-                                // If the event ends today, ensure the current time is before endTime
-                                {
-                                    [Op.and]: [
-                                        { endDate: today },
-                                        { endTime: { [Op.gt]: currentTime } }, // Event ends after the current time
-                                    ],
-                                },
-                                // If the event ends after today, it's still ongoing
-                                { endDate: { [Op.gt]: today } },
-                            ],
-                        },
-                    ],
-                };
-                break;
+      if (!credential) {
+        throw new Error("Private event credentials not found")
+      }
 
-            case "future":
-                whereCondition = {
-                    eventType: 'public', // Only public events
-                    [Op.or]: [
-                        { startDate: { [Op.gt]: today } }, // Events starting after today
-                        {
-                            [Op.and]: [
-                                { startDate: today }, // Events starting today
-                                { startTime: { [Op.gt]: currentTime } }, // Events starting after current time
-                            ],
-                        },
-                    ],
-                };
-                break;
+      if (!passcode || passcode !== credential) {
+        throw new Error("Invalid passcode")
+      }
 
-            default:
-                throw new Error("Invalid status. Use 'ongoing' or 'future'.");
+      return {
+        message: "You have successfully joined the event",
+      }
+    }
+
+    throw new Error("Invalid event type")
+  } catch (error) {
+    throw new Error((error as Error).message || "Failed to join event.")
+  }
+}
+
+/**
+ * Retrieves all events created by a specific host
+ * Includes event status determination for each event
+ *
+ * @param hostId - The unique identifier of the host
+ * @returns Array of events with status information
+ */
+const getEventsForHost = async (hostId: string): Promise<any> => {
+  try {
+    // Fetch all events for the host
+    const events = await Event.findAll({
+      where: { hostId },
+    })
+    console.log(events)
+
+    // Add status information to each event
+    return events.map((event) => {
+      const status = isEventOngoing(event.startDate, event.startTime, event.endDate, event.endTime)
+      return {
+        status: status.status,
+        ...event.toJSON(),
+      }
+    })
+  } catch (error) {
+    console.error("Error in getEventsForHost:", error)
+    throw new Error((error as Error).message || "Failed to retrieve events.")
+  }
+}
+
+/**
+ * Filters events by their current status (past, ongoing, future)
+ * Uses complex date/time logic to accurately categorize events
+ *
+ * @param hostId - The unique identifier of the host
+ * @param status - The status to filter by ('past', 'ongoing', 'future')
+ * @returns Object containing filtered events array
+ */
+const filterEventsByStatus = async (hostId: string, status: string): Promise<any> => {
+  try {
+    const today = getTodayDate()
+    const currentTime = getTimeNow()
+    console.log("Current Time:", currentTime)
+    console.log("Today:", today)
+
+    let whereCondition = {}
+
+    switch (status) {
+      case "past":
+        // Events that have completely ended
+        whereCondition = {
+          [Op.or]: [
+            { endDate: { [Op.lt]: today } },
+            {
+              [Op.and]: [{ endDate: today }, { endTime: { [Op.lt]: currentTime } }],
+            },
+          ],
+        }
+        break
+
+      case "ongoing":
+        // Events currently in progress
+        whereCondition = {
+          [Op.and]: [
+            { startDate: { [Op.lte]: today } },
+            { endDate: { [Op.gte]: today } },
+            {
+              [Op.or]: [
+                // Started today and ongoing
+                {
+                  [Op.and]: [{ startDate: today }, { startTime: { [Op.lte]: currentTime } }],
+                },
+                // Started before today and ends today or later
+                {
+                  [Op.and]: [{ startDate: { [Op.lt]: today } }, { endDate: { [Op.gte]: today } }],
+                },
+              ],
+            },
+            {
+              [Op.or]: [
+                // Ends today but after current time
+                {
+                  [Op.and]: [{ endDate: today }, { endTime: { [Op.gt]: currentTime } }],
+                },
+                // Ends after today
+                { endDate: { [Op.gt]: today } },
+              ],
+            },
+          ],
+        }
+        break
+
+      case "future":
+        // Events that haven't started yet
+        whereCondition = {
+          [Op.or]: [
+            { startDate: { [Op.gt]: today } },
+            {
+              [Op.and]: [{ startDate: today }, { startTime: { [Op.gt]: currentTime } }],
+            },
+          ],
+        }
+        break
+
+      default:
+        throw new Error("Invalid status. Use 'past', 'ongoing', or 'future'.")
+    }
+
+    console.log("Where Condition:", whereCondition)
+    console.log("Host ID:", hostId)
+
+    // Execute the filtered query
+    const events = await Event.findAll({
+      where: {
+        hostId,
+        ...whereCondition,
+      },
+    })
+
+    return {
+      events: events.map((event) => event.toJSON()),
+    }
+  } catch (error) {
+    console.error("Error in filterEventsByStatus:", error)
+    throw new Error((error as Error).message || "Failed to filter events.")
+  }
+}
+
+/**
+ * Filters public events by status with pagination support
+ * Similar to filterEventsByStatus but specifically for public events
+ *
+ * @param status - The status to filter by ('ongoing', 'future')
+ * @param page - Page number for pagination
+ * @param limit - Maximum number of events per page
+ * @returns Array of filtered public events with host information
+ */
+export const filterPublicEventsByStatus = async (status: string, page: number, limit: number): Promise<any> => {
+  try {
+    const today = getTodayDate()
+    const currentTime = getTimeNow()
+    limit = limit || 15
+    const offset = (page - 1) * limit
+    let whereCondition = {}
+
+    switch (status) {
+      case "ongoing":
+        whereCondition = {
+          eventType: "public",
+          [Op.and]: [
+            { startDate: { [Op.lte]: today } },
+            { endDate: { [Op.gte]: today } },
+            {
+              [Op.or]: [
+                {
+                  [Op.and]: [{ endDate: today }, { endTime: { [Op.gt]: currentTime } }],
+                },
+                { endDate: { [Op.gt]: today } },
+              ],
+            },
+          ],
+        }
+        break
+
+      case "future":
+        whereCondition = {
+          eventType: "public",
+          [Op.or]: [
+            { startDate: { [Op.gt]: today } },
+            {
+              [Op.and]: [{ startDate: today }, { startTime: { [Op.gt]: currentTime } }],
+            },
+          ],
+        }
+        break
+
+      default:
+        throw new Error("Invalid status. Use 'ongoing' or 'future'.")
+    }
+
+    console.log("Where Condition:", whereCondition)
+
+    // Fetch filtered events with pagination
+    const events = await Event.findAll({
+      where: whereCondition,
+      order: [
+        ["startDate", "ASC"],
+        ["startTime", "ASC"],
+      ],
+      limit,
+      offset,
+    })
+
+    // Add host information to each event
+    const eventsWithHostInfo = await Promise.all(
+      events.map(async (event) => {
+        const host = await Host.findByPk(event.hostId, {
+          attributes: ["fullName"],
+        })
+
+        if (!host) {
+          throw new Error("Host not found")
         }
 
-        console.log("Where Condition:", whereCondition);
-
-        // Fetch events based on the status filter
-        const events = await Event.findAll({
-            where: whereCondition,
-            order: [['startDate', 'ASC'], ['startTime', 'ASC']], // Order by date and time
-            limit,
-            offset,});
-            const s = await Promise.all (events.map( async(event) => {
-                const host = await Host.findByPk(event.hostId, {
-                    attributes: ["fullName"], // Only fetch the "fullName" field
-                });
-        
-                if (!host) {
-                    throw new Error("Host not found");
-                }
-        
-                 return {
-                    hostName: host.fullName,
-                ...event.toJSON(),}
-                }));
-    
-                return s;
         return {
-            events: events.map((event) => event.toJSON()),
-        };
-    } catch (error) {
-        console.error("Error in getPublicEventsByStatus:", error);
-        throw new Error((error as Error).message || "Failed to fetch public events.");
-    }
-};
+          hostName: host.fullName,
+          ...event.toJSON(),
+        }
+      }),
+    )
+
+    return eventsWithHostInfo
+  } catch (error) {
+    console.error("Error in getPublicEventsByStatus:", error)
+    throw new Error((error as Error).message || "Failed to fetch public events.")
+  }
+}
+
+/**
+ * Retrieves a single event by its ID
+ * Simple utility function for basic event lookup
+ *
+ * @param eventID - The unique identifier of the event
+ * @returns The event object
+ */
 const getEvent = async (eventID: string): Promise<any> => {
-    try {
-        const event = await Event.findByPk(eventID);
-        console.log(eventID)
-        if (!event) {
-            throw new Error("Event not found");
-        }
-        return event;
-    } catch (err) {
-        throw new Error((err as Error).message || '');
+  try {
+    const event = await Event.findByPk(eventID)
+    console.log(eventID)
+    if (!event) {
+      throw new Error("Event not found")
     }
-};
-
+    return event
+  } catch (err) {
+    throw new Error((err as Error).message || "")
+  }
+}
 
 export {
-    createEvent, updateEvent ,getPublicEvents, getEventDetails, joinEvent, getEventsForHost,filterEventsByStatus, getEvent
-};
+  createEvent,
+  updateEvent,
+  getPublicEvents,
+  getEventDetails,
+  joinEvent,
+  getEventsForHost,
+  filterEventsByStatus,
+  getEvent,
+}

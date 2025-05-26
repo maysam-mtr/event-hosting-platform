@@ -1,3 +1,10 @@
+"use client"
+
+/**
+ * Logout Button Component
+ * Handles user logout with proper error handling and navigation
+ */
+
 import { Button } from "./ui/button"
 import { LogOut } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -34,4 +41,3 @@ export default function LogoutButton() {
     </Button>
   )
 }
-

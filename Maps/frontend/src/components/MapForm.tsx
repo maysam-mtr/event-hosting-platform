@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Map Form Component
+ * Reusable form for creating and updating maps with file upload support
+ * Handles both new map creation and existing map updates
+ */
+
 import type React from "react"
 
 import { useState, useRef } from "react"
@@ -13,7 +21,7 @@ interface MapFormProps {
   onSubmit: (formData: FormData) => Promise<void>
   isSubmitting: boolean
   submitButtonText: string
-  initialData?: Map
+  initialData?: Map // For update forms
 }
 
 export default function MapForm({ onSubmit, isSubmitting, submitButtonText, initialData }: MapFormProps) {
@@ -30,6 +38,7 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-8 mx-auto">
+      {/* Display existing map information for updates */}
       {initialData && (
         <Card>
           <CardContent className="pt-6">
@@ -57,7 +66,9 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
         </Card>
       )}
 
+      {/* Form fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Map name input */}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-base">
             Map Name
@@ -73,6 +84,7 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
           />
         </div>
 
+        {/* File upload fields */}
         <FileUploadField
           id="thumbnailFile"
           name="thumbnailFile"
@@ -130,6 +142,7 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
         </div>
       </div>
 
+      {/* Submit button */}
       <div className="flex justify-end max-w-2xl">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Processing..." : submitButtonText}
@@ -138,4 +151,3 @@ export default function MapForm({ onSubmit, isSubmitting, submitButtonText, init
     </form>
   )
 }
-

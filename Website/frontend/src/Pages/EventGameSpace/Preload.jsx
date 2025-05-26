@@ -1,3 +1,17 @@
+/**
+ * Preload Component
+ *
+ * Handles loading and initialization of game assets:
+ * - Fetches map information and game engine configuration
+ * - Loads character sprites and animation data
+ * - Retrieves partner booth information and logos
+ * - Manages game engine port communication
+ * - Provides loading states during asset preparation
+ *
+ * Ensures all necessary resources are loaded before
+ * initializing the virtual event environment.
+ */
+
 import { useEffect, useRef, useState } from "react"
 import Game from "./Game"
 import useSendRequest from '../../hooks/use-send-request';

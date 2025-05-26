@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * File Upload Field Component
+ * Reusable component for handling file uploads with validation and preview
+ * Supports both single and multiple file uploads
+ */
+
 import type React from "react"
 
 import { useState, useRef } from "react"
@@ -28,6 +36,7 @@ export default function FileUploadField({
   const [files, setFiles] = useState<File[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Handle file selection and update state
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files)
@@ -35,6 +44,7 @@ export default function FileUploadField({
     }
   }
 
+  // Remove selected file from list
   const handleRemoveFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
 
@@ -44,6 +54,7 @@ export default function FileUploadField({
     }
   }
 
+  // Trigger file input click
   const handleButtonClick = () => {
     if (inputRef.current) {
       inputRef.current.click()
@@ -57,6 +68,7 @@ export default function FileUploadField({
       </Label>
 
       <div className="flex items-center">
+        {/* Hidden file input */}
         <Input
           ref={inputRef}
           id={id}
@@ -68,6 +80,7 @@ export default function FileUploadField({
           onChange={handleFileChange}
           className="hidden"
         />
+        {/* Custom upload button */}
         <Button type="button" variant="outline" onClick={handleButtonClick} className="w-full">
           <Upload className="mr-2 h-4 w-4" />
           {multiple ? "Upload Files" : "Upload File"}
@@ -76,6 +89,7 @@ export default function FileUploadField({
 
       {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
 
+      {/* Display selected files */}
       {files.length > 0 && (
         <div className="mt-2 space-y-2">
           {files.map((file, index) => (
@@ -102,4 +116,3 @@ export default function FileUploadField({
     </div>
   )
 }
-

@@ -1,3 +1,17 @@
+/**
+ * Footer Component
+ *
+ * Application footer with navigation and information links:
+ * - Company information and branding
+ * - Navigation links to important pages
+ * - Contact information and support links
+ * - Social media links and external resources
+ * - Copyright and legal information
+ *
+ * Provides consistent footer across all public pages
+ * and maintains brand presence throughout the application.
+ */
+
 import styled from "styled-components";
 
 const FooterContainer = styled.div`

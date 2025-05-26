@@ -1,69 +1,106 @@
-import { Sequelize } from "sequelize-typescript";
-import dotenv from "dotenv";
-import User from "../models/User";
-import Host from "../models/Host";
-import Partner from "../models/Partner";
-import Subscription from "../models/Subscription";
-import Subscriptionplan from "../models/Subscriptionplan";
-import Event from "../models/Event";
-import BoothDetails from "../models/BoothDetails";
-import Invitation from "../models/Invitation";
-import PrivateEventCredential from "../models/PrivateEventCredential";
-dotenv.config();
+/**
+ * Database Configuration and Connection Setup
+ *
+ * This file configures the Sequelize ORM connection to MySQL database and defines
+ * all model associations for the virtual event platform. It handles:
+ * - Database connection establishment
+ * - Model registration and synchronization
+ * - Relationship definitions between entities
+ */
 
+import { Sequelize } from "sequelize-typescript"
+import dotenv from "dotenv"
+// Import all database models
+import User from "../models/User"
+import Host from "../models/Host"
+import Partner from "../models/Partner"
+import Subscription from "../models/Subscription"
+import Subscriptionplan from "../models/Subscriptionplan"
+import Event from "../models/Event"
+import BoothDetails from "../models/BoothDetails"
+import Invitation from "../models/Invitation"
+import PrivateEventCredential from "../models/PrivateEventCredential"
+
+dotenv.config()
+
+// Initialize Sequelize with MySQL connection parameters
 const sequelize = new Sequelize({
-  dialect: 'mysql',
-  host: process.env.DB_HOST, 
+  dialect: "mysql",
+  host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME, 
-  password: process.env.DB_PASSWORD, 
-  database: process.env.DB_NAME, 
-  models: [User, Host, Partner, Subscription, Subscriptionplan, Event, BoothDetails, Invitation,PrivateEventCredential],  // Register models here
-  logging: false, // Set to true if you want to see SQL queries
-});
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  models: [
+    User,
+    Host,
+    Partner,
+    Subscription,
+    Subscriptionplan,
+    Event,
+    BoothDetails,
+    Invitation,
+    PrivateEventCredential,
+  ],
+  logging: false, // Disable SQL query logging in console
+})
 
+/**
+ * Establishes database connection and defines all model relationships
+ * Sets up the complete data model for the virtual event platform
+ */
 export const connectDB = async () => {
   try {
-    await sequelize.authenticate();
-    console.log("Database connected successfully!");
-    // Define associations after initializing Sequelize
-    User.hasOne(Partner, { foreignKey: 'userId' });
-    Partner.belongsTo(User, { foreignKey: 'userId' });
+    // Test database connection
+    await sequelize.authenticate()
+    console.log("Database connected successfully!")
 
-    Host.hasMany(Subscription, { foreignKey: 'hostId' });
-    Subscription.belongsTo(Host, { foreignKey: 'hostId' });
+    // Define all model associations after Sequelize initialization
 
-    Host.hasMany(Event, { foreignKey: 'hostId' });
-    Event.belongsTo(Host, { foreignKey: 'hostId' });
+    // User-Partner relationship (One-to-One)
+    User.hasOne(Partner, { foreignKey: "userId" })
+    Partner.belongsTo(User, { foreignKey: "userId" })
 
-    Subscription.hasOne(Event, { foreignKey: 'subscriptionId' });
-    Event.belongsTo(Subscription, { foreignKey: 'subscriptionId' });
+    // Host-Subscription relationship (One-to-Many)
+    Host.hasMany(Subscription, { foreignKey: "hostId" })
+    Subscription.belongsTo(Host, { foreignKey: "hostId" })
 
-    Subscriptionplan.hasMany(Subscription, { foreignKey: 'planId' });
-    Subscription.belongsTo(Subscriptionplan, { foreignKey: 'planId' });
+    // Host-Event relationship (One-to-Many)
+    Host.hasMany(Event, { foreignKey: "hostId" })
+    Event.belongsTo(Host, { foreignKey: "hostId" })
 
-    Event.hasMany(BoothDetails, { foreignKey: 'eventId' });
-    BoothDetails.belongsTo(Event, { foreignKey: 'eventId' });
+    // Subscription-Event relationship (One-to-One)
+    Subscription.hasOne(Event, { foreignKey: "subscriptionId" })
+    Event.belongsTo(Subscription, { foreignKey: "subscriptionId" })
 
-    Event.hasOne(PrivateEventCredential, { foreignKey: 'eventId' });
-    PrivateEventCredential.belongsTo(Event, { foreignKey: 'eventId' });
+    // SubscriptionPlan-Subscription relationship (One-to-Many)
+    Subscriptionplan.hasMany(Subscription, { foreignKey: "planId" })
+    Subscription.belongsTo(Subscriptionplan, { foreignKey: "planId" })
 
-    Partner.hasMany(BoothDetails, { foreignKey: 'partnerId' });
-    BoothDetails.belongsTo(Partner, { foreignKey: 'partnerId' });
+    // Event-BoothDetails relationship (One-to-Many)
+    Event.hasMany(BoothDetails, { foreignKey: "eventId" })
+    BoothDetails.belongsTo(Event, { foreignKey: "eventId" })
 
-    BoothDetails.hasMany(Invitation, { foreignKey: 'boothDetailsId' });
-    Invitation.belongsTo(BoothDetails, { foreignKey: 'boothDetailsId' });
-    
+    // Event-PrivateEventCredential relationship (One-to-One)
+    Event.hasOne(PrivateEventCredential, { foreignKey: "eventId" })
+    PrivateEventCredential.belongsTo(Event, { foreignKey: "eventId" })
 
-    //await sequelize.sync({alter: true});
-    await sequelize.sync();
-    // await sequelize.sync({ alter: true });
-   await Subscriptionplan.sync({ alter: true });
-    console.log("Database synchronized!");
+    // Partner-BoothDetails relationship (One-to-Many)
+    Partner.hasMany(BoothDetails, { foreignKey: "partnerId" })
+    BoothDetails.belongsTo(Partner, { foreignKey: "partnerId" })
+
+    // BoothDetails-Invitation relationship (One-to-Many)
+    BoothDetails.hasMany(Invitation, { foreignKey: "boothDetailsId" })
+    Invitation.belongsTo(BoothDetails, { foreignKey: "boothDetailsId" })
+
+    // Synchronize database schema with models
+    await sequelize.sync()
+    await Subscriptionplan.sync({ alter: true })
+    console.log("Database synchronized!")
   } catch (error) {
-    console.error("Database connection failed:", error);
-    process.exit(1);
+    console.error("Database connection failed:", error)
+    process.exit(1)
   }
-};
+}
 
-export default sequelize;
+export default sequelize

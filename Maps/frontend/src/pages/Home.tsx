@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Home Page Component
+ * Main dashboard showing all maps with search, filtering, and management capabilities
+ * Provides access to map operations like view, edit, delete, and download
+ */
+
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -21,6 +29,7 @@ export default function Home() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { toast } = useToast()
 
+  // Fetch all maps on component mount
   useEffect(() => {
     const fetchMaps = async () => {
       try {
@@ -42,6 +51,7 @@ export default function Home() {
     fetchMaps()
   }, [toast])
 
+  // Filter maps based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredMaps(maps)
@@ -95,6 +105,7 @@ export default function Home() {
           <LogoutButton />
         </div>
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Search input */}
           <div className="relative w-full md:w-1/2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <Input
@@ -104,6 +115,7 @@ export default function Home() {
               className="pl-10"
             />
           </div>
+          {/* Action buttons */}
           <div className="flex gap-2 w-full md:w-auto">
             <Link to="/latest" className="flex-1 md:flex-auto">
               <Button variant="outline" className="w-full">
@@ -119,6 +131,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Maps grid or loading/empty states */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, index) => (
@@ -159,4 +172,3 @@ export default function Home() {
     </main>
   )
 }
-

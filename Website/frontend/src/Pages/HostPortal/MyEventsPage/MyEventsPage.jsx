@@ -1,3 +1,17 @@
+/**
+ * My Events Page Component
+ *
+ * Comprehensive event management interface for hosts:
+ * - List of all created events with status indicators
+ * - Event creation, editing, and deletion capabilities
+ * - Event analytics and participant management
+ * - Bulk operations and event organization
+ * - Integration with event details and settings
+ *
+ * Primary interface for hosts to manage their entire
+ * portfolio of virtual events and track performance.
+ */
+
 import styled from "styled-components";
 import { PageTitle, Section } from "../../UserPortal/SettingsPage/SettingsPage";
 import previewImg from '../../../assets/landing2.png'

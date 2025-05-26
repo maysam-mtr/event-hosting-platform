@@ -1,3 +1,17 @@
+/**
+ * Input Component
+ *
+ * Reusable form input component with multiple input types:
+ * - Text, email, password, number inputs
+ * - Date and time pickers
+ * - Dropdown/select inputs
+ * - Textarea for longer text
+ * - Validation state display and error messages
+ *
+ * Provides consistent styling and behavior across all forms
+ * with role-based theming (host vs user) and accessibility support.
+ */
+
 import React from "react";
 import styled from "styled-components";
 

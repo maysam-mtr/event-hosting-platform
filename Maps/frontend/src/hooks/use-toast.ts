@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Toast Hook
+ * Custom hook for managing toast notifications throughout the application
+ * Provides functions to show, dismiss, and auto-dismiss toast messages
+ */
+
 import { useState, useCallback } from "react"
 
 type ToastVariant = "default" | "destructive"
@@ -18,6 +26,7 @@ interface ToastOptions {
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([])
 
+  // Show a new toast notification
   const toast = useCallback(({ title, description, variant = "default" }: ToastOptions) => {
     const id = Math.random().toString(36).substring(2, 9)
 
@@ -31,10 +40,10 @@ export function useToast() {
     return id
   }, [])
 
+  // Manually dismiss a toast
   const dismiss = useCallback((id: string) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id))
   }, [])
 
   return { toast, dismiss, toasts }
 }
-

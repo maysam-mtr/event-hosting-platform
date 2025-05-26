@@ -1,9 +1,17 @@
+/**
+ * Google Drive Integration Utilities
+ * Provides functions for file and folder operations using Google Drive API
+ */
+
 import drive from "@/config/google-drive.config"
 import type { drive_v3 } from "googleapis"
 import type { Readable } from "stream"
 import mime from "mime-types"
 import { CustomError } from "./Response & Error Handling/custom-error"
 
+/**
+ * Create a new folder in Google Drive
+ */
 const createFolder = async (folderName: string, parentId?: string): Promise<drive_v3.Schema$File> => {
   try {
     const fileMetaData: drive_v3.Schema$File = {
@@ -11,7 +19,7 @@ const createFolder = async (folderName: string, parentId?: string): Promise<driv
       mimeType: "application/vnd.google-apps.folder",
       ...(parentId && { parents: [parentId] }),
     }
-    
+
     const res = await drive.files.create({
       requestBody: fileMetaData,
       fields: "id,name,webViewLink",
@@ -23,6 +31,9 @@ const createFolder = async (folderName: string, parentId?: string): Promise<driv
   }
 }
 
+/**
+ * Upload file to Google Drive with public read permissions
+ */
 const uploadFile = async (fileName: string, fileStream: Readable, parentId?: string): Promise<drive_v3.Schema$File> => {
   try {
     const mimeType = mime.lookup(fileName) || "application/octet-stream"
@@ -51,6 +62,9 @@ const uploadFile = async (fileName: string, fileStream: Readable, parentId?: str
   }
 }
 
+/**
+ * Add public read permission to a file
+ */
 const addReadPermission = async (fileId: string): Promise<void> => {
   try {
     const res = await drive.permissions.create({
@@ -65,7 +79,10 @@ const addReadPermission = async (fileId: string): Promise<void> => {
   }
 }
 
-const generatePublicURL = async (fileId: string): Promise<{ webViewLink?: string, webContentLink?: string }> => {
+/**
+ * Generate public URLs for a file
+ */
+const generatePublicURL = async (fileId: string): Promise<{ webViewLink?: string; webContentLink?: string }> => {
   try {
     const res = await drive.files.get({
       fileId: fileId,
@@ -81,6 +98,9 @@ const generatePublicURL = async (fileId: string): Promise<{ webViewLink?: string
   }
 }
 
+/**
+ * Download file content as buffer
+ */
 const getFile = async (fileId: string): Promise<{ data: Buffer }> => {
   try {
     const res = await drive.files.get(
@@ -97,7 +117,10 @@ const getFile = async (fileId: string): Promise<{ data: Buffer }> => {
   }
 }
 
-const getFileByTypeFromFolder = async (folderId : string, type: string ) => {
+/**
+ * Get file by type from a specific folder
+ */
+const getFileByTypeFromFolder = async (folderId: string, type: string) => {
   try {
     const fileRes = await drive.files.list({
       q: `'${folderId}' in parents and name contains '.${type}'`,
@@ -105,7 +128,7 @@ const getFileByTypeFromFolder = async (folderId : string, type: string ) => {
     })
 
     const files = fileRes.data.files
-    
+
     if (!files || files.length === 0) {
       throw new CustomError("File not found", 400)
     }
@@ -115,9 +138,9 @@ const getFileByTypeFromFolder = async (folderId : string, type: string ) => {
     const res = await drive.files.get(
       {
         fileId: fileId,
-        alt: 'media',
+        alt: "media",
       },
-      { responseType: 'arraybuffer' }
+      { responseType: "arraybuffer" },
     )
 
     return { data: Buffer.from(res.data as ArrayBuffer) }
@@ -126,6 +149,9 @@ const getFileByTypeFromFolder = async (folderId : string, type: string ) => {
   }
 }
 
+/**
+ * Get folder metadata
+ */
 const getFolder = async (fileId: string) => {
   try {
     const res = await drive.files.get({
@@ -137,6 +163,9 @@ const getFolder = async (fileId: string) => {
   }
 }
 
+/**
+ * List all files in a folder
+ */
 const listFolderContent = async (folderId: string): Promise<drive_v3.Schema$File[]> => {
   try {
     const res = await drive.files.list({
@@ -150,6 +179,9 @@ const listFolderContent = async (folderId: string): Promise<drive_v3.Schema$File
   }
 }
 
+/**
+ * Move file or folder to trash
+ */
 const trashFileOrFolder = async (fileOrFolderId: string): Promise<drive_v3.Schema$File | undefined> => {
   try {
     const body_value = {
@@ -165,6 +197,9 @@ const trashFileOrFolder = async (fileOrFolderId: string): Promise<drive_v3.Schem
   }
 }
 
+/**
+ * Permanently delete file from Google Drive
+ */
 const permanentlyDeleteFile = async (fileOrFolderId: string) => {
   try {
     const res = await drive.files.delete({
@@ -176,7 +211,9 @@ const permanentlyDeleteFile = async (fileOrFolderId: string) => {
   }
 }
 
-// get a direct download URL for images
+/**
+ * Generate direct download URL for images
+ */
 const getDirectDownloadUrl = (fileId: string): string => {
   return `https://drive.google.com/uc?export=view&id=${fileId}`
 }
@@ -194,4 +231,3 @@ export {
   getDirectDownloadUrl,
   getFileByTypeFromFolder,
 }
-

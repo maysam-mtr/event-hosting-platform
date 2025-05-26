@@ -1,3 +1,17 @@
+/**
+ * User Settings Page Component
+ *
+ * User account management and preferences:
+ * - Profile information editing (name, email, avatar)
+ * - Password change and security settings
+ * - Notification preferences and communication settings
+ * - Account privacy and data management
+ * - Partner status and collaboration preferences
+ *
+ * Comprehensive settings interface for users to manage
+ * their account, privacy, and platform preferences.
+ */
+
 import profile from '../../../assets/profile.png'
 import styled from "styled-components";
 import { useEffect, useState } from "react";

@@ -1,3 +1,11 @@
+"use client"
+
+/**
+ * Create Map Page
+ * Provides interface for creating new maps with file uploads
+ * Handles form submission and navigation after successful creation
+ */
+
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
@@ -53,4 +61,3 @@ export default function CreateMap() {
     </div>
   )
 }
-

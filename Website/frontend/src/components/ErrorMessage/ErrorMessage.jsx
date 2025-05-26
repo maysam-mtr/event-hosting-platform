@@ -1,3 +1,16 @@
+/**
+ * Error Message Component
+ *
+ * Displays error messages in a consistent format across the application:
+ * - Shows validation errors from forms
+ * - Displays API error responses
+ * - Provides user-friendly error formatting
+ * - Supports conditional rendering based on error state
+ * - Maintains consistent styling for error display
+ *
+ * Used throughout forms and pages to show error feedback to users.
+ */
+
 import React from "react";
 import styled from "styled-components";
 import { FiAlertCircle } from "react-icons/fi";

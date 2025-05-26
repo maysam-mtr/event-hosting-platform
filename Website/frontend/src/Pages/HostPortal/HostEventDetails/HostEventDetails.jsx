@@ -1,12 +1,22 @@
+/**
+ * Host Event Details Page Component
+ *
+ * Detailed event management interface for individual events:
+ * - Comprehensive event information display
+ * - Real-time participant list and analytics
+ * - Event control panel (start, stop, manage)
+ * - Partner invitation and booth management
+ * - Event sharing and promotion tools
+ *
+ * Complete event management dashboard where hosts can
+ * monitor, control, and optimize their specific events.
+ */
+
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { StatusIndicator } from "../MyEventsPage/MyEventsPage";
-import { OrangeShape, OverlayShape } from "../../SignUpPage/SignUpPage";
-import { FaArrowLeft, FaTimes } from "react-icons/fa";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Button } from "../../UserPortal/HomePage/HomePage";
 import Input from "../../../components/Input/Input";
-import ErrorMessage from "../../../components/ErrorMessage/ErrorMessage";
 import previewImg from '../../../assets/landing2.png';
 import { Title } from "../../EventDetailsPage/EventDetailsPage";
 import useSendRequest from "../../../hooks/use-send-request";
@@ -14,7 +24,6 @@ import useUserState from "../../../hooks/use-user-state";
 import formatDateTime from "../../../utils/formatDateTime";
 import getEventStatus from "../../../utils/getEventStatus";
 import Popup from "../../../components/Popup/Popup";
-import { BlueButton } from "../SettingsHostPage/SettingsHostPage";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 import BoothMap from "./BoothMap";
 import EditEventModal from "./EditEventModal";

@@ -1,3 +1,17 @@
+/**
+ * Partner Collaborated Events Page Component
+ *
+ * Dashboard for partners to manage their booth participation:
+ * - List of events where user has booth presence
+ * - Booth management and customization options
+ * - Collaboration tools and partner resources
+ * - Event-specific booth analytics and engagement
+ * - Partner-only features and capabilities
+ *
+ * Specialized interface for partners to manage their
+ * booth presence and collaboration in multiple events.
+ */
+
 import { useEffect, useState } from "react";
 import useUserState from "../../../hooks/use-user-state";
 import useSendRequest from "../../../hooks/use-send-request";

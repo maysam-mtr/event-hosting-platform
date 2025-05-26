@@ -1,4 +1,17 @@
-// components/ImageInput.js
+/**
+ * Image Input Component
+ *
+ * Handles image upload and preview functionality:
+ * - File selection with drag-and-drop support
+ * - Image preview before upload
+ * - File type and size validation
+ * - Integration with Supabase storage
+ * - Progress indication during upload
+ *
+ * Used for profile pictures, company logos, and event images
+ * throughout the application with consistent upload experience.
+ */
+
 import React from "react";
 import styled from "styled-components";
 

@@ -1,3 +1,17 @@
+/**
+ * Host Layout Component
+ *
+ * Layout for authenticated host users:
+ * - Host-specific navigation with event management options
+ * - Sidebar with host dashboard navigation
+ * - Host-themed styling and branding
+ * - Event creation and management tools access
+ * - Host profile and settings integration
+ *
+ * Provides the main interface for event organizers
+ * to manage their events and view analytics.
+ */
+
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { MainContainer, MainSection, BodySection } from "./LayoutDefault";

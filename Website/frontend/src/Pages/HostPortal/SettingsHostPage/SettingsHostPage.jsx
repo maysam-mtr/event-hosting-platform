@@ -1,3 +1,17 @@
+/**
+ * Host Settings Page Component
+ *
+ * Host account management and business preferences:
+ * - Company profile and branding settings
+ * - Billing and subscription management
+ * - Event default settings and templates
+ * - Notification preferences for host activities
+ * - Account security and access management
+ *
+ * Business-focused settings interface for hosts to manage
+ * their organization profile and event hosting preferences.
+ */
+
 import { Card, CardsWrapper, PageTitle, ProfileCard, ProfileCardWrapper, Section } from "../../UserPortal/SettingsPage/SettingsPage";
 import Input from '../../../components/Input/Input';
 import profile from '../../../assets/profile.png'

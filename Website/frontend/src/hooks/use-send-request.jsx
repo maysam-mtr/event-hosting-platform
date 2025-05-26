@@ -1,10 +1,34 @@
+/**
+ * useSendRequest Hook
+ *
+ * A custom React hook that provides a standardized way to make HTTP requests
+ * to the backend API with built-in state management, error handling, and
+ * authentication token management.
+ *
+ * Key Features:
+ * - Automatic loading state management
+ * - Error handling with user-friendly messages
+ * - Success/failure callback support
+ * - Automatic cookie inclusion for authentication
+ * - Configurable request options
+ * - JSON response parsing
+ * - Network error handling
+ *
+ * Returns:
+ * - sendRequest: function for making API calls
+ * - loading: boolean indicating request in progress
+ * - error: string containing error message if request fails
+ * - data: response data from successful requests
+ * - setError: function to manually set error state
+ * - setData: function to manually set data state
+ *
+ * Usage: Used throughout the application for all API communications
+ * including authentication, event management, user operations, and data fetching
+ */
+
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useUserState from './use-user-state';
-
-// export function buildUrl(url, searchParams, supportedParams, extraParams = []){
-
-// }
 
 export function setApiUrl(url, backend){
     if(backend === 'maps'){

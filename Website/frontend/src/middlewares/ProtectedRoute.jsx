@@ -1,6 +1,19 @@
+/**
+ * Protected Route Middleware
+ *
+ * Handles authentication-based route protection:
+ * - Validates user authentication status
+ * - Redirects unauthenticated users to login
+ * - Manages session validation and refresh
+ * - Handles authentication token verification
+ * - Provides loading states during auth checks
+ *
+ * Core security middleware that ensures only authenticated
+ * users can access protected application areas.
+ */
+
 import { Outlet, useNavigate } from "react-router-dom";
 import useUserState from "../hooks/use-user-state";
-//import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import { useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 
@@ -18,8 +31,7 @@ export default function ProtectedRoute(){
         return <LoadingSpinner />
     }
 
-    // Prevent rendering child components if not authenticated, 
-    // since useNavigate is async, and while performing navgation, parts of the child might render
+    // Prevent rendering child components if not authenticated
     if (!isAuthenticated) return null;
     
     return <Outlet />;

@@ -1,3 +1,8 @@
+/**
+ * Latest Maps Service
+ * Business logic for latest map operations including data enrichment
+ */
+
 import { repo } from "./latest-maps.repo"
 import { repo as mapRepo } from "../maps/maps.repo"
 import { CustomError } from "@/utils/Response & Error Handling/custom-error"
@@ -5,33 +10,39 @@ import type { LatestMap } from "@/interfaces/latest-map.interface"
 import type { Map } from "@/interfaces/map.interface"
 import { getMapBoothsService } from "../maps/maps.service"
 
+/**
+ * Get all latest maps (basic service)
+ */
 const getLatestMapsService = async (): Promise<LatestMap[]> => {
   try {
     const latestMap = await repo.getLatestMaps()
-
     if (!latestMap) throw new CustomError("Found maps count: 0", 404)
-
     return latestMap
   } catch (err: any) {
     throw new CustomError("Error fetching latest maps", 404)
   }
 }
 
+// Extended map type including booth count
 type MapWithBooths = Map & { booths: number }
 
+/**
+ * Get latest maps with enriched details including booth counts
+ * Fetches actual map data for each latest map reference
+ */
 const getLatestMapsWithDetailsService = async (): Promise<MapWithBooths[]> => {
   try {
     const latestMaps = await repo.getLatestMaps()
-
-    // Get the actual map details for each latest map
     const mapDetails: MapWithBooths[] = []
+
+    // Enrich each latest map with actual map data and booth count
     for (const latestMap of latestMaps) {
       const map = await mapRepo.getMapById(latestMap.latest_map_id)
       if (map) {
         const mapBooths = await getMapBoothsService(map.id as string)
         const mapWithBooths: MapWithBooths = {
           ...map,
-          booths: mapBooths.length
+          booths: mapBooths.length,
         }
         mapDetails.push(mapWithBooths)
       }
@@ -43,6 +54,9 @@ const getLatestMapsWithDetailsService = async (): Promise<MapWithBooths[]> => {
   }
 }
 
+/**
+ * Get latest map by ID
+ */
 const getLatestMapByIdService = async (id: string): Promise<LatestMap | null> => {
   try {
     return await repo.getLatestMapById(id)
@@ -51,6 +65,9 @@ const getLatestMapByIdService = async (id: string): Promise<LatestMap | null> =>
   }
 }
 
+/**
+ * Create new latest map record
+ */
 const createLatestMapService = async (mapData: LatestMap): Promise<LatestMap> => {
   try {
     return await repo.createLatestMap(mapData)
@@ -59,6 +76,9 @@ const createLatestMapService = async (mapData: LatestMap): Promise<LatestMap> =>
   }
 }
 
+/**
+ * Delete latest map record
+ */
 const deleteLatestMapService = async (id: string): Promise<number> => {
   try {
     const status = await repo.deleteLatestMap(id)
@@ -71,7 +91,10 @@ const deleteLatestMapService = async (id: string): Promise<number> => {
   }
 }
 
-const getLatestMapByOriginalMapIdService = async (original_map_id: string) : Promise<LatestMap | null> => {
+/**
+ * Get latest map by original map ID
+ */
+const getLatestMapByOriginalMapIdService = async (original_map_id: string): Promise<LatestMap | null> => {
   try {
     return await repo.getLatestMapByOriginalMapId(original_map_id)
   } catch (err: any) {
@@ -79,17 +102,18 @@ const getLatestMapByOriginalMapIdService = async (original_map_id: string) : Pro
   }
 }
 
+/**
+ * Update latest map reference by original map ID
+ */
 const updateLatestMapByOriginalMapIdService = async (data: Partial<LatestMap>): Promise<[number, LatestMap[]]> => {
   try {
     const [affectedRows, updatedMaps] = await repo.updateLatestMapByOriginalMapId(data)
     if (affectedRows === 0) {
       throw new CustomError("Latest map ID not found", 404)
     }
-
     if (updatedMaps.length === 0) {
       throw new CustomError("No changes made to the latest map", 400)
     }
-
     return [affectedRows, updatedMaps]
   } catch (err: any) {
     throw new CustomError("Error updating latest map", 404)
@@ -105,4 +129,3 @@ export {
   getLatestMapByOriginalMapIdService,
   updateLatestMapByOriginalMapIdService,
 }
-

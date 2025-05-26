@@ -1,3 +1,8 @@
+/**
+ * Main Application Component
+ * Sets up routing and authentication context for the entire application
+ */
+
 import { Routes, Route } from "react-router-dom"
 import Home from "./pages/Home"
 import CreateMap from "./pages/CreateMap"
@@ -11,7 +16,10 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Public login route */}
         <Route path="/login" element={<Login />} />
+
+        {/* Protected routes requiring authentication */}
         <Route
           path="/"
           element={

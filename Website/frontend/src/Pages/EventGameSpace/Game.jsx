@@ -1,3 +1,17 @@
+/**
+ * Game Component
+ *
+ * Core game engine integration using Phaser.js:
+ * - Renders the virtual event space with interactive maps
+ * - Handles player movement and character animations
+ * - Manages real-time multiplayer interactions via Socket.IO
+ * - Integrates booth interactions and partner logos
+ * - Coordinates with Jitsi video chat for booth meetings
+ *
+ * The heart of the virtual event experience, providing
+ * an interactive 2D environment for event participation.
+ */
+
 import { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import { io } from 'socket.io-client'
@@ -464,7 +478,7 @@ const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
         default: 'arcade',
         arcade: {
           gravity: { y: 0 },
-          debug: true
+          debug: false
         }
       }
     }

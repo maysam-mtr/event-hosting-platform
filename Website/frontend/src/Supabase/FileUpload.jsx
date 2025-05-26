@@ -1,3 +1,17 @@
+/**
+ * File Upload Component
+ *
+ * Supabase storage integration for file uploads:
+ * - Handles file selection and upload to Supabase storage
+ * - Provides upload progress indication and error handling
+ * - Supports multiple file types (images, documents)
+ * - Manages file size validation and compression
+ * - Returns public URLs for uploaded files
+ *
+ * Reusable component for all file upload needs throughout
+ * the application with consistent upload experience.
+ */
+
 import { useState } from "react";
 import {supabase} from './supabaseClient'
 

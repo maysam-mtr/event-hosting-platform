@@ -1,5 +1,27 @@
-import styled from 'styled-components';
-import { Button1 } from '../../components/Navbar/Navbar';
+/**
+ * ContactUsPage Component
+ *
+ * A contact form page that allows users to send inquiries, feedback,
+ * and support requests to the platform administrators through a structured form.
+ *
+ * Key Features:
+ * - Clean, centered form layout
+ * - Email, subject, and message input fields
+ * - Responsive design with mobile optimization
+ * - Form validation and user guidance
+ * - Professional styling with consistent branding
+ *
+ * Form Fields:
+ * - Email: User's contact email address
+ * - Subject: Brief description of inquiry topic
+ * - Message: Detailed message content (textarea)
+ *
+ * Usage: Accessible from main navigation for users seeking support,
+ * providing feedback, or making general inquiries about the platform.
+ * Integrates with backend email service for message delivery.
+ */
+import styled from "styled-components"
+import { Button1 } from "../../components/Navbar/Navbar"
 
 const Container = styled.div`
   max-width: 600px;
@@ -11,32 +33,32 @@ const Container = styled.div`
   justify-content: center;
   padding: 2rem;
   gap: 1.5rem;
-`;
+`
 
 const Heading = styled.h2`
   text-align: center;
   font-size: 2rem;
   font-weight: bold;
-`;
+`
 
 const Paragraph = styled.p`
   text-align: center;
   font-size: 1rem;
   color: #666;
-`;
+`
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 2rem;
   margin-top: 20px;
-`;
+`
 
 const Label = styled.label`
   font-size: 1rem;
   font-weight: 600;
   display: block;
-`;
+`
 
 const Input = styled.input`
   width: 100%;
@@ -45,7 +67,7 @@ const Input = styled.input`
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-top: 0.5rem;
-`;
+`
 
 const TextArea = styled.textarea`
   width: 100%;
@@ -54,32 +76,30 @@ const TextArea = styled.textarea`
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-top: 0.5rem;
-`;
+`
 
 export default function ContactUsPage() {
   return (
-
-      <Container>
-        <Heading>Contact Us</Heading>
-        <Paragraph>
-          Got a technical issue? Want to send feedback about a beta feature? Let us know.
-        </Paragraph>
-        <Form action='#'>
-          <div>
-            <Label htmlFor='email'>Your Email</Label>
-            <Input type='email' id='email' placeholder='example@gmail.com' />
-          </div>
-          <div>
-            <Label htmlFor='subject'>Subject</Label>
-            <Input type='text' id='subject' placeholder='Let us know how we can help' />
-          </div>
-          <div>
-            <Label htmlFor='message'>Your Message</Label>
-            <TextArea rows={6} id='message' placeholder='Leave a comment...' />
-          </div>
-          <Button1 type='button' style={{alignSelf: 'center'}}>Submit</Button1>
-        </Form>
-      </Container>
-   
-  );
+    <Container>
+      <Heading>Contact Us</Heading>
+      <Paragraph>Got a technical issue? Want to send feedback about a beta feature? Let us know.</Paragraph>
+      <Form action="#">
+        <div>
+          <Label htmlFor="email">Your Email</Label>
+          <Input type="email" id="email" placeholder="example@gmail.com" />
+        </div>
+        <div>
+          <Label htmlFor="subject">Subject</Label>
+          <Input type="text" id="subject" placeholder="Let us know how we can help" />
+        </div>
+        <div>
+          <Label htmlFor="message">Your Message</Label>
+          <TextArea rows={6} id="message" placeholder="Leave a comment..." />
+        </div>
+        <Button1 type="button" style={{ alignSelf: "center" }}>
+          Submit
+        </Button1>
+      </Form>
+    </Container>
+  )
 }

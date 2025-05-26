@@ -1,8 +1,20 @@
+/**
+ * Role Protected Route Middleware
+ *
+ * Manages role-based access control:
+ * - Validates user roles (host, user, partner)
+ * - Restricts access based on user permissions
+ * - Handles role-specific redirects
+ * - Manages cross-role navigation restrictions
+ * - Provides role-based error handling
+ *
+ * Ensures users can only access features and pages
+ * appropriate for their assigned role in the system.
+ */
+
 import { Outlet, useNavigate } from "react-router-dom";
 import useUserState from "../hooks/use-user-state";
-//import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import { useEffect } from "react";
-import PropType from 'prop-types';
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import PropTypes from "prop-types";
 

@@ -1,10 +1,23 @@
+/**
+ * Utility Functions
+ * Common helper functions used throughout the frontend application
+ */
+
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+/**
+ * Utility function for merging Tailwind CSS classes
+ * Combines clsx and tailwind-merge for optimal class handling
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Format date string for display
+ * Converts ISO date strings to human-readable format
+ */
 export function formatDate(dateString?: string): string {
   if (!dateString) return "N/A"
 
@@ -22,4 +35,3 @@ export function formatDate(dateString?: string): string {
     minute: "2-digit",
   }).format(date)
 }
-

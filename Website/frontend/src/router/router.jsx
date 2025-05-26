@@ -1,3 +1,16 @@
+/**
+ * Application Router Configuration
+ *
+ * Defines all application routes and navigation structure:
+ * - Public routes for landing, login, signup pages
+ * - Protected routes for authenticated users
+ * - Role-based routes for hosts and regular users
+ * - Event-specific routes with access controls
+ * - Error handling and fallback routes
+ *
+ * Central routing configuration that manages navigation
+ * and access control throughout the entire application.
+ */
 import {createBrowserRouter} from "react-router-dom";
 import DefaultRoute from "../middlewares/DefaultRoute";
 import RoleProtectedRoute from "../middlewares/RoleProtectedRoute";
