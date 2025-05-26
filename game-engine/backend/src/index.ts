@@ -1,99 +1,3 @@
-/**import express from "express"
-import http from "http"
-import cors from "cors"
-import { createServer } from "node:http"
-import { Server as SocketIOServer } from "socket.io"
-import path from "path"
-import fs from "fs/promises"
-
-// Import your initialization logic
-import { initializeMapData } from "./initialization"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-const app = express()
-const PORT = process.env.PORT || 3004
-
-// Serve static assets
-app.use("/assets", express.static(path.join(__dirname, "assets")))
-
-// CORS middleware
-app.use(
-  cors({
-    origin: ["http://localhost:5000", "http://localhost:5173"],
-    credentials: true,
-  })
-)
-
-// Routes
-app.get("/", (req, res) => {
-  res.send("Virtual Event Platform - Game Engine")
-})
-
-app.get("/getTilesetImages", async (req, res) => {
-  try {
-    const filePath = path.join(__dirname, "mapInfo.json")
-    const fileContent = await fs.readFile(filePath, "utf8")
-    const data = JSON.parse(fileContent)
-
-    res.status(200).json({ data })
-  } catch (err) {
-    console.error("Failed to load tileset images:", err)
-    res.status(500).json({ error: "Failed to read layer names" })
-  }
-})
-
-// Create HTTP server and Socket.IO
-const httpServer = createServer(app)
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: ["http://localhost:5000", "http://localhost:5173"],
-    credentials: true,
-  },
-})
-const connectedUsers: Record<string, string> = {} // userId -> socket.id
-// Socket connection handler
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id)
-   for(const keys in connectedUsers) {
-    if(keys === socket.id) {
-      socket.emit("playerConnected", { userId: keys, socketId: connectedUsers[keys] })
-    }}
-  socket.on("playerMove", (data) => {
-    const { userId, name, x, y } = data
-
-    // Store the userId to socket.id mapping (if needed later)
-    connectedUsers[userId] = socket.id
-
-    // Broadcast to everyone else
-    socket.broadcast.emit('playerMoved', { userId, name, x, y })
-  })
-
-  socket.on("disconnect", () => {
-    const disconnectedUserId = Object.keys(connectedUsers).find(userId => connectedUsers[userId] === socket.id)
-    if (!disconnectedUserId) return // User not found
-    console.log("User disconnected:", socket.id)
-    delete connectedUsers[disconnectedUserId]
-    socket.broadcast.emit('playerDisconnected', disconnectedUserId)
-    console.log(`❌ User disconnected: ${disconnectedUserId}`)
-    //io.emit("playerDisconnected", socket.id)
-  })
-})
-
-// Start server after map data loaded
-initializeMapData()
-  .then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`🎮 Game engine running at http://localhost:${PORT}`)
-    })
-  })
-  .catch((err) => {
-    console.error("❌ Failed to start game engine:", err.message)
-    process.exit(1)
-  })
-*/
-
 import express from "express"
 import http from "http"
 import cors from "cors"
@@ -110,6 +14,9 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3004
+
+// Your Cloudflare Tunnel domain
+const JITSI_DOMAIN = process.env.JITSI_DOMAIN
 
 // Middleware
 app.use(
@@ -150,18 +57,11 @@ app.use("/getMapInformation", async (req, res) => {
 app.get("/getMeetingLink/:boothId", (req, res) => {
   const { boothId } = req.params;
 
-  // Your Cloudflare Tunnel domain
-  const jitsiDomain = "descriptions-sas-kathy-sunday.trycloudflare.com";
-
   // Room name format: booth_123
   const roomName = `booth_${boothId}`;
 
   // Full URL to Jitsi meeting
-  const meetingUrl = `https://${jitsiDomain}/${roomName}`;
-
-  // Optional: Add JWT token if using authentication
-  // const jwtToken = generateJWT({ userId: "guest_" + uuidv4(), role: "guest" });
-  // const meetingUrl = `https://${jitsiDomain}/${roomName}?jwt=${jwtToken}`;
+  const meetingUrl = `https://${JITSI_DOMAIN}/${roomName}`;
 
   res.json({ meetingUrl });
 });
@@ -257,70 +157,7 @@ socket.data.avatar = avatar
 
     console.log(`User ${name} [${id}] joined`)
   })
-/*
-  socket.on("playerMove", (data) => {
-    const userId = socket.data.userId
-    const name = socket.data.name
-    const avatar = socket.data.avatar
-    const prevBooth = socket.data.currentBooth || null
 
-    if (!userId || !name || !avatar) return
-  
-    const payload = {
-      userId,
-      name,
-      avatar,
-      x: data.x,
-      y: data.y
-    }
-  
-    
-    // Define player bounds (e.g., 32x32 area around player)
-    const playerBounds = {
-      x: data.x - 16,
-      y: data.y - 16,
-      width: 32,
-      height: 32
-    }
-    let newBooth = null
-   // Check if player overlaps any booth
-    booths.forEach(booth => {
-      const boothBounds = {
-        x: booth.x,
-        y: booth.y,
-        width: booth.width,
-        height: booth.height
-      }
-   if (rectsOverlap(playerBounds, boothBounds)&& prevBooth! == booth.id) {
-        socket.data.currentBooth = booth.id
-      
-        socket.emit("enteredBooth", {
-          userId,
-          boothId: booth.id
-        })
-  
-        io.emit("userEnteredBooth", {
-          userId,
-          boothId: booth.id
-        })
-      }
-      else if(!rectsOverlap(playerBounds, boothBounds)&& prevBooth===booth.id){
-        console.log(`User ${userId} exited booth ${booth.id}`)
-        socket.emit("exitedBooth", { userId, boothId: booth.id })
-        socket.data.currentBooth = null
-      }
-    })
-    if (!entered && prevBooth) {
-      console.log(`User ${userId} exited previous booth ${prevBooth.id}`)
-      socket.emit("exitedBooth", { userId, boothId: prevBooth })
-      io.emit("userExitedBooth", { userId, boothId: prevBooth })
-  
-      socket.data.currentBooth = null
-    }
-
-    io.emit("playerMoved", payload)
-  
-  })*/
  socket.on("playerMove", (data) => {
   const userId = socket.data.userId
   const name = socket.data.name
@@ -366,7 +203,7 @@ socket.data.avatar = avatar
         userId,
         boothId: booth.id,
         isPartner:socket.data.isPartner,
-        meetingUrl:`https://descriptions-sas-kathy-sunday.trycloudflare.com/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
+        meetingUrl:`https://${JITSI_DOMAIN}/booth_${booth.id}?toolbar=false&join=true&prejoin=false&displayName=Player&micEnabled=true&videoEnabled=true`
    
       })
       io.emit("userEnteredBooth", {

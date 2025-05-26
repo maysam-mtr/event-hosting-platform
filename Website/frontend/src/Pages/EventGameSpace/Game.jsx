@@ -20,7 +20,7 @@ right: 50px;
 z-index: 100;
 `;
 
-const domain = "prefix-loans-sol-organizations.trycloudflare.com";
+const domain = import.meta.env.VITE_JITSI_DOMAIN;
 // Connect to backend
 
 const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
@@ -353,11 +353,6 @@ const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
             const isPartner = data.isPartner;
             setIsPartner(isPartner);
             console.log("isPartner",isPartner)
-          // console.log(`You [${user.id}] entered booth ${boothId}`)
-          // const jitsiFrame = document.getElementById("jitsi-frame") as HTMLIFrameElement
-          // jitsiFrame.src = meetingUrl
-          // console.log(meetingUrl)
-            //jitsiFrame.style.display = "block"
           })
 
           function joinJitsiMeeting(boothId) {
@@ -464,7 +459,7 @@ const Game = ({ mapInfo, characterInfo, gameEngineUrl }) => {
         default: 'arcade',
         arcade: {
           gravity: { y: 0 },
-          debug: true
+          debug: false
         }
       }
     }

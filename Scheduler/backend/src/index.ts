@@ -5,8 +5,8 @@ import http from 'http'
 import { errorHandler } from './middlewares/error.handler'
 import { Schedule } from './interfaces/schedule.interface'
 import { scheduleCronJob, scheduledTasks } from './scheduler'
-import { CustomError } from './utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-error'
-import { CustomResponse } from './utils/Response & Error Handling/custom-errorutils/Response & Error Handling/custom-response'
+import { CustomError } from './utils/Response & Error Handling/custom-error'
+import { CustomResponse } from './utils/Response & Error Handling/custom-response'
 import { hostAuthMiddleware } from './middlewares/auth.middleware'
 
 const app = express()

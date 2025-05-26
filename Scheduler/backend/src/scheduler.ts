@@ -2,6 +2,7 @@ import { exec } from 'child_process'
 import cron, { ScheduledTask } from 'node-cron'
 import path from 'path'
 import net from 'net'
+import { GAME_ENGINE_DOCKER_IMAGE_NAME, GAME_ENGINE_ENV_FILE_NAME, JITSI_DOMAIN } from './config'
 
 interface TaskEntry {
   startTask?: ScheduledTask
@@ -94,13 +95,14 @@ const startGameEngine = async (eventId: string): Promise<void> => {
     return
   }
 
-  const envFilePath = path.resolve(__dirname, 'game-engine-backend.env')
+  const envFilePath = path.resolve(__dirname, `${GAME_ENGINE_ENV_FILE_NAME}`)
   const cmd = [
     'docker', 'run', '-d',
     '-p', `${hostPort}:3004`,
     '--env', `EVENT_ID=${eventId}`,
+    '--env', `JITSI_DOMAIN=${JITSI_DOMAIN}`,
     '--env-file', envFilePath,
-    'game-engine-backend'
+    `${GAME_ENGINE_DOCKER_IMAGE_NAME}`
   ].join(' ')
 
   exec(cmd, (error, stdout, stderr) => {

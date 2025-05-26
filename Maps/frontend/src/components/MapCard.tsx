@@ -14,7 +14,7 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="truncate" title={map.name}>
+        <CardTitle title={map.name}>
           {map.name}
         </CardTitle>
       </CardHeader>
@@ -56,7 +56,7 @@ export default function MapCard({ map, onDeleteClick }: MapCardProps) {
         <div className="flex space-x-2 w-full">
           <Link to={`/update/${map.id}`} className="flex-1">
             <Button variant="outline" className="w-full">
-              <Edit className="mr-2 h-4 w-4" /> Edit
+              <Edit className="mr-2 h-4 w-4" /> Update
             </Button>
           </Link>
           <Button
