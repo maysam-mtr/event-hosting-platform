@@ -132,7 +132,7 @@ function stopGameEngine(eventId: string): void {
   const containerId = entry.containerId
   if (containerId) {
     console.log(`[${eventId}] Stopping container ${containerId}`)
-    exec(`docker stop ${containerId}`, (error, stdout, stderr) => {
+    exec(`docker rm -f ${containerId}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`❌ [${eventId}] Failed to stop container: ${error.message}`)
       } else {

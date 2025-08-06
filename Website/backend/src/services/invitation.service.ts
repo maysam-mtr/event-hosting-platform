@@ -360,8 +360,8 @@ export const sendInvitationEmail = async (partnerEmail: string, invitationLink:s
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                user: process.env.INVITATION_EMAIL,  // Replace with your email
-                pass: process.env.INVITATION_PASS //"bazxkrxfbehtrrgj"  // Replace with your Gmail app password
+                user: process.env.INVITATION_EMAIL,
+                pass: process.env.INVITATION_PASS 
             }
         });
         const mailOptions = {

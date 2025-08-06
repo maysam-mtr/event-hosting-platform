@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType, Default, AllowNull, PrimaryKey, CreatedAt, UpdatedAt } from "sequelize-typescript";
 
 @Table({
-  tableName: "Subscriptionplan",
+  tableName: "subscriptionplan",
   modelName:"Subscriptionplan",
   timestamps: true, // Enable Sequelize to manage createdAt and updatedAt
 })

@@ -28,7 +28,7 @@ dist/
 out/
 build/
 
-# # Environment variables
+# Environment variables
 *.env
 .env.*
 

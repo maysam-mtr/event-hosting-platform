@@ -1,0 +1,123 @@
+version: "3.9"
+
+services:
+
+  maps-db:
+      image: mysql:8.0
+      container_name: maps-db
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        MYSQL_DATABASE: senior
+      ports:
+        - "3309:3306"
+      volumes:
+        - ./dump/senior.sql:/docker-entrypoint-initdb.d/init.sql
+      tmpfs:
+        - /var/lib/mysql
+
+
+  website-db:
+    image: mysql:8.0
+    container_name: website-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: event_platform
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./dump/event_platform.sql:/docker-entrypoint-initdb.d/init.sql
+    tmpfs:
+      - /var/lib/mysql
+
+
+  maps-backend:
+    build: ./maps/backend
+    container_name: maps-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./maps/backend:/app
+      - /app/node_modules
+      - ./maps/backend/.env.development:/app/.env.development
+    working_dir: /app
+    environment:
+      DB_HOST: maps-db
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: senior
+    depends_on:
+      - maps-db
+    command: sh -c "until nc -z maps-db 3306; do echo waiting for maps db; sleep 1; done; npm run dev"
+
+
+  scheduler-backend:
+    build: ./scheduler/backend
+    container_name: scheduler-backend
+    ports:
+      - "3333:3333"
+    volumes:
+      - ./scheduler/backend:/app
+      - /app/node_modules
+      - ./scheduler/backend/.env:/app/.env
+      - ./scheduler/backend/src/game-engine-backend.env:/app/game-engine-backend.env
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /app
+    environment:
+      - JITSI_DOMAIN=${JITSI_DOMAIN}
+    command: npm run dev
+
+
+  website-backend:
+    build: ./website/backend
+    container_name: website-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./website/backend:/app
+      - /app/node_modules
+      - ./website/backend/.env:/app/.env
+    working_dir: /app
+    environment:
+      DB_HOST: website-db
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: event_platform
+    depends_on:
+      - website-db
+      - maps-db
+    command: sh -c "until nc -z website-db 3306; do echo waiting for website db; sleep 1; done; npm run dev"
+
+
+  website-frontend:
+    build: ./website/frontend
+    container_name: website-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./website/frontend:/app
+      - /app/node_modules
+      - ./website/frontend/.env:/app/.env
+    working_dir: /app
+    environment:
+      - VITE_JITSI_DOMAIN=${JITSI_DOMAIN}
+    depends_on:
+      - website-db
+    command: npm run dev
+
+
+  maps-frontend:
+    build: ./maps/frontend
+    container_name: maps-frontend
+    ports:
+      - "5777:5777"
+    volumes:
+      - ./maps/frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    depends_on:
+      - maps-db
+    command: npm run dev

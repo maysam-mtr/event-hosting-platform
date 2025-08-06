@@ -31,7 +31,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
                 localDate.getUTCFullYear(),
                 localDate.getUTCMonth(),
                 localDate.getUTCDate(),
-                localDate.getUTCHours() + 3,
+                localDate.getUTCHours(),
                 localDate.getUTCMinutes(),
                 localDate.getUTCSeconds()
             ));
@@ -56,7 +56,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 
         const event = await createEvent(eventData, hostUser.id);
         
-        const BASE_URL = process.env.BASE_URL || "http://localhost";
+        const SCHEDULER_URL = process.env.SCHEDULER_URL || "http://scheduler-backend";
         const SCHEDULER_PORT = process.env.SCHEDULER_PORT || 3333;
 
         const requestBody = {
@@ -69,7 +69,7 @@ const createEventController = async (req: Request, res: Response): Promise<void>
 
         const cookieHeader = req.headers.cookie
 
-        const endpoint = `${BASE_URL}:${SCHEDULER_PORT}/schedule`;
+        const endpoint = `${SCHEDULER_URL}:${SCHEDULER_PORT}/schedule`;
 
         const scheduleEventRes = await fetch(endpoint, {
             method: "POST",

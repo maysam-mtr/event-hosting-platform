@@ -11,10 +11,11 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
     port: 5777,
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "http://maps-backend:3000",
         changeOrigin: true,
       },
     },

@@ -233,7 +233,7 @@ export default function SignUpPage() {
         //navigate('/host');
         setUser({...response.data[0], role: 'host'})
         localStorage.setItem("user", JSON.stringify({...response.data[0], role: 'host'}));
-        window.location.href = '/host';
+        window.location.href = '/login';
         return;
 
       }else if(response?.success === false){

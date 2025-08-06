@@ -13,7 +13,7 @@ const app = express()
 const server = http.createServer(app)
 const PORT = process.env.PORT || 3333
 
-app.use(cors({ origin: ["http://localhost:5000", "http://localhost:3004", "http://localhost:5173"], credentials: true }))
+app.use(cors({ origin: ["http://website-backend:5000", "http://localhost:3004", "http://localhost:5173"], credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())

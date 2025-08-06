@@ -21,7 +21,7 @@ const JITSI_DOMAIN = process.env.JITSI_DOMAIN
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3333"],
+    origin: ["http://localhost:5173", "http://host.docker.internal:3333"],
     credentials: true,
   })
 )
@@ -71,7 +71,10 @@ app.get("/getMeetingLink/:boothId", (req, res) => {
 const httpServer = createServer(app)
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "http://host.docker.internal:5173",
+    ],
     credentials: true,
   }
 })

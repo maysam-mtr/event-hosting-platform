@@ -368,6 +368,7 @@ export const isEventOngoing = (
 ): { isOngoing: boolean; status: string } => {
     console.log("hi",startDate, startTime, endDate, endTime)
     const now = new Date();
+    now.setHours(now.getUTCHours() + 3)    
 
     // Parse the start and end times
     const [startHours, startMinutes] = startTime.split(":").map(Number);
