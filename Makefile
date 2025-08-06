@@ -1,4 +1,4 @@
-.PHONY: run-whole-project start-tunnel set-up-jitsi build-game-engine set-up-eventure
+.PHONY: run-whole-project set-up-jitsi build-game-engine set-up-eventure
 
 set-up-jitsi:
 	bash -c '\
@@ -24,7 +24,4 @@ build-game-engine:
 set-up-eventure:
 	docker compose up --build -d
 
-start-tunnel:
-	bash ./start-tunnel.sh
-
-run-whole-project: start-tunnel set-up-jitsi build-game-engine set-up-eventure
+run-whole-project: set-up-jitsi build-game-engine set-up-eventure
