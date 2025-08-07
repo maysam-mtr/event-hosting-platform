@@ -1,7 +1,7 @@
 # Eventure: A Virtual Event Hosting Platform
-This project is a virtual career fair and events platform that creates interactive, game-like environment where users explore virtual event spaces, visit company booths, and join live networking sessions. It aims to provide fun and engaging experience fir job seekers and recruiters, making online events more dynamic and immersive.
+This project is a virtual career fair and events platform that creates interactive, game-like environment where users explore virtual event spaces, visit company booths, and join live networking sessions. It aims to provide fun and engaging experience for job seekers and recruiters, making online events more dynamic and immersive.
 
-Eventure was built using multiple technologies. Reactjs, styled components, and Phraserjs were user for the frontend. 
+Eventure was built using multiple technologies. Reactjs, styled components, and Phraserjs were used for the frontend. 
 Nodejs, Expressjs and Typescript were used for the backend. 
 For data management and storage, Supabase, Google Drive, and MySQL were used and managed using Sequelize. 
 Socket.io for real time communication and interaction.
