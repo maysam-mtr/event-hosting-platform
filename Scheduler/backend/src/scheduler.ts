@@ -1,8 +1,7 @@
 import { exec } from 'child_process'
 import cron, { ScheduledTask } from 'node-cron'
-import path from 'path'
 import net from 'net'
-import { GAME_ENGINE_DOCKER_IMAGE_NAME, GAME_ENGINE_ENV_FILE_NAME, JITSI_DOMAIN } from './config'
+import { GAME_ENGINE_BACKEND_PORT, GAME_ENGINE_DOCKER_IMAGE_NAME, JITSI_DOMAIN, MAPS_PORT, SUPABASE_KEY, SUPABASE_PARTNERS_BUCKET_NAME, SUPABASE_URL } from './config'
 
 interface TaskEntry {
   startTask?: ScheduledTask
@@ -95,13 +94,16 @@ const startGameEngine = async (eventId: string): Promise<void> => {
     return
   }
 
-  const envFilePath = path.resolve(__dirname, `${GAME_ENGINE_ENV_FILE_NAME}`)
   const cmd = [
     'docker', 'run', '-d',
     '-p', `${hostPort}:3004`,
     '--env', `EVENT_ID=${eventId}`,
     '--env', `JITSI_DOMAIN=${JITSI_DOMAIN}`,
-    '--env-file', envFilePath,
+    '--env', `PORT=${GAME_ENGINE_BACKEND_PORT}`,
+    '--env', `MAPS_PORT=${MAPS_PORT}`,
+    '--env', `SUPABASE_PARTNERS_BUCKET_NAME=${SUPABASE_PARTNERS_BUCKET_NAME}`,
+    '--env', `SUPABASE_URL=${SUPABASE_URL}`,
+    '--env', `SUPABASE_KEY=${SUPABASE_KEY}`,
     `${GAME_ENGINE_DOCKER_IMAGE_NAME}`
   ].join(' ')
 

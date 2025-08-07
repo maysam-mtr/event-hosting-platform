@@ -1,5 +1,5 @@
 import express, { ErrorRequestHandler } from 'express'
-import { PORT, DB_NAME, MAP_FRONTEND_PROT, GAME_ENGINE_BACKEND_PORT, WEBSITE_FRONTEND_PORT } from './config'
+import { PORT, DB_NAME, MAP_FRONTEND_PORT, GAME_ENGINE_BACKEND_PORT, WEBSITE_FRONTEND_PORT } from './config'
 import { initializeDatabase } from './database'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
@@ -9,7 +9,7 @@ import router from '@routes/routes'
 const app = express()
 
 const corsOptions = {
-    origin: [`http://localhost:${MAP_FRONTEND_PROT}`, `http://localhost:${GAME_ENGINE_BACKEND_PORT}`, `http://localhost:${WEBSITE_FRONTEND_PORT}`],
+    origin: [`http://localhost:${MAP_FRONTEND_PORT}`, `http://localhost:${GAME_ENGINE_BACKEND_PORT}`, `http://localhost:${WEBSITE_FRONTEND_PORT}`],
     optionsSuccessStatus: 200,
     credentials: true,
 }

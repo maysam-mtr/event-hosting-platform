@@ -40,7 +40,6 @@ services:
     volumes:
       - ./maps/backend:/app
       - /app/node_modules
-      - ./maps/backend/.env.development:/app/.env.development
     working_dir: /app
     environment:
       DB_HOST: maps-db
@@ -48,6 +47,27 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: senior
+      PORT: ${MAPS_BACKEND_PORT}
+      DB_DIALECT: mysql
+      MAP_FRONTEND_PORT: ${MAP_FRONTEND_PORT}
+      GAME_ENGINE_BACKEND_PORT: ${GAME_ENGINE_BACKEND_PORT}
+      WEBSITE_FRONTEND_PORT: ${WEBSITE_FRONTEND_PORT}
+      ADMIN_TOKEN_COOKIE_NAME: ${ADMIN_TOKEN_COOKIE_NAME}
+      JWT_ADMIN_ACCESS_TOKEN_SECRET: ${JWT_ADMIN_ACCESS_TOKEN_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JWT_HOST_ACCESS_TOKEN_SECRET: ${JWT_HOST_ACCESS_TOKEN_SECRET}
+      HOST_TOKEN_COOKIE_NAME: ${HOST_TOKEN_COOKIE_NAME}
+      BUCKET_NAME: ${MAPS_BUCKET_NAME}
+      JWT_USER_ACCESS_TOKEN_SECRET: ${JWT_USER_ACCESS_TOKEN_SECRET}
+      USER_TOKEN_COOKIE_NAME: ${USER_TOKEN_COOKIE_NAME}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN}
+      GOOGLE_MAPS_FOLDER_ID: ${GOOGLE_MAPS_FOLDER_ID}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
     depends_on:
       - maps-db
     command: sh -c "until nc -z maps-db 3306; do echo waiting for maps db; sleep 1; done; npm run dev"
@@ -61,12 +81,20 @@ services:
     volumes:
       - ./scheduler/backend:/app
       - /app/node_modules
-      - ./scheduler/backend/.env:/app/.env
-      - ./scheduler/backend/src/game-engine-backend.env:/app/game-engine-backend.env
       - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /app
     environment:
-      - JITSI_DOMAIN=${JITSI_DOMAIN}
+      JITSI_DOMAIN: ${JITSI_DOMAIN}
+      JWT_HOST_ACCESS_TOKEN_SECRET: ${JWT_HOST_ACCESS_TOKEN_SECRET}
+      HOST_TOKEN_COOKIE_NAME: ${HOST_TOKEN_COOKIE_NAME}
+      PORT: ${SCHEDULER_PORT}
+      WEBSITE_PORT: ${WEBSITE_BACKEND_PORT}
+      GAME_ENGINE_DOCKER_IMAGE_NAME: ${GAME_ENGINE_DOCKER_IMAGE_NAME}
+      GAME_ENGINE_BACKEND_PORT: ${GAME_ENGINE_BACKEND_PORT}
+      MAPS_PORT: ${MAPS_BACKEND_PORT}
+      SUPABASE_PARTNERS_BUCKET_NAME: ${SUPABASE_PARTNERS_BUCKET_NAME}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
     command: npm run dev
 
 
@@ -78,7 +106,6 @@ services:
     volumes:
       - ./website/backend:/app
       - /app/node_modules
-      - ./website/backend/.env:/app/.env
     working_dir: /app
     environment:
       DB_HOST: website-db
@@ -86,6 +113,15 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: event_platform
+      saltRounds: ${saltRounds}
+      USER_TOKEN_COOKIE_NAME: ${USER_TOKEN_COOKIE_NAME}
+      HOST_TOKEN_COOKIE_NAME: ${HOST_TOKEN_COOKIE_NAME}
+      SCHEDULER_PORT: ${SCHEDULER_PORT}
+      SCHEDULER_URL: ${SCHEDULER_URL}
+      JWT_SECRET: ${JWT_USER_ACCESS_TOKEN_SECRET}
+      JWT_SECRET_HOST: ${JWT_HOST_ACCESS_TOKEN_SECRET}
+      INVITATION_EMAIL: ${INVITATION_EMAIL}
+      INVITATION_PASS: ${INVITATION_PASS}
     depends_on:
       - website-db
       - maps-db
@@ -100,10 +136,17 @@ services:
     volumes:
       - ./website/frontend:/app
       - /app/node_modules
-      - ./website/frontend/.env:/app/.env
     working_dir: /app
     environment:
-      - VITE_JITSI_DOMAIN=${JITSI_DOMAIN}
+      VITE_JITSI_DOMAIN: ${JITSI_DOMAIN}
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_MAPS_API_URL: ${VITE_MAPS_API_URL}
+      VITE_FRONTEND_URL: ${VITE_FRONTEND_URL}
+      VITE_GAME_ENGINE_API_URL: ${VITE_GAME_ENGINE_API_URL}
+      VITE_SCHEDULER_API_URL: ${VITE_SCHEDULER_API_URL}
+      VITE_SUPABASE_URL: ${SUPABASE_URL}
+      VITE_SUPABASE_IMG_URL: ${VITE_SUPABASE_IMG_URL}
+      VITE_SUPABASE_KEY: ${SUPABASE_KEY}
     depends_on:
       - website-db
     command: npm run dev

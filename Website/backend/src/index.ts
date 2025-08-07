@@ -14,7 +14,6 @@ import partnerRoute from './routes/partner.route';
 import hostRoute from './routes/host.route';
 import credentialRoute from './routes/credential.route'
 import {authenticateUser} from './middleware/authentication'; // Import the authentication middleware
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
@@ -25,7 +24,6 @@ const connect =async ()=>{
   }
 }
 connect();
-dotenv.config();
 
 const app: Express= express();
 app.use(express.json());

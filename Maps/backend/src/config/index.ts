@@ -1,13 +1,6 @@
-import { config } from 'dotenv'
-
-const envFile = ".env.development"
-config({ path: envFile })
-
 // Backend server
 export const {
     PORT,
-    NODE_ENV,
-    BASE_URL,
 } = process.env
 
 // Database
@@ -46,7 +39,6 @@ export const {
     GOOGLE_CLIENT_SECRET,
     GOOGLE_REDIRECT_URI,
     GOOGLE_REFRESH_TOKEN,
-    GOOGLE_PROJECT_ID,
     GOOGLE_MAPS_FOLDER_ID,
 } = process.env
 
@@ -59,7 +51,7 @@ export const {
 
 // CORS
 export const {
-    MAP_FRONTEND_PROT,
+    MAP_FRONTEND_PORT,
     GAME_ENGINE_BACKEND_PORT,
     WEBSITE_FRONTEND_PORT
 } = process.env
