@@ -8,6 +8,9 @@ Socket.io for real time communication and interaction.
 Jitsi for video conferencing.
 Finally, this project was managed and deployed using docker and Github.
 
+# Architecture
+<img width="2801" height="2162" alt="architecture" src="https://github.com/user-attachments/assets/e3693bec-422b-4c05-b108-f821985b4dbc" />
+
 # Some screenshots
 <img width="1919" height="930" alt="Screenshot 2025-05-12 140228" src="https://github.com/user-attachments/assets/46fc4a38-84f4-4c2d-af67-494eb7d53edf" />
 <img width="1230" height="624" alt="Screenshot 2025-04-23 131604" src="https://github.com/user-attachments/assets/8fb5d5df-32ca-4687-a60c-c45d1f7af330" />
